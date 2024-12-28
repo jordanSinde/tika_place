@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/config/app_assets.dart';
 import '../../../core/config/theme/app_colors.dart';
-import '../../../core/config/constants.dart';
 import '../widgets/animated_transition.dart';
 import '../widgets/parallax_globe.dart';
 
@@ -54,7 +54,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   AnimatedTransition(
                     animation: _fadeAnimation,
                     child: Image.asset(
-                      AppConstants.logoPath,
+                      AppAssets.logoPath,
                       height: 80,
                     ),
                   ),

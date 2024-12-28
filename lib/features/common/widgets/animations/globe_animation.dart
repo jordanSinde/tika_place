@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/config/app_assets.dart';
 import '../../../../core/config/constants.dart';
 
 class GlobeAnimation extends StatefulWidget {
@@ -52,7 +53,7 @@ class _GlobeAnimationState extends State<GlobeAnimation>
           builder: (context, child) => Transform.rotate(
             angle: _rotateAnimation.value,
             child: Image.asset(
-              AppConstants.globePath,
+              AppAssets.globePath,
               width: 200,
               height: 200,
             ),
@@ -67,7 +68,7 @@ class _GlobeAnimationState extends State<GlobeAnimation>
               child: Transform.rotate(
                 angle: 0.3,
                 child: Image.asset(
-                  AppConstants.planePath,
+                  AppAssets.planePath,
                   width: 30,
                   height: 30,
                 ),

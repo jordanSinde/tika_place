@@ -66,112 +66,116 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.primary.withOpacity(0.2),
-                width: 2,
-              ),
-            ),
-            child: const CircleAvatar(
-              radius: 20,
-              backgroundImage: AssetImage('assets/images/user/user-2.png'),
-            ),
-          ),
-        ],
-      ),
       drawer: const CustomDrawer(),
       body: destinationsState.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
           : RefreshIndicator(
               onRefresh: () async {
                 await ref
                     .read(destinationsProvider.notifier)
                     .loadDestinations();
               },
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const TravelHeadingSection(),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      _buildHeader(),
+                      const TravelHeadingSection(),
 
-                    // Section carte interactive
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: InteractiveGlobe(
-                        locations: [
-                          MapLocation(
-                            name: 'Paris',
-                            position: Offset(100, 120),
-                            color: AppColors.primary,
-                          ),
-                          MapLocation(
-                            name: 'Dubai',
-                            position: Offset(280, 140),
-                            color: AppColors.secondary,
-                          ),
-                          MapLocation(
-                            name: 'New York',
-                            position: Offset(150, 120),
-                            color: AppColors.secondary,
-                          ),
-                          MapLocation(
-                            name: 'London',
-                            position: Offset(200, 90),
-                            color: AppColors.primary,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Section destinations en vedette
-                    if (destinationsState.featuredDestinations.isNotEmpty)
-                      FeaturedDestinations(
-                        destinations: destinationsState.featuredDestinations,
-                        onDestinationTap: _onDestinationTap,
+                      // Section carte interactive
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: InteractiveGlobe(
+                          locations: [
+                            MapLocation(
+                              name: 'Paris',
+                              position: Offset(100, 120),
+                              color: AppColors.primary,
+                            ),
+                            MapLocation(
+                              name: 'Dubai',
+                              position: Offset(280, 140),
+                              color: AppColors.secondary,
+                            ),
+                            MapLocation(
+                              name: 'New York',
+                              position: Offset(150, 120),
+                              color: AppColors.secondary,
+                            ),
+                            MapLocation(
+                              name: 'London',
+                              position: Offset(200, 90),
+                              color: AppColors.primary,
+                            ),
+                          ],
+                        ),
                       ),
 
-                    // Section destinations populaires
-                    Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Popular Global Travel\nDestinations',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.2,
-                                ),
-                          ),
-                          const SizedBox(height: 24),
-                          _buildDestinationsList(),
-                        ],
-                      ),
-                    ),
+                      // Section destinations en vedette
+                      if (destinationsState.featuredDestinations.isNotEmpty)
+                        FeaturedDestinations(
+                          destinations: destinationsState.featuredDestinations,
+                          onDestinationTap: _onDestinationTap,
+                        ),
 
-                    // Nouvelles sections
-                    //const LatestFlightDeals(),
-                    const SizedBox(height: 24),
-                    const ContactSection(),
-                    const SizedBox(height: 24),
-                  ],
+                      // Section destinations populaires
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Popular Global Travel\nDestinations',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.2,
+                                  ),
+                            ),
+                            const SizedBox(height: 24),
+                            _buildDestinationsList(),
+                          ],
+                        ),
+                      ),
+
+                      // Nouvelles sections
+                      //const LatestFlightDeals(),
+                      const SizedBox(height: 24),
+                      const ContactSection(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Image.asset(
+            'assets/images/logo.png',
+            height: 40,
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(
+              Icons.menu,
+              size: 36,
+            ),
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          ),
+        ],
+      ),
     );
   }
 }

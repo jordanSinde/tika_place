@@ -1,9 +1,4 @@
 abstract class AppConstants {
-  // Assets
-  static const String logoPath = 'assets/images/logo.png';
-  static const String globePath = 'assets/images/images/map.png';
-  static const String planePath = 'assets/images/banner/plane.png';
-
   // Navigation
   static const Duration pageTransitionDuration = Duration(milliseconds: 300);
   static const Duration splashDuration = Duration(seconds: 3);
