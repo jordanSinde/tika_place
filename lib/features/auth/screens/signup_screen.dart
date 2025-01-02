@@ -131,7 +131,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               children: [
                 AuthHeader(
                   title: 'Create an account',
-                  onBackPressed: () => Navigator.pop(context),
+                  onBackPressed: () => context.go('/home'),
                 ),
                 const SizedBox(height: 32),
                 SocialButton(
@@ -154,12 +154,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     Expanded(child: Divider()),
                   ],
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'Sign up with your email address',
-                  style: Theme.of(context).textTheme.bodyLarge,
+                const SizedBox(height: 32),
+                // Email Input
+                Center(
+                  child: Text(
+                    'Sign up with your email address',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 CustomTextField(
                   label: 'First Name',
                   controller: _firstNameController,
@@ -187,7 +193,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
-                  label: 'Password',
+                  label: 'Mot De Passe',
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   suffixIcon: _obscurePassword
@@ -210,7 +216,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
-                  label: 'Phone Number',
+                  label: 'Num Tel',
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   validator: (value) {
@@ -222,7 +228,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildDropdownField(
-                  label: 'Language',
+                  label: 'Langue',
                   value: _selectedLanguage,
                   items: _languages,
                   onChanged: (value) {
@@ -233,7 +239,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildDropdownField(
-                  label: 'Country',
+                  label: 'Pays',
                   value: _selectedCountry,
                   items: _countries,
                   onChanged: (value) {

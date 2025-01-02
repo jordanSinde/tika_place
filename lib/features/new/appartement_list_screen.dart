@@ -1,6 +1,7 @@
 // apartments_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tika_place/core/config/app_assets.dart';
 import '../../../core/config/theme/app_colors.dart';
 
 class ApartmentsListScreen extends ConsumerWidget {
@@ -9,13 +10,6 @@ class ApartmentsListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Appartements disponibles'),
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: Column(
         children: [
           _buildSearchFilters(),
@@ -93,7 +87,7 @@ class ApartmentsListScreen extends ConsumerWidget {
                 top: Radius.circular(12),
               ),
               image: DecorationImage(
-                image: AssetImage('assets/images/placeholder.jpg'),
+                image: AssetImage(AppAssets.hotelDetail1),
                 fit: BoxFit.cover,
               ),
             ),

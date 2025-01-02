@@ -9,17 +9,16 @@ class BusDestinationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Destinations des Bus'),
+      /*appBar: AppBar(
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios,
             color: AppColors.primary,
             size: 20,
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.go('/home'),
         ),
-      ),
+      ),*/
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

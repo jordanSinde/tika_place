@@ -14,12 +14,12 @@ class ApartmentDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
+      /*appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
       body: CustomScrollView(
         slivers: [
           _buildAppBar(),

@@ -9,4 +9,13 @@ abstract class AppAssets {
 //Blog
 
 //car
+
+//Hotels
+  static const String hotelDetail1 = 'assets/images/hotel/hotel-detail-1.png';
+
+//Icons
+  static const String facebookIcon = 'assets/images/icons/facebook-icon.png';
+  static const String facebook = 'assets/images/icons/facebook.png';
+  static const String googleIcon = 'assets/images/icons/google-icon.png';
+  static const String google = 'assets/images/icons/google.png';
 }

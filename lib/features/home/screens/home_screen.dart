@@ -31,11 +31,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _onDestinationTap(Destination destination) {
     ref.read(destinationsProvider.notifier).selectDestination(destination);
-    /*Navigator.pushNamed(
-      context,
-      '/destination-detail',
-      arguments: destination,
-    );*/
     context.go('/home/destination/${destination.id}');
   }
 
@@ -85,6 +80,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const SizedBox(height: 16),
                       _buildHeader(),
                       const TravelHeadingSection(),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 12, 0, 24),
+                        child: Text(
+                          'Popular Global Travel\nDestinations',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                height: 1.2,
+                              ),
+                        ),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Booking Now',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
 
                       // Section carte interactive
                       const Padding(
@@ -129,7 +159,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Popular Global Travel\nDestinations',
+                              'Titre',
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineMedium

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tika_place/core/config/app_assets.dart';
 import '../../../../core/config/theme/app_colors.dart';
 
 enum SocialButtonType { google, facebook }
@@ -62,8 +63,8 @@ class SocialButton extends StatelessWidget {
 
   String _getIconPath() {
     return type == SocialButtonType.google
-        ? 'assets/icons/google.png'
-        : 'assets/icons/facebook.png';
+        ? AppAssets.googleIcon
+        : AppAssets.facebookIcon;
   }
 
   String _getButtonText() {

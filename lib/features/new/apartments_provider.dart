@@ -1,10 +1,10 @@
 // lib/features/apartments/providers/apartments_provider.dart
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'apartment.dart';
-part 'apartement_provider.freezed.dart';
-part 'apartement_provider.g.dart';
+
+part 'apartments_provider.freezed.dart';
+part 'apartments_provider.g.dart';
 
 @freezed
 class ApartmentsState with _$ApartmentsState {
@@ -19,9 +19,11 @@ class ApartmentsState with _$ApartmentsState {
 }
 
 @riverpod
-class ApartmentsNotifier extends _$ApartmentsNotifier {
+class Apartments extends _$Apartments {
   @override
-  FutureOr<ApartmentsState> build() async {
+  Future<ApartmentsState> build() async {
+    // Chargez immédiatement les appartements au démarrage
+    await loadApartments();
     return const ApartmentsState();
   }
 
@@ -31,9 +33,8 @@ class ApartmentsNotifier extends _$ApartmentsNotifier {
     int? minRooms,
     double? maxPrice,
   }) async {
-    state = const AsyncValue.loading();
+    state = const AsyncLoading();
     try {
-      // TODO: Implémenter l'appel API réel
       await Future.delayed(const Duration(seconds: 1));
 
       final apartments = [
@@ -52,31 +53,44 @@ class ApartmentsNotifier extends _$ApartmentsNotifier {
           ownerName: 'Jean Dupont',
           ownerPhone: '+237600000000',
         ),
-        // Ajouter plus d'appartements fictifs...
+        // Ajoutez plus d'appartements
       ];
 
-      state = AsyncValue.data(ApartmentsState(
+      state = AsyncData(ApartmentsState(
         apartments: apartments,
         featuredApartments: apartments.take(3).toList(),
         isLoading: false,
       ));
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+    } catch (e, stackTrace) {
+      state = AsyncError(e, stackTrace);
     }
   }
 
   void selectApartment(Apartment apartment) {
-    state =
-        AsyncValue.data(state.value!.copyWith(selectedApartment: apartment));
+    state.whenData((currentState) {
+      state = AsyncData(currentState.copyWith(selectedApartment: apartment));
+    });
   }
+}
 
-  void updateFilters(Map<String, dynamic> newFilters) {
-    state = AsyncValue.data(state.value!.copyWith(filters: newFilters));
-    loadApartments(
-      city: newFilters['city'],
-      isFurnished: newFilters['isFurnished'],
-      minRooms: newFilters['minRooms'],
-      maxPrice: newFilters['maxPrice'],
-    );
-  }
+// Providers pour accéder facilement aux données
+@riverpod
+List<Apartment> allApartments(AllApartmentsRef ref) {
+  return ref
+          .watch(apartmentsProvider)
+          .whenData(
+            (state) => state.apartments,
+          )
+          .value ??
+      [];
+}
+
+@riverpod
+Apartment? selectedApartment(SelectedApartmentRef ref) {
+  return ref
+      .watch(apartmentsProvider)
+      .whenData(
+        (state) => state.selectedApartment,
+      )
+      .value;
 }

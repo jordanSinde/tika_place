@@ -31,27 +31,6 @@ class TravelHeadingSection extends StatelessWidget {
         _buildWordBox('WORLD', isHighlighted: true),
         const SizedBox(height: 24),
         // Bouton de réservation
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Booking Now',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }

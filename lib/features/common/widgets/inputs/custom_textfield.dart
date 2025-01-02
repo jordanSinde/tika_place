@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/config/theme/app_colors.dart';
 
 class CustomTextField extends StatelessWidget {
-  final String label;
+  final String? label;
   final String? hint;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
@@ -16,7 +16,7 @@ class CustomTextField extends StatelessWidget {
 
   const CustomTextField({
     super.key,
-    required this.label,
+    this.label,
     this.hint,
     this.controller,
     this.validator,
@@ -34,16 +34,6 @@ class CustomTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (label.isNotEmpty) ...[
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
-          const SizedBox(height: 8),
-        ],
         TextFormField(
           controller: controller,
           validator: validator,
@@ -52,6 +42,11 @@ class CustomTextField extends StatelessWidget {
           focusNode: focusNode,
           enabled: isEnabled,
           decoration: InputDecoration(
+            labelText: label,
+            labelStyle: const TextStyle(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
             hintText: hint,
             prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
             suffixIcon: suffixIcon != null

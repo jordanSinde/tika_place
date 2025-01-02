@@ -2,8 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/config/theme/app_colors.dart';
-
 class BusBookingScreen extends ConsumerStatefulWidget {
   const BusBookingScreen({super.key});
 
@@ -18,7 +16,7 @@ class _BusBookingScreenState extends ConsumerState<BusBookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      /*appBar: AppBar(
         title: const Text('Réservation de billet'),
         leading: IconButton(
           icon: const Icon(
@@ -28,7 +26,7 @@ class _BusBookingScreenState extends ConsumerState<BusBookingScreen> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-      ),
+      ),*/
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

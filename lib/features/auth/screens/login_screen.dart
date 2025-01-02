@@ -67,7 +67,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 AuthHeader(
                   title: 'Log in',
-                  onBackPressed: () => Navigator.pop(context),
+                  onBackPressed: () => context.go('/home'),
                 ),
                 const SizedBox(height: 32),
                 // Social Buttons
@@ -94,8 +94,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
                 // Email Input
+                Center(
+                  child: Text(
+                    'Sign up with your email address',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ),
+                const SizedBox(height: 32),
                 CustomTextField(
                   label: 'Email',
+                  hint: 'Email',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
