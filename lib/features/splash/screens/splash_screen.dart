@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_assets.dart';
 import '../../../core/config/theme/app_colors.dart';
-import '../widgets/animated_transition.dart';
 import '../widgets/parallax_globe.dart';
+import 'package:go_router/go_router.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -21,11 +21,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void initState() {
     super.initState();
     _setupAnimations();
+    _initNavigation();
   }
 
   void _setupAnimations() {
     _fadeController = AnimationController(
-      duration: const Duration(seconds: 5),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
@@ -40,44 +41,77 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _fadeController.forward();
   }
 
+  void _initNavigation() {
+    Future.delayed(const Duration(seconds: 9), () {
+      // Augmenté à 5 secondes
+      if (mounted) {
+        context.go('/home');
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.drawerBackground,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedTransition(
-                    animation: _fadeAnimation,
-                    child: Image.asset(
-                      AppAssets.logoPath,
-                      height: 80,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  const ParallaxGlobe(),
-                ],
-              ),
-            ),
-            const Positioned(
-              bottom: 24,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Text(
-                  'Version 1.0.0',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary,
+              AppColors.primary.withBlue(150),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Center(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo
+                      Image.asset(
+                        AppAssets.logoPath,
+                        height: 120,
+                        width: 120,
+                      ),
+                      const SizedBox(height: 60),
+                      // Globe avec effet parallax
+                      const ParallaxGlobe(),
+                      const SizedBox(height: 60),
+                      // Indicateur de chargement
+                      const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        strokeWidth: 3,
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+              // Version en bas
+              Positioned(
+                bottom: 24,
+                left: 0,
+                right: 0,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: const Center(
+                    child: Text(
+                      'Version 1.0.0',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

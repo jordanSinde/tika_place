@@ -35,7 +35,7 @@ final selectedRouteProvider = AutoDisposeProvider<BusRoute?>.internal(
 );
 
 typedef SelectedRouteRef = AutoDisposeProviderRef<BusRoute?>;
-String _$busRouteByIdHash() => r'7b5282c9365b93f674a9595bcf21c5c08355b8fd';
+String _$busRouteByIdHash() => r'e28075c52260a7233f32d78cfea8c08f9fa8a893';
 
 /// Copied from Dart SDK
 class _SystemHash {
