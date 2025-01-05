@@ -25,9 +25,17 @@ mixin _$User {
   String get firstName => throw _privateConstructorUsedError;
   String? get lastName => throw _privateConstructorUsedError;
   String? get phoneNumber => throw _privateConstructorUsedError;
+  String? get hashedPassword =>
+      throw _privateConstructorUsedError; // Nouveau champ pour le mot de passe haché
+  String? get profilePicture => throw _privateConstructorUsedError;
+  AuthProvider get provider => throw _privateConstructorUsedError;
+  bool get isEmailVerified => throw _privateConstructorUsedError;
   String? get country => throw _privateConstructorUsedError;
   String? get language => throw _privateConstructorUsedError;
-  String? get profilePicture => throw _privateConstructorUsedError;
+  bool get hasCompletedProfile => throw _privateConstructorUsedError;
+  DateTime? get lastLoginAt => throw _privateConstructorUsedError;
+  DateTime get createdAt => throw _privateConstructorUsedError;
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -45,9 +53,16 @@ abstract class $UserCopyWith<$Res> {
       String firstName,
       String? lastName,
       String? phoneNumber,
+      String? hashedPassword,
+      String? profilePicture,
+      AuthProvider provider,
+      bool isEmailVerified,
       String? country,
       String? language,
-      String? profilePicture});
+      bool hasCompletedProfile,
+      DateTime? lastLoginAt,
+      DateTime createdAt,
+      DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -68,9 +83,16 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? firstName = null,
     Object? lastName = freezed,
     Object? phoneNumber = freezed,
+    Object? hashedPassword = freezed,
+    Object? profilePicture = freezed,
+    Object? provider = null,
+    Object? isEmailVerified = null,
     Object? country = freezed,
     Object? language = freezed,
-    Object? profilePicture = freezed,
+    Object? hasCompletedProfile = null,
+    Object? lastLoginAt = freezed,
+    Object? createdAt = null,
+    Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -93,6 +115,22 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
           ? _value.phoneNumber
           : phoneNumber // ignore: cast_nullable_to_non_nullable
               as String?,
+      hashedPassword: freezed == hashedPassword
+          ? _value.hashedPassword
+          : hashedPassword // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profilePicture: freezed == profilePicture
+          ? _value.profilePicture
+          : profilePicture // ignore: cast_nullable_to_non_nullable
+              as String?,
+      provider: null == provider
+          ? _value.provider
+          : provider // ignore: cast_nullable_to_non_nullable
+              as AuthProvider,
+      isEmailVerified: null == isEmailVerified
+          ? _value.isEmailVerified
+          : isEmailVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
       country: freezed == country
           ? _value.country
           : country // ignore: cast_nullable_to_non_nullable
@@ -101,10 +139,22 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
           ? _value.language
           : language // ignore: cast_nullable_to_non_nullable
               as String?,
-      profilePicture: freezed == profilePicture
-          ? _value.profilePicture
-          : profilePicture // ignore: cast_nullable_to_non_nullable
-              as String?,
+      hasCompletedProfile: null == hasCompletedProfile
+          ? _value.hasCompletedProfile
+          : hasCompletedProfile // ignore: cast_nullable_to_non_nullable
+              as bool,
+      lastLoginAt: freezed == lastLoginAt
+          ? _value.lastLoginAt
+          : lastLoginAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -122,9 +172,16 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
       String firstName,
       String? lastName,
       String? phoneNumber,
+      String? hashedPassword,
+      String? profilePicture,
+      AuthProvider provider,
+      bool isEmailVerified,
       String? country,
       String? language,
-      String? profilePicture});
+      bool hasCompletedProfile,
+      DateTime? lastLoginAt,
+      DateTime createdAt,
+      DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -142,9 +199,16 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? firstName = null,
     Object? lastName = freezed,
     Object? phoneNumber = freezed,
+    Object? hashedPassword = freezed,
+    Object? profilePicture = freezed,
+    Object? provider = null,
+    Object? isEmailVerified = null,
     Object? country = freezed,
     Object? language = freezed,
-    Object? profilePicture = freezed,
+    Object? hasCompletedProfile = null,
+    Object? lastLoginAt = freezed,
+    Object? createdAt = null,
+    Object? updatedAt = freezed,
   }) {
     return _then(_$UserImpl(
       id: null == id
@@ -167,6 +231,22 @@ class __$$UserImplCopyWithImpl<$Res>
           ? _value.phoneNumber
           : phoneNumber // ignore: cast_nullable_to_non_nullable
               as String?,
+      hashedPassword: freezed == hashedPassword
+          ? _value.hashedPassword
+          : hashedPassword // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profilePicture: freezed == profilePicture
+          ? _value.profilePicture
+          : profilePicture // ignore: cast_nullable_to_non_nullable
+              as String?,
+      provider: null == provider
+          ? _value.provider
+          : provider // ignore: cast_nullable_to_non_nullable
+              as AuthProvider,
+      isEmailVerified: null == isEmailVerified
+          ? _value.isEmailVerified
+          : isEmailVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
       country: freezed == country
           ? _value.country
           : country // ignore: cast_nullable_to_non_nullable
@@ -175,10 +255,22 @@ class __$$UserImplCopyWithImpl<$Res>
           ? _value.language
           : language // ignore: cast_nullable_to_non_nullable
               as String?,
-      profilePicture: freezed == profilePicture
-          ? _value.profilePicture
-          : profilePicture // ignore: cast_nullable_to_non_nullable
-              as String?,
+      hasCompletedProfile: null == hasCompletedProfile
+          ? _value.hasCompletedProfile
+          : hasCompletedProfile // ignore: cast_nullable_to_non_nullable
+              as bool,
+      lastLoginAt: freezed == lastLoginAt
+          ? _value.lastLoginAt
+          : lastLoginAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -192,9 +284,16 @@ class _$UserImpl implements _User {
       required this.firstName,
       this.lastName,
       this.phoneNumber,
+      this.hashedPassword,
+      this.profilePicture,
+      required this.provider,
+      required this.isEmailVerified,
       this.country,
       this.language,
-      this.profilePicture});
+      this.hasCompletedProfile = false,
+      this.lastLoginAt,
+      required this.createdAt,
+      this.updatedAt});
 
   factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserImplFromJson(json);
@@ -210,15 +309,31 @@ class _$UserImpl implements _User {
   @override
   final String? phoneNumber;
   @override
+  final String? hashedPassword;
+// Nouveau champ pour le mot de passe haché
+  @override
+  final String? profilePicture;
+  @override
+  final AuthProvider provider;
+  @override
+  final bool isEmailVerified;
+  @override
   final String? country;
   @override
   final String? language;
   @override
-  final String? profilePicture;
+  @JsonKey()
+  final bool hasCompletedProfile;
+  @override
+  final DateTime? lastLoginAt;
+  @override
+  final DateTime createdAt;
+  @override
+  final DateTime? updatedAt;
 
   @override
   String toString() {
-    return 'User(id: $id, email: $email, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber, country: $country, language: $language, profilePicture: $profilePicture)';
+    return 'User(id: $id, email: $email, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber, hashedPassword: $hashedPassword, profilePicture: $profilePicture, provider: $provider, isEmailVerified: $isEmailVerified, country: $country, language: $language, hasCompletedProfile: $hasCompletedProfile, lastLoginAt: $lastLoginAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -234,17 +349,46 @@ class _$UserImpl implements _User {
                 other.lastName == lastName) &&
             (identical(other.phoneNumber, phoneNumber) ||
                 other.phoneNumber == phoneNumber) &&
+            (identical(other.hashedPassword, hashedPassword) ||
+                other.hashedPassword == hashedPassword) &&
+            (identical(other.profilePicture, profilePicture) ||
+                other.profilePicture == profilePicture) &&
+            (identical(other.provider, provider) ||
+                other.provider == provider) &&
+            (identical(other.isEmailVerified, isEmailVerified) ||
+                other.isEmailVerified == isEmailVerified) &&
             (identical(other.country, country) || other.country == country) &&
             (identical(other.language, language) ||
                 other.language == language) &&
-            (identical(other.profilePicture, profilePicture) ||
-                other.profilePicture == profilePicture));
+            (identical(other.hasCompletedProfile, hasCompletedProfile) ||
+                other.hasCompletedProfile == hasCompletedProfile) &&
+            (identical(other.lastLoginAt, lastLoginAt) ||
+                other.lastLoginAt == lastLoginAt) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, email, firstName, lastName,
-      phoneNumber, country, language, profilePicture);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      email,
+      firstName,
+      lastName,
+      phoneNumber,
+      hashedPassword,
+      profilePicture,
+      provider,
+      isEmailVerified,
+      country,
+      language,
+      hasCompletedProfile,
+      lastLoginAt,
+      createdAt,
+      updatedAt);
 
   @JsonKey(ignore: true)
   @override
@@ -267,9 +411,16 @@ abstract class _User implements User {
       required final String firstName,
       final String? lastName,
       final String? phoneNumber,
+      final String? hashedPassword,
+      final String? profilePicture,
+      required final AuthProvider provider,
+      required final bool isEmailVerified,
       final String? country,
       final String? language,
-      final String? profilePicture}) = _$UserImpl;
+      final bool hasCompletedProfile,
+      final DateTime? lastLoginAt,
+      required final DateTime createdAt,
+      final DateTime? updatedAt}) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
 
@@ -284,11 +435,25 @@ abstract class _User implements User {
   @override
   String? get phoneNumber;
   @override
+  String? get hashedPassword;
+  @override // Nouveau champ pour le mot de passe haché
+  String? get profilePicture;
+  @override
+  AuthProvider get provider;
+  @override
+  bool get isEmailVerified;
+  @override
   String? get country;
   @override
   String? get language;
   @override
-  String? get profilePicture;
+  bool get hasCompletedProfile;
+  @override
+  DateTime? get lastLoginAt;
+  @override
+  DateTime get createdAt;
+  @override
+  DateTime? get updatedAt;
   @override
   @JsonKey(ignore: true)
   _$$UserImplCopyWith<_$UserImpl> get copyWith =>

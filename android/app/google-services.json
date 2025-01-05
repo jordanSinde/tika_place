@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "186414752320",
+    "project_id": "tikaplace",
+    "storage_bucket": "tikaplace.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:186414752320:android:48c1eca202e08adaba75a5",
+        "android_client_info": {
+          "package_name": "tikaplace.com.tika_place"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "186414752320-si2h8nnviuqlc0iinu9unghvjubt1pkk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFpUplwlR1G9eaooOYswDmj1se1jGtERo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "186414752320-si2h8nnviuqlc0iinu9unghvjubt1pkk.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "186414752320-i57uhg0k5ertmpp09f52nhitagcpqeqf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "tikaplace.com.tikaPlace"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -19,4 +19,26 @@ abstract class AppConstants {
 
   // Mock Data Delays (pour simuler des appels API)
   static const Duration mockApiDelay = Duration(milliseconds: 800);
+
+  // Session
+  static const String tokenKey = 'auth_token';
+  static const String userKey = 'user_data';
+
+  // Validation
+  static const int maxPasswordLength = 30;
+  static const int minNameLength = 2;
+  static const int maxNameLength = 50;
+
+  // Messages d'erreur
+  static const String invalidEmail = 'Please enter a valid email address';
+  static const String invalidPassword =
+      'Password must be at least 6 characters';
+  static const String requiredField = 'This field is required';
+  static const String invalidPhone = 'Please enter a valid phone number';
+  static const String networkError = 'Please check your internet connection';
+  static const String unknownError = 'An unexpected error occurred';
+
+  // Données de test
+  static const String testEmail = 'test@example.com';
+  static const String testPassword = 'password123';
 }

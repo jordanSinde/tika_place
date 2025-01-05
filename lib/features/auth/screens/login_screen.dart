@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/config/theme/app_colors.dart';
+import '../../common/widgets/buttons/social_button.dart';
 import '../../common/widgets/inputs/custom_textfield.dart';
 import '../providers/auth_provider.dart';
+
+import '../utils/error_text.dart';
+import '../utils/form_validator.dart';
 import '../widgets/auth_header.dart';
-import '../../common/widgets/buttons/social_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -27,26 +31,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleLoginWithEmailPasswoord() async {
+    setState(() => _errorMessage = null);
+
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        await ref.read(authProvider.notifier).signIn(
-              _emailController.text,
+        await ref.read(authProvider.notifier).signInWithEmail(
+              _emailController.text.trim(),
               _passwordController.text,
             );
+
         if (!mounted) return;
 
-        final redirectPath = ref.read(authProvider).redirectPath;
-        if (redirectPath != null) {
-          ref.read(authProvider.notifier).clearRedirectPath();
-          context.go(redirectPath);
-        } else {
-          context.go('/home');
-        }
+        // La navigation sera gérée automatiquement par le routeur
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        setState(() => _errorMessage = e.toString());
       }
     }
   }
@@ -54,6 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -66,8 +66,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AuthHeader(
-                  title: 'Log in',
-                  onBackPressed: () => context.go('/home'),
+                  title: 'Welcome Back',
+                  subtitle: 'Sign in to continue',
+                  onBackPressed: () => context.go('/'),
                 ),
                 const SizedBox(height: 32),
                 // Social Buttons
@@ -104,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                CustomTextField(
+                /*CustomTextField(
                   label: 'Email',
                   hint: 'Email',
                   controller: _emailController,
@@ -142,13 +143,59 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     }
                     return null;
                   },
+                ),*/
+                if (_errorMessage != null) ErrorText(error: _errorMessage!),
+                CustomTextField(
+                  //label: 'Email',
+                  hint: 'Email',
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: FormValidator.email.build(),
+                  enabled: !authState.isLoading,
+                  textInputAction: TextInputAction.next,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  //label: 'Password',
+                  hint: 'Password',
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  validator: FormValidator.password.build(),
+                  suffixIcon: _obscurePassword
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                  onSuffixIconPressed: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                  enabled: !authState.isLoading,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _handleLoginWithEmailPasswoord(),
+                ),
+                const SizedBox(height: 8),
+                //const SizedBox(height: 32),
                 // Login Button
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      // TODO: Implémenter la réinitialisation du mot de passe
+                    },
+                    child: Text(
+                      'Forgot Password?',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: authState.isLoading ? null : _handleLogin,
+                    onPressed: authState.isLoading
+                        ? null
+                        : _handleLoginWithEmailPasswoord,
                     child: authState.isLoading
                         ? const SizedBox(
                             height: 20,
@@ -163,7 +210,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 // Sign Up Link
-                Center(
+                /*Center(
                   child: TextButton(
                     onPressed: () {
                       //Navigator.pushNamed(context, '/signup');
@@ -173,6 +220,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       'Don\'t have an account? Sign up',
                       style: TextStyle(
                         color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),*/
+                Center(
+                  child: TextButton(
+                    onPressed: () => context.go('/signup'),
+                    child: RichText(
+                      text: TextSpan(
+                        text: 'Don\'t have an account? ',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Sign up',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

@@ -4,6 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/providers/auth_state.dart';
+import '../../features/auth/providers/session_provider.dart';
+import '../../features/auth/screens/change_password_screen.dart';
+import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/auth/screens/manage_sessions_screen.dart';
+import '../../features/auth/screens/profil_screen.dart';
 import '../../features/new/apartments_provider.dart';
 import '../../features/new/appartement_list_screen.dart';
 import '../../features/new/appartements_booking_screen.dart';
@@ -20,14 +25,49 @@ import '../config/theme/app_colors.dart';
 
 // Widgets et thèmes
 import '../../features/common/widgets/drawers/custom_drawer.dart';
+import '../utils/page_transition.dart';
+
+final GlobalKey<NavigatorState> _rootNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'root');
+final GlobalKey<NavigatorState> _shellNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     debugLogDiagnostics: true,
+    redirect: (context, state) {
+      // Obtenir le statut d'authentification
+      final isAuth = authState.isAuthenticated;
+      final isLoggingIn = state.matchedLocation == '/login';
+      final isSigningUp = state.matchedLocation == '/signup';
+      final isSplash = state.matchedLocation == '/';
+
+      // Si l'utilisateur est sur le splash screen, ne pas rediriger
+      if (isSplash) return null;
+
+      // Si l'utilisateur n'est pas authentifié et n'est pas sur une page d'auth
+      if (!isAuth) {
+        // Permettre l'accès aux routes d'authentification
+        if (isLoggingIn || isSigningUp) return null;
+
+        // Rediriger vers login pour toutes les autres routes
+        return '/login';
+      }
+
+      // Si l'utilisateur est authentifié et sur une page d'auth
+      if (isAuth && (isLoggingIn || isSigningUp)) {
+        return '/home';
+      }
+
+      // Dans tous les autres cas, ne pas rediriger
+      return null;
+    },
     routes: [
+      // Routes publiques
       GoRoute(
         path: '/',
         builder: (context, state) => const SplashScreen(),
@@ -40,56 +80,34 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/signup',
         builder: (context, state) => const SignupScreen(),
       ),
+      GoRoute(
+        path: '/forgot-password',
+        pageBuilder: (context, state) => PageTransitions.fadeTransition(
+          context,
+          state,
+          const ForgotPasswordScreen(),
+        ),
+      ),
 
-      // Application principale avec Shell (AppBar commune)
+      // Routes protégées avec Shell
       ShellRoute(
+        navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) {
           return Consumer(
             builder: (context, ref, _) {
-              final showAppBar = state.uri.toString() != '/home';
-              final drawerEnabled = state.uri.toString() != '/login' &&
-                  state.uri.toString() != '/signup' &&
-                  state.uri.toString() != '/';
+              // Vérifier l'authentification
+              final isAuth = ref.watch(authProvider).isAuthenticated;
+              if (!isAuth) {
+                return const LoginScreen();
+              }
 
+              // UI Shell commun pour les routes protégées
               return Scaffold(
-                // AppBar dynamique
-
-                appBar: showAppBar
-                    ? AppBar(
-                        leading: Navigator.of(context).canPop()
-                            ? IconButton(
-                                icon: const Icon(Icons.arrow_back),
-                                onPressed: () => context.pop(),
-                              )
-                            : drawerEnabled
-                                ? IconButton(
-                                    icon: const Icon(
-                                      Icons.arrow_back_ios,
-                                      color: AppColors.primary,
-                                      size: 20,
-                                    ),
-                                    onPressed: () => context.go('/home'),
-                                  )
-                                : null,
-                        title: Text(_getTitle(state, ref)),
-                        backgroundColor: Colors.transparent,
-                        elevation: 0,
-                        actions: [
-                          // Vous pouvez ajouter des actions communes ici
-                          if (drawerEnabled) ...[
-                            IconButton(
-                              icon: const Icon(Icons.search),
-                              onPressed: () {
-                                // Implémentez la recherche globale
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                        ],
-                      )
-                    : null,
-                // Drawer conditionnel
-                drawer: drawerEnabled ? const CustomDrawer() : null,
+                appBar: AppBar(
+                  title: Text(_getTitle(state, ref)),
+                  actions: _getActions(context, state, ref),
+                ),
+                drawer: const CustomDrawer(),
                 body: child,
               );
             },
@@ -165,6 +183,30 @@ final routerProvider = Provider<GoRouter>((ref) {
             redirect: (context, state) =>
                 _authGuard(authState, state.fullPath!),
           ),
+          GoRoute(
+            path: '/profile',
+            pageBuilder: (context, state) => PageTransitions.fadeTransition(
+              context,
+              state,
+              const ProfileScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/change-password',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const ChangePasswordScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/manage-sessions',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const ManageSessionsScreen(),
+            ),
+          ),
         ],
       ),
     ],
@@ -202,6 +244,49 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
+
+List<Widget> _getActions(
+    BuildContext context, GoRouterState state, WidgetRef ref) {
+  final currentRoute = state.matchedLocation;
+
+  // Actions spécifiques selon la route
+  if (currentRoute == '/profile') {
+    return [
+      IconButton(
+        icon: const Icon(Icons.security),
+        onPressed: () => context.push('/manage-sessions'),
+      ),
+    ];
+  }
+
+  if (currentRoute.startsWith('/manage-sessions')) {
+    return [
+      TextButton(
+        onPressed: () async {
+          final currentSession = ref.read(currentSessionProvider);
+          if (currentSession != null) {
+            await ref
+                .read(sessionSecurityProvider)
+                .revokeAllOtherSessions(currentSession.id);
+          }
+        },
+        child: const Text('Revoke All'),
+      ),
+    ];
+  }
+
+  return [
+    IconButton(
+      icon: const Icon(Icons.logout),
+      onPressed: () async {
+        await ref.read(authProvider.notifier).signOut();
+        if (context.mounted) {
+          context.go('/login');
+        }
+      },
+    ),
+  ];
+}
 
 String _getTitle(GoRouterState state, WidgetRef ref) {
   final path = state.matchedLocation;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_assets.dart';
 import '../../../core/config/theme/app_colors.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../widgets/parallax_globe.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,7 +22,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void initState() {
     super.initState();
     _setupAnimations();
-    _initNavigation();
+    _initializeAndNavigate();
   }
 
   void _setupAnimations() {
@@ -41,13 +42,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _fadeController.forward();
   }
 
-  void _initNavigation() {
-    Future.delayed(const Duration(seconds: 9), () {
-      // Augmenté à 5 secondes
-      if (mounted) {
-        context.go('/home');
-      }
-    });
+  Future<void> _initializeAndNavigate() async {
+    // Attendre que les animations soient terminées (4 secondes au lieu de 9)
+    await Future.delayed(
+      const Duration(seconds: 4),
+    );
+
+    if (!mounted) return;
+
+    // Vérifier l'état d'authentification
+    final isAuthenticated = ref.read(authProvider).isAuthenticated;
+
+    // Navigation vers la page appropriée
+    if (isAuthenticated) {
+      context.go('/home');
+    } else {
+      context.go('/login');
+    }
   }
 
   @override

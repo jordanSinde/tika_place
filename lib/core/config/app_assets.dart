@@ -1,3 +1,4 @@
+//lib/core/config/app_assets.dart
 abstract class AppAssets {
   static const String logoPath = 'assets/images/logo.png';
   static const String globePath = 'assets/images/images/map.png';
