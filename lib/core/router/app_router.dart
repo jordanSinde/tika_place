@@ -2,10 +2,12 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/auth/models/user.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/providers/auth_state.dart';
 import '../../features/auth/providers/session_provider.dart';
 import '../../features/auth/screens/change_password_screen.dart';
+import '../../features/auth/screens/email_verification_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/manage_sessions_screen.dart';
 import '../../features/auth/screens/profil_screen.dart';
@@ -45,6 +47,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = state.matchedLocation == '/login';
       final isSigningUp = state.matchedLocation == '/signup';
       final isSplash = state.matchedLocation == '/';
+      final isVerifyingEmail = state.matchedLocation == '/verify-email';
 
       // Si l'utilisateur est sur le splash screen, ne pas rediriger
       if (isSplash) return null;
@@ -56,6 +59,14 @@ final routerProvider = Provider<GoRouter>((ref) {
 
         // Rediriger vers login pour toutes les autres routes
         return '/login';
+      }
+
+      // Vérification de l'email pour les utilisateurs connectés par email
+      if (isAuth &&
+          !isVerifyingEmail &&
+          authState.user?.provider == AuthProvider.email &&
+          !authState.user!.isEmailVerified) {
+        return '/verify-email';
       }
 
       // Si l'utilisateur est authentifié et sur une page d'auth
@@ -86,6 +97,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           context,
           state,
           const ForgotPasswordScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/verify-email',
+        pageBuilder: (context, state) => PageTransitions.fadeTransition(
+          context,
+          state,
+          const EmailVerificationScreen(),
         ),
       ),
 

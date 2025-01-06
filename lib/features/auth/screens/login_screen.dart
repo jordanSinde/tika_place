@@ -31,7 +31,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _handleLoginWithEmailPasswoord() async {
+  // Gérer la connexion avec email/mot de passe
+  Future<void> _handleEmailSignIn() async {
     setState(() => _errorMessage = null);
 
     if (_formKey.currentState?.validate() ?? false) {
@@ -40,13 +41,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               _emailController.text.trim(),
               _passwordController.text,
             );
-
-        if (!mounted) return;
-
-        // La navigation sera gérée automatiquement par le routeur
       } catch (e) {
         setState(() => _errorMessage = e.toString());
       }
+    }
+  }
+
+  // Gérer la connexion avec Google
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _errorMessage = null);
+    try {
+      await ref.read(authProvider.notifier).signInWithGoogle();
+    } catch (e) {
+      setState(() => _errorMessage = e.toString());
+    }
+  }
+
+  // Gérer la connexion avec Facebook
+  Future<void> _handleFacebookSignIn() async {
+    setState(() => _errorMessage = null);
+    try {
+      await ref.read(authProvider.notifier).signInWithFacebook();
+    } catch (e) {
+      setState(() => _errorMessage = e.toString());
     }
   }
 
@@ -66,23 +83,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AuthHeader(
-                  title: 'Welcome Back',
+                  title: 'Welcome',
                   subtitle: 'Sign in to continue',
                   onBackPressed: () => context.go('/'),
                 ),
                 const SizedBox(height: 32),
-                // Social Buttons
+
+                // Boutons de connexion sociale
                 SocialButton(
                   type: SocialButtonType.google,
-                  onPressed: () {},
+                  onPressed: _handleGoogleSignIn,
+                  isLoading: authState.isLoading,
                 ),
                 const SizedBox(height: 16),
                 SocialButton(
                   type: SocialButtonType.facebook,
-                  onPressed: () {},
+                  onPressed: _handleFacebookSignIn,
+                  isLoading: authState.isLoading,
                 ),
                 const SizedBox(height: 32),
-                // Divider
+
+                // Séparateur
                 const Row(
                   children: [
                     Expanded(child: Divider()),
@@ -94,59 +115,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                // Email Input
-                Center(
-                  child: Text(
-                    'Sign up with your email address',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                /*CustomTextField(
-                  label: 'Email',
-                  hint: 'Email',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Please enter your email';
-                    }
-                    if (!value!.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                // Password Input
-                CustomTextField(
-                  label: 'Password',
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  suffixIcon: _obscurePassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  onSuffixIconPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Please enter your password';
-                    }
-                    if (value!.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),*/
+
+                // Formulaire de connexion par email
                 if (_errorMessage != null) ErrorText(error: _errorMessage!),
+
                 CustomTextField(
-                  //label: 'Email',
                   hint: 'Email',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -155,8 +128,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   textInputAction: TextInputAction.next,
                 ),
                 const SizedBox(height: 16),
+
                 CustomTextField(
-                  //label: 'Password',
                   hint: 'Password',
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -169,17 +142,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   },
                   enabled: !authState.isLoading,
                   textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _handleLoginWithEmailPasswoord(),
+                  onSubmitted: (_) => _handleEmailSignIn(),
                 ),
                 const SizedBox(height: 8),
-                //const SizedBox(height: 32),
-                // Login Button
+
+                // Lien "Mot de passe oublié"
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO: Implémenter la réinitialisation du mot de passe
-                    },
+                    onPressed: () => context.push('/forgot-password'),
                     child: Text(
                       'Forgot Password?',
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -190,12 +161,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
+
+                // Bouton de connexion
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: authState.isLoading
-                        ? null
-                        : _handleLoginWithEmailPasswoord,
+                    onPressed: authState.isLoading ? null : _handleEmailSignIn,
                     child: authState.isLoading
                         ? const SizedBox(
                             height: 20,
@@ -209,21 +180,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Sign Up Link
-                /*Center(
-                  child: TextButton(
-                    onPressed: () {
-                      //Navigator.pushNamed(context, '/signup');
-                      context.go('/signup');
-                    },
-                    child: const Text(
-                      'Don\'t have an account? Sign up',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ),*/
+
+                // Lien d'inscription
                 Center(
                   child: TextButton(
                     onPressed: () => context.go('/signup'),

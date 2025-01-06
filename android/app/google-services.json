@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "186414752320-cs62safqoc78jm4b62re0oturtc19r9g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tikaplace.com.tika_place",
+            "certificate_hash": "214c7838152c03b21a723ddfdefbaf44de851295"
+          }
+        },
+        {
           "client_id": "186414752320-si2h8nnviuqlc0iinu9unghvjubt1pkk.apps.googleusercontent.com",
           "client_type": 3
         }

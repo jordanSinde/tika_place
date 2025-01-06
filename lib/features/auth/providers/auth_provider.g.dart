@@ -6,37 +6,21 @@ part of 'auth_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$secureStorageHash() => r'87147a385481d78a34f548db1dfd44a7457ac67e';
+String _$firebaseAuthHash() => r'7fdcb68af33ddc65cdbc1a4a666b2d6729e4ed92';
 
-/// See also [secureStorage].
-@ProviderFor(secureStorage)
-final secureStorageProvider =
-    AutoDisposeProvider<SecureStorageService>.internal(
-  secureStorage,
-  name: r'secureStorageProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$secureStorageHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef SecureStorageRef = AutoDisposeProviderRef<SecureStorageService>;
-String _$authServiceHash() => r'842cfc75d98586d89ed4ce430a27228fd86f9fd1';
-
-/// See also [authService].
-@ProviderFor(authService)
-final authServiceProvider = AutoDisposeProvider<AuthService>.internal(
-  authService,
-  name: r'authServiceProvider',
+/// See also [firebaseAuth].
+@ProviderFor(firebaseAuth)
+final firebaseAuthProvider = AutoDisposeProvider<FirebaseAuthService>.internal(
+  firebaseAuth,
+  name: r'firebaseAuthProvider',
   debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$authServiceHash,
+      const bool.fromEnvironment('dart.vm.product') ? null : _$firebaseAuthHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef AuthServiceRef = AutoDisposeProviderRef<AuthService>;
-String _$authHash() => r'8b0e9dd6ef6d181c8378faa29ccd1936a44e9f6a';
+typedef FirebaseAuthRef = AutoDisposeProviderRef<FirebaseAuthService>;
+String _$authHash() => r'7e0cb567d0d0384e476a4f13f21f9451ac0c27a2';
 
 /// See also [Auth].
 @ProviderFor(Auth)

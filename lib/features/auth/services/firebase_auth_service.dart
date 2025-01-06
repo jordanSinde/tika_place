@@ -23,7 +23,7 @@ class FirebaseAuthService {
       id: firebaseUser.uid,
       email: firebaseUser.email ?? '',
       firstName: firebaseUser.displayName?.split(' ').first ?? '',
-      lastName: firebaseUser.displayName?.split(' ').length ?? 0 > 1
+      lastName: (firebaseUser.displayName?.split(' ').length ?? 0) > 1
           ? firebaseUser.displayName?.split(' ').sublist(1).join(' ')
           : null,
       phoneNumber: firebaseUser.phoneNumber,
@@ -115,10 +115,6 @@ class FirebaseAuthService {
       // Mettre à jour le profil utilisateur
       await userCredential.user!
           .updateDisplayName('$firstName ${lastName ?? ''}');
-      if (phoneNumber != null) {
-        await userCredential.user!.updatePhoneNumber(
-            phoneNumber as firebase_auth.PhoneAuthCredential);
-      }
 
       // Envoyer l'email de vérification
       await userCredential.user!.sendEmailVerification();

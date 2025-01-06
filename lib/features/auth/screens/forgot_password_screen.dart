@@ -8,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../utils/error_text.dart';
 import '../utils/form_validator.dart';
 import '../widgets/auth_header.dart';
+import 'package:go_router/go_router.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -21,6 +22,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   String? _errorMessage;
+  bool _isResetSent = false;
 
   @override
   void dispose() {
@@ -28,31 +30,43 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  /*Future<void> _handleResetRequest() async {
+  Future<void> _handleResetRequest() async {
+    setState(() => _errorMessage = null);
+
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        await ref.read(authProvider.notifier).requestPasswordReset(
+        await ref.read(authProvider.notifier).resetPassword(
               _emailController.text.trim(),
             );
 
         if (!mounted) return;
 
+        setState(() => _isResetSent = true);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Password reset instructions sent to your email'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
           ),
         );
-        Navigator.of(context).pop();
+
+        // Attendre quelques secondes avant de rediriger
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) {
+            context.pop();
+          }
+        });
       } catch (e) {
         setState(() => _errorMessage = e.toString());
       }
     }
-  }*/
+  }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -66,24 +80,85 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               children: [
                 AuthHeader(
                   title: 'Reset Password',
-                  subtitle: 'Enter your email to receive reset instructions',
-                  onBackPressed: () => Navigator.of(context).pop(),
+                  subtitle:
+                      'Enter your email address to receive reset instructions',
+                  onBackPressed: () => context.pop(),
                 ),
                 const SizedBox(height: 32),
+
+                // Instructions
+                Text(
+                  _isResetSent
+                      ? 'A password reset link has been sent to your email. Please check your inbox and follow the instructions.'
+                      : 'We will send you an email with instructions to reset your password.',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Message d'erreur
                 if (_errorMessage != null) ErrorText(error: _errorMessage!),
+
+                // Champ email
                 CustomTextField(
                   label: 'Email',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   validator: FormValidator.email.build(),
-                  enabled: !authState.isLoading,
+                  enabled: !authState.isLoading && !_isResetSent,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _handleResetRequest(),
                 ),
                 const SizedBox(height: 32),
+
+                // Bouton d'envoi
                 PrimaryButton(
-                  text: 'Send Instructions',
-                  onPressed: () {}, //_handleResetRequest,
+                  text: _isResetSent ? 'Resend Email' : 'Send Instructions',
+                  onPressed: () => !_isResetSent ? _handleResetRequest : null,
                   isLoading: authState.isLoading,
                 ),
+                const SizedBox(height: 16),
+
+                // Lien de retour
+                if (!_isResetSent)
+                  Center(
+                    child: TextButton(
+                      onPressed: () => context.go('/login'),
+                      child: RichText(
+                        text: TextSpan(
+                          text: 'Remember your password? ',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Login',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Timer si email envoyé
+                if (_isResetSent)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 24),
+                    child: Center(
+                      child: Text(
+                        'You can close this window or request a new reset link',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

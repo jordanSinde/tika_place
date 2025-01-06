@@ -1,26 +1,14 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../../core/providers/shared_preferences_provider.dart';
-import '../services/auth_service.dart';
-import '../services/secure_storage_service.dart';
+import '../services/firebase_auth_service.dart';
 import 'auth_state.dart';
 
 part 'auth_provider.g.dart';
 
-// Provider pour le service de stockage sécurisé
 @riverpod
-SecureStorageService secureStorage(SecureStorageRef ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return SecureStorageService(prefs);
+FirebaseAuthService firebaseAuth(FirebaseAuthRef ref) {
+  return FirebaseAuthService();
 }
 
-// Provider pour le service d'authentification
-@riverpod
-AuthService authService(AuthServiceRef ref) {
-  final storage = ref.watch(secureStorageProvider);
-  return AuthService(storage);
-}
-
-// Provider principal d'authentification
 @Riverpod(keepAlive: true)
 class Auth extends _$Auth {
   @override
@@ -32,10 +20,30 @@ class Auth extends _$Auth {
   Future<void> _initializeAuth() async {
     state = state.copyWith(isLoading: true);
     try {
-      final user = await ref.read(authServiceProvider).getCurrentUser();
+      // Écouter les changements d'état d'authentification
+      ref.listen(firebaseAuthProvider, (previous, next) {
+        // Utiliser un StreamSubscription pour pouvoir l'annuler plus tard
+        final subscription = next.authStateChanges().listen((user) {
+          state = state.copyWith(
+            user: user,
+            isLoading: false,
+            error: null,
+          );
+        });
+
+        // Annuler la subscription quand le provider est disposé
+        ref.onDispose(() {
+          subscription.cancel();
+        });
+      });
+
+      final user = await ref.read(firebaseAuthProvider).getCurrentUser();
       state = AuthState(user: user);
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
     }
   }
 
@@ -45,8 +53,42 @@ class Auth extends _$Auth {
 
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final user =
-          await ref.read(authServiceProvider).signInWithEmail(email, password);
+      final user = await ref.read(firebaseAuthProvider).signInWithEmail(
+            email,
+            password,
+          );
+      state = AuthState(user: user, redirectPath: state.redirectPath);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  // Connexion avec Google
+  Future<void> signInWithGoogle() async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final user = await ref.read(firebaseAuthProvider).signInWithGoogle();
+      state = AuthState(user: user, redirectPath: state.redirectPath);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  // Connexion avec Facebook
+  Future<void> signInWithFacebook() async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final user = await ref.read(firebaseAuthProvider).signInWithFacebook();
       state = AuthState(user: user, redirectPath: state.redirectPath);
     } catch (e) {
       state = state.copyWith(
@@ -62,14 +104,12 @@ class Auth extends _$Auth {
 
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final user = await ref.read(authServiceProvider).signUpWithEmail(
+      final user = await ref.read(firebaseAuthProvider).signUpWithEmail(
             email: userData['email'] as String,
             password: userData['password'] as String,
             firstName: userData['firstName'] as String,
             lastName: userData['lastName'] as String?,
             phoneNumber: userData['phoneNumber'] as String?,
-            country: userData['country'] as String?,
-            language: userData['language'] as String?,
           );
       state = AuthState(user: user, redirectPath: state.redirectPath);
     } catch (e) {
@@ -82,7 +122,7 @@ class Auth extends _$Auth {
 
   // Déconnexion
   Future<void> signOut() async {
-    await ref.read(authServiceProvider).signOut();
+    await ref.read(firebaseAuthProvider).signOut();
     state = const AuthState();
   }
 
@@ -92,13 +132,11 @@ class Auth extends _$Auth {
 
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final updatedUser = await ref.read(authServiceProvider).updateUserProfile(
-            state.user!,
+      final updatedUser = await ref.read(firebaseAuthProvider).updateProfile(
+            userId: state.user!.id,
             firstName: userData['firstName'] as String?,
             lastName: userData['lastName'] as String?,
             phoneNumber: userData['phoneNumber'] as String?,
-            country: userData['country'] as String?,
-            language: userData['language'] as String?,
           );
       state = state.copyWith(user: updatedUser, isLoading: false);
     } catch (e) {
@@ -116,7 +154,7 @@ class Auth extends _$Auth {
 
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await ref.read(authServiceProvider).changePassword(
+      await ref.read(firebaseAuthProvider).changePassword(
             currentPassword,
             newPassword,
           );
@@ -126,6 +164,56 @@ class Auth extends _$Auth {
         isLoading: false,
         error: e.toString(),
       );
+    }
+  }
+
+  // Réinitialisation du mot de passe
+  Future<void> resetPassword(String email) async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await ref.read(firebaseAuthProvider).resetPassword(email);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  // Vérifier l'email
+  Future<void> verifyEmail() async {
+    if (state.user == null || state.user!.isEmailVerified) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      // La logique de vérification d'email est gérée par Firebase
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  // Mettre à jour le chemin de redirection
+  void setRedirectPath(String? path) {
+    if (path == null || path.isEmpty) return;
+    state = state.copyWith(redirectPath: path);
+  }
+
+  // Effacer le chemin de redirection
+  void clearRedirectPath() {
+    state = state.copyWith(redirectPath: null);
+  }
+
+  // Effacer l'erreur
+  void clearError() {
+    if (state.error != null) {
+      state = state.copyWith(error: null);
     }
   }
 }
