@@ -196,9 +196,13 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Image.asset(
+          /*Image.asset(
             'assets/images/logo.png',
             height: 40,
+          ),*/
+          Text(
+            userName,
+            style: const TextStyle(color: Colors.white, fontSize: 16),
           ),
           const Spacer(),
           IconButton(

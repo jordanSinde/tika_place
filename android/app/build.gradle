@@ -6,6 +6,8 @@ plugins {
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
+
+    //implementation 'com.facebook.android:facebook-android-sdk:[4,5)'
 }
 
 def localProperties = new Properties()
@@ -45,6 +47,11 @@ android {
         targetSdk = 34
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
+
+        manifestPlaceholders += [
+        'com.facebook.sdk.ApplicationId': '1168577958208884',
+        'com.facebook.sdk.ClientToken': '79d17cd6fd84a0134a8819ef7f5d4cb4'
+        ]
     }
 
     buildTypes {
@@ -58,4 +65,11 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies{
+    //implementation 'com.facebook.android:facebook-android-sdk:[4,5)'
+    implementation 'com.facebook.android:facebook-android-sdk:[17,18)'
+    implementation 'com.facebook.android:facebook-share:16.2.0'
+
 }

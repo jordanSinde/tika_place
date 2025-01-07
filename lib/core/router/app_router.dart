@@ -7,10 +7,9 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/providers/auth_state.dart';
 import '../../features/auth/providers/session_provider.dart';
 import '../../features/auth/screens/change_password_screen.dart';
-import '../../features/auth/screens/email_verification_screen.dart';
-import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/manage_sessions_screen.dart';
 import '../../features/auth/screens/profil_screen.dart';
+import '../../features/home/screens/home_screen.dart';
 import '../../features/new/apartments_provider.dart';
 import '../../features/new/appartement_list_screen.dart';
 import '../../features/new/appartements_booking_screen.dart';
@@ -22,11 +21,9 @@ import '../../features/new/bus_routes_provider.dart';
 import '../../features/splash/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
-import '../../features/home/screens/home_screen.dart';
 import '../config/theme/app_colors.dart';
 
 // Widgets et thèmes
-import '../../features/common/widgets/drawers/custom_drawer.dart';
 import '../utils/page_transition.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey =
@@ -91,22 +88,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/signup',
         builder: (context, state) => const SignupScreen(),
       ),
-      GoRoute(
-        path: '/forgot-password',
-        pageBuilder: (context, state) => PageTransitions.fadeTransition(
-          context,
-          state,
-          const ForgotPasswordScreen(),
-        ),
-      ),
-      GoRoute(
-        path: '/verify-email',
-        pageBuilder: (context, state) => PageTransitions.fadeTransition(
-          context,
-          state,
-          const EmailVerificationScreen(),
-        ),
-      ),
 
       // Routes protégées avec Shell
       ShellRoute(
@@ -126,7 +107,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   title: Text(_getTitle(state, ref)),
                   actions: _getActions(context, state, ref),
                 ),
-                drawer: const CustomDrawer(),
+                //drawer: const CustomDrawer(),
                 body: child,
               );
             },

@@ -154,6 +154,51 @@ class FirebaseAuthService {
   // Connexion avec Facebook
   Future<User> signInWithFacebook() async {
     try {
+      final LoginResult loginResult = await _facebookAuth.login();
+
+      switch (loginResult.status) {
+        case LoginStatus.success:
+          final accessToken = loginResult.accessToken?.token;
+          if (accessToken == null) {
+            throw const AuthException.unknown('Facebook access token is null');
+          }
+
+          // Obtenir les informations du profil Facebook
+          final userData = await _facebookAuth.getUserData();
+
+          // Créer les credentials Firebase
+          final credential =
+              firebase_auth.FacebookAuthProvider.credential(accessToken);
+          final userCredential =
+              await _firebaseAuth.signInWithCredential(credential);
+
+          if (userCredential.user == null) {
+            throw const AuthException.unknown(
+                'User is null after Facebook sign in');
+          }
+
+          return _firebaseUserToUser(userCredential.user!);
+
+        case LoginStatus.cancelled:
+          throw const AuthException.operationNotAllowed();
+
+        case LoginStatus.failed:
+          throw AuthException.unknown(
+              loginResult.message ?? 'Facebook login failed');
+
+        default:
+          throw const AuthException.unknown('Unknown Facebook login status');
+      }
+    } catch (e) {
+      // Si l'erreur est déjà une AuthException, la propager
+      if (e is AuthException) rethrow;
+
+      // Sinon, la convertir en AuthException
+      throw _handleFirebaseAuthError(e);
+    }
+  }
+  /*Future<User> signInWithFacebook() async {
+    try {
       final loginResult = await _facebookAuth.login();
       if (loginResult.status != LoginStatus.success) {
         throw const AuthException.operationNotAllowed();
@@ -178,7 +223,7 @@ class FirebaseAuthService {
     } catch (e) {
       throw _handleFirebaseAuthError(e);
     }
-  }
+  }*/
 
   // Déconnexion
   Future<void> signOut() async {

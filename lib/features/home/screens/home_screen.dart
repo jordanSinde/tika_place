@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../auth/providers/destinations_provider.dart';
-import '../../common/widgets/drawers/custom_drawer.dart';
 import '../models/destination.dart';
 import '../widgets/animated_destination_card.dart';
 import '../widgets/contact_section.dart';
@@ -61,7 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
-      drawer: const CustomDrawer(),
+      //drawer: const CustomDrawer(),
       body: destinationsState.isLoading
           ? const Center(
               child: CircularProgressIndicator(),
@@ -77,8 +76,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 16),
-                      _buildHeader(),
+                      //const SizedBox(height: 16),
+                      //_buildHeader(),
                       const TravelHeadingSection(),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(24, 12, 0, 24),
