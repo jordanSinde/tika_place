@@ -1,3 +1,4 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import '../utils/error_text.dart';
 import '../utils/form_validator.dart';
 import '../widgets/auth_header.dart';
 import '../../common/widgets/buttons/social_button.dart';
+import 'opt_verification_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -35,6 +37,68 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     _lastNameController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  Country? _selectedCountryCode = Country(
+    phoneCode: "237",
+    countryCode: "CM",
+    e164Sc: 0,
+    geographic: true,
+    level: 1,
+    name: "Cameroon",
+    example: "Example",
+    displayName: "Cameroon",
+    displayNameNoCountryCode: "CM",
+    e164Key: "",
+  );
+
+  Widget _buildPhoneField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.inputBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          // Sélecteur de pays
+          TextButton(
+            onPressed: () {
+              showCountryPicker(
+                context: context,
+                showPhoneCode: true,
+                onSelect: (Country country) {
+                  setState(() {
+                    _selectedCountryCode = country;
+                  });
+                },
+              );
+            },
+            child: Text(
+              '${_selectedCountryCode?.flagEmoji ?? '🌍'} +${_selectedCountryCode?.phoneCode ?? '237'}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+          // Ligne verticale de séparation
+          Container(
+            width: 1,
+            height: 24,
+            color: AppColors.divider,
+          ),
+          // Champ de numéro de téléphone
+          Expanded(
+            child: CustomTextField(
+              hint: 'Phone Number',
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              validator: FormValidator.phone.build(),
+              textInputAction: TextInputAction.next,
+              enabled: !ref.watch(authProvider).isLoading && !_isGettingOTP,
+              contentPadding: const EdgeInsets.only(left: 16),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // Gérer l'inscription avec Google
@@ -69,13 +133,40 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
   }
 
-  // Simuler l'envoi d'OTP
+  // Dans SignupScreen, mettez à jour _handlePhoneSignUp
   Future<void> _handlePhoneSignUp() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isGettingOTP = true);
-      await Future.delayed(const Duration(seconds: 2)); // Simulation
-      setState(() => _isGettingOTP = false);
-      // TODO: Implement actual phone authentication
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() {
+      _errorMessage = null;
+      _isGettingOTP = true;
+    });
+
+    try {
+      // Formatter le numéro de téléphone avec l'indicatif du pays sélectionné
+      final fullPhoneNumber =
+          '+${_selectedCountryCode?.phoneCode ?? '237'}${_phoneController.text.trim()}';
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OTPVerificationScreen(
+            phoneNumber: fullPhoneNumber,
+            firstName: _firstNameController.text.trim(),
+            lastName: _lastNameController.text.trim(),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGettingOTP = false);
+      }
     }
   }
 
@@ -194,15 +285,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                CustomTextField(
-                  hint: 'Phone Number',
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  validator: FormValidator.phone.build(),
-                  textInputAction: TextInputAction.next,
-                  enabled: !authState.isLoading && !_isGettingOTP,
-                  prefixIcon: Icons.phone,
-                ),
+                _buildPhoneField(),
                 const SizedBox(height: 16),
 
                 _buildDropdownField(
@@ -212,15 +295,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   onChanged: (value) =>
                       setState(() => _selectedLanguage = value),
                 ),
-                const SizedBox(height: 16),
+                //const SizedBox(height: 16),
 
-                _buildDropdownField(
+                /*_buildDropdownField(
                   hint: 'Country',
                   value: _selectedCountry,
                   items: _countries,
                   onChanged: (value) =>
                       setState(() => _selectedCountry = value),
-                ),
+                ),*/
                 const SizedBox(height: 32),
 
                 // Get OTP Button

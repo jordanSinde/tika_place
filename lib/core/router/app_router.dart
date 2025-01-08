@@ -6,8 +6,8 @@ import '../../features/auth/models/user.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/providers/auth_state.dart';
 import '../../features/auth/providers/session_provider.dart';
-import '../../features/auth/screens/change_password_screen.dart';
 import '../../features/auth/screens/manage_sessions_screen.dart';
+import '../../features/auth/screens/opt_verification_screen.dart';
 import '../../features/auth/screens/profil_screen.dart';
 import '../../features/common/widgets/drawers/custom_drawer.dart';
 import '../../features/main/screens/main_scaffold.dart';
@@ -96,6 +96,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           state,
           const ProfileScreen(),
         ),
+      ),
+      GoRoute(
+        path: '/verify-otp',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, String>;
+          return OTPVerificationScreen(
+            phoneNumber: extra['phoneNumber']!,
+            firstName: extra['firstName']!,
+            lastName: extra['lastName']!,
+          );
+        },
       ),
 
       //route protéger:
@@ -199,14 +210,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                 _authGuard(authState, state.fullPath!),
           ),
 
-          GoRoute(
-            path: '/change-password',
-            pageBuilder: (context, state) => PageTransitions.slideTransition(
-              context,
-              state,
-              const ChangePasswordScreen(),
-            ),
-          ),
           GoRoute(
             path: '/manage-sessions',
             pageBuilder: (context, state) => PageTransitions.slideTransition(

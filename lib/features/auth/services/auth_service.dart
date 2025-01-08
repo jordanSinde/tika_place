@@ -3,11 +3,11 @@ import '../../../core/exceptions/auth_exception.dart';
 import '../models/user.dart';
 import 'secure_storage_service.dart';
 
-class AuthService {
+class ButhService {
   final SecureStorageService _storage;
   final _uuid = const Uuid();
 
-  AuthService(this._storage);
+  ButhService(this._storage);
 
   // Connexion avec email/mot de passe
   Future<User> signInWithEmail(String email, String password) async {

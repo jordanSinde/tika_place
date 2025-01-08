@@ -197,33 +197,106 @@ class FirebaseAuthService {
       throw _handleFirebaseAuthError(e);
     }
   }
-  /*Future<User> signInWithFacebook() async {
+
+  // Envoyer le code OTP
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required Function(String) onCodeSent,
+    required Function(String) onError,
+    required Function(String?) onCompleted,
+  }) async {
     try {
-      final loginResult = await _facebookAuth.login();
-      if (loginResult.status != LoginStatus.success) {
-        throw const AuthException.operationNotAllowed();
-      }
+      await _firebaseAuth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted:
+            (firebase_auth.PhoneAuthCredential credential) async {
+          // Auto-résolution sur Android
+          try {
+            final userCredential =
+                await _firebaseAuth.signInWithCredential(credential);
+            onCompleted(userCredential.user?.uid);
+          } catch (e) {
+            onError(_handleFirebaseAuthError(e).message);
+          }
+        },
+        verificationFailed: (firebase_auth.FirebaseAuthException e) {
+          onError(_handleFirebaseAuthError(e).message);
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          onCodeSent(verificationId);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          // Timeout de la récupération automatique du code
+        },
+        timeout: const Duration(seconds: 60),
+      );
+    } catch (e) {
+      onError(_handleFirebaseAuthError(e).message);
+    }
+  }
 
-      final accessToken = loginResult.accessToken?.token;
-      if (accessToken == null) {
-        throw const AuthException.unknown('Facebook access token is null');
-      }
+  // Vérifier le code OTP et créer/mettre à jour l'utilisateur
+  Future<User> verifyOTPAndSignIn({
+    required String verificationId,
+    required String smsCode,
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+  }) async {
+    try {
+      // Créer les credentials avec le code OTP
+      final credential = firebase_auth.PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
+      );
 
-      final credential =
-          firebase_auth.FacebookAuthProvider.credential(accessToken);
+      // Connecter l'utilisateur
       final userCredential =
           await _firebaseAuth.signInWithCredential(credential);
 
       if (userCredential.user == null) {
-        throw const AuthException.unknown(
-            'User is null after Facebook sign in');
+        throw const AuthException.unknown('User is null after phone auth');
       }
 
-      return _firebaseUserToUser(userCredential.user!);
+      // Mettre à jour le profil utilisateur
+      await userCredential.user!.updateDisplayName('$firstName $lastName');
+
+      // Créer l'objet User personnalisé
+      return User(
+        id: userCredential.user!.uid,
+        email: '', // Le téléphone n'a pas d'email
+        firstName: firstName,
+        lastName: lastName,
+        phoneNumber: phoneNumber,
+        provider: AuthProvider
+            .email, // Vous pourriez vouloir ajouter un nouveau provider 'phone'
+        isEmailVerified: true, // Pas besoin de vérification pour le téléphone
+        hasCompletedProfile: true,
+        createdAt: DateTime.now(),
+        lastLoginAt: DateTime.now(),
+      );
     } catch (e) {
       throw _handleFirebaseAuthError(e);
     }
-  }*/
+  }
+
+  // Renvoi du code OTP
+  Future<void> resendOTP({
+    required String phoneNumber,
+    required Function(String) onCodeSent,
+    required Function(String) onError,
+  }) async {
+    try {
+      await verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        onCodeSent: onCodeSent,
+        onError: onError,
+        onCompleted: (_) {},
+      );
+    } catch (e) {
+      onError(_handleFirebaseAuthError(e).message);
+    }
+  }
 
   // Déconnexion
   Future<void> signOut() async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../services/firebase_auth_service.dart';
 import 'auth_state.dart';
@@ -11,9 +13,18 @@ FirebaseAuthService firebaseAuth(FirebaseAuthRef ref) {
 
 @Riverpod(keepAlive: true)
 class Auth extends _$Auth {
+  String? _verificationId;
+  Timer? _resendTimer;
+  int _resendCountdown = 0;
+
+  // ... autres méthodes existantes ...
+
   @override
   AuthState build() {
     _initializeAuth();
+    ref.onDispose(() {
+      _cancelResendTimer(); // Cette fonction sera appelée quand le provider sera disposé
+    });
     return const AuthState();
   }
 
@@ -215,5 +226,137 @@ class Auth extends _$Auth {
     if (state.error != null) {
       state = state.copyWith(error: null);
     }
+  }
+
+  // Démarrer la vérification du numéro de téléphone
+  // Dans auth_provider.dart
+
+  Future<void> startPhoneVerification(String phoneNumber) async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      print('Début de la vérification du téléphone: $phoneNumber'); // Debug
+
+      await ref.read(firebaseAuthProvider).verifyPhoneNumber(
+            phoneNumber: phoneNumber,
+            onCodeSent: (String verificationId) {
+              print('Code envoyé avec succès'); // Debug
+              _verificationId = verificationId;
+              _startResendTimer();
+              state = state.copyWith(
+                isLoading: false,
+                error: null,
+              );
+            },
+            onError: (String error) {
+              print('Erreur lors de l\'envoi du code: $error'); // Debug
+              state = state.copyWith(
+                isLoading: false,
+                error: error,
+              );
+            },
+            onCompleted: (String? userId) {
+              print('Vérification complétée pour userId: $userId'); // Debug
+              if (userId != null) {
+                state = state.copyWith(
+                  isLoading: false,
+                  error: null,
+                );
+              }
+            },
+          );
+    } catch (e) {
+      print('Exception lors de la vérification: $e'); // Debug
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  // Vérifier le code OTP
+  Future<void> verifyOTP({
+    required String smsCode,
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+  }) async {
+    if (state.isLoading || _verificationId == null) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final user = await ref.read(firebaseAuthProvider).verifyOTPAndSignIn(
+            verificationId: _verificationId!,
+            smsCode: smsCode,
+            firstName: firstName,
+            lastName: lastName,
+            phoneNumber: phoneNumber,
+          );
+
+      _cancelResendTimer();
+      state = AuthState(user: user);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  // Gérer le timer pour le renvoi du code
+  void _startResendTimer() {
+    _resendCountdown = 60;
+    _resendTimer?.cancel();
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendCountdown > 0) {
+        _resendCountdown--;
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  // Annuler le timer
+  void _cancelResendTimer() {
+    _resendTimer?.cancel();
+    _resendTimer = null;
+    _resendCountdown = 0;
+  }
+
+  // Obtenir le temps restant pour le renvoi
+  int get resendCountdown => _resendCountdown;
+
+  // Renvoyer le code OTP
+  Future<void> resendOTP(String phoneNumber) async {
+    if (state.isLoading || _resendCountdown > 0) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await ref.read(firebaseAuthProvider).resendOTP(
+            phoneNumber: phoneNumber,
+            onCodeSent: (String verificationId) {
+              _verificationId = verificationId;
+              _startResendTimer();
+              state = state.copyWith(isLoading: false);
+            },
+            onError: (String error) {
+              state = state.copyWith(
+                isLoading: false,
+                error: error,
+              );
+            },
+          );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  // Nettoyer les ressources quand le provider est disposé
+  void dispose() {
+    _cancelResendTimer();
   }
 }
