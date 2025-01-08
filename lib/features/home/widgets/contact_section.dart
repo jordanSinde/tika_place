@@ -41,7 +41,7 @@ class ContactSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -58,7 +58,7 @@ class ContactSection extends StatelessWidget {
             icon: FontAwesomeIcons
                 .whatsapp, // Utilisation de FontAwesome pour WhatsApp
             title: 'WhatsApp',
-            subtitle: '+237 653 783 826',
+            subtitle: '+237 694 679 620',
             onTap: _launchWhatsApp,
             iconColor:
                 const Color(0xFF25D366), // Couleur officielle de WhatsApp
@@ -67,7 +67,7 @@ class ContactSection extends StatelessWidget {
           _buildContactCard(
             icon: Icons.phone,
             title: 'Appel direct',
-            subtitle: '+237 653 783 826',
+            subtitle: '+237 694 679 620',
             onTap: _launchPhoneCall,
             iconColor: AppColors.primary,
           ),
@@ -75,7 +75,7 @@ class ContactSection extends StatelessWidget {
           _buildContactCard(
             icon: Icons.email,
             title: 'Email',
-            subtitle: 'eveiltechnologique100@gmail.com',
+            subtitle: 'ftgroupsarl@gmail.com',
             onTap: _launchEmail,
             iconColor: AppColors.primary,
           ),

@@ -9,7 +9,8 @@ import '../../features/auth/providers/session_provider.dart';
 import '../../features/auth/screens/change_password_screen.dart';
 import '../../features/auth/screens/manage_sessions_screen.dart';
 import '../../features/auth/screens/profil_screen.dart';
-import '../../features/home/screens/home_screen.dart';
+import '../../features/common/widgets/drawers/custom_drawer.dart';
+import '../../features/main/screens/main_scaffold.dart';
 import '../../features/new/apartments_provider.dart';
 import '../../features/new/appartement_list_screen.dart';
 import '../../features/new/appartements_booking_screen.dart';
@@ -88,6 +89,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/signup',
         builder: (context, state) => const SignupScreen(),
       ),
+      GoRoute(
+        path: '/profile',
+        pageBuilder: (context, state) => PageTransitions.fadeTransition(
+          context,
+          state,
+          const ProfileScreen(),
+        ),
+      ),
+
+      //route protéger:
+      GoRoute(
+        path: '/home',
+        pageBuilder: (context, state) => PageTransitions.fadeTransition(
+          context,
+          state,
+          const MainScaffold(),
+        ),
+      ),
 
       // Routes protégées avec Shell
       ShellRoute(
@@ -107,7 +126,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   title: Text(_getTitle(state, ref)),
                   actions: _getActions(context, state, ref),
                 ),
-                //drawer: const CustomDrawer(),
+                drawer: const CustomDrawer(),
                 body: child,
               );
             },
@@ -115,10 +134,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
         routes: [
           // Home
-          GoRoute(
-            path: '/home',
-            builder: (context, state) => const HomeScreen(),
-          ),
 
           // Bus Routes
           GoRoute(
@@ -183,14 +198,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             redirect: (context, state) =>
                 _authGuard(authState, state.fullPath!),
           ),
-          GoRoute(
-            path: '/profile',
-            pageBuilder: (context, state) => PageTransitions.fadeTransition(
-              context,
-              state,
-              const ProfileScreen(),
-            ),
-          ),
+
           GoRoute(
             path: '/change-password',
             pageBuilder: (context, state) => PageTransitions.slideTransition(
@@ -314,8 +322,6 @@ String _getTitle(GoRouterState state, WidgetRef ref) {
 
   // Titres statiques pour les autres routes
   switch (path) {
-    case '/home':
-      return 'Accueil';
     case '/bus/destinations':
       return 'Destinations des bus';
     case '/bus/booking':

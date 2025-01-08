@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/config/theme/app_colors.dart';
 import '../../common/widgets/inputs/custom_textfield.dart';
 import '../providers/auth_provider.dart';
-import '../../common/widgets/buttons/primary_button.dart';
 import '../utils/error_text.dart';
 import '../utils/form_validator.dart';
 import '../widgets/auth_header.dart';
@@ -21,16 +20,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
-
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   String? _errorMessage;
   String? _selectedLanguage;
   String? _selectedCountry;
+  bool _isGettingOTP = false;
 
   final List<String> _languages = ['English', 'French', 'Arabic'];
   final List<String> _countries = ['Cameroon', 'France', 'USA', 'Canada'];
@@ -39,42 +33,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
     _phoneController.dispose();
     super.dispose();
-  }
-
-  // Gérer l'inscription avec email/mot de passe
-  Future<void> _handleEmailSignUp() async {
-    setState(() => _errorMessage = null);
-
-    if (_formKey.currentState?.validate() ?? false) {
-      try {
-        await ref.read(authProvider.notifier).signUpWithEmail({
-          'firstName': _firstNameController.text.trim(),
-          'lastName': _lastNameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'password': _passwordController.text,
-          'phoneNumber': _phoneController.text.trim(),
-          'language': _selectedLanguage,
-          'country': _selectedCountry,
-        });
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please verify your email address'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.primary,
-          ),
-        );
-      } catch (e) {
-        setState(() => _errorMessage = e.toString());
-      }
-    }
   }
 
   // Gérer l'inscription avec Google
@@ -83,8 +43,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     try {
       await ref.read(authProvider.notifier).signInWithGoogle();
       if (!mounted) return;
-
-      // Vérifier si le profil est complet après la connexion Google
       _checkAndCompleteProfile();
     } catch (e) {
       setState(() => _errorMessage = e.toString());
@@ -97,8 +55,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     try {
       await ref.read(authProvider.notifier).signInWithFacebook();
       if (!mounted) return;
-
-      // Vérifier si le profil est complet après la connexion Facebook
       _checkAndCompleteProfile();
     } catch (e) {
       setState(() => _errorMessage = e.toString());
@@ -113,6 +69,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
   }
 
+  // Simuler l'envoi d'OTP
+  Future<void> _handlePhoneSignUp() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() => _isGettingOTP = true);
+      await Future.delayed(const Duration(seconds: 2)); // Simulation
+      setState(() => _isGettingOTP = false);
+      // TODO: Implement actual phone authentication
+    }
+  }
+
   Widget _buildDropdownField({
     required String hint,
     required String? value,
@@ -120,38 +86,33 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     required void Function(String?) onChanged,
     String? Function(String?)? validator,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.inputBackground,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: DropdownButtonFormField<String>(
-            hint: Text(
-              hint,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-            value: value,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16),
-            ),
-            items: items.map((String item) {
-              return DropdownMenuItem(
-                value: item,
-                child: Text(item),
-              );
-            }).toList(),
-            onChanged: onChanged,
-            validator: validator ?? FormValidator.required.build(),
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.inputBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButtonFormField<String>(
+        hint: Text(
+          hint,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
         ),
-      ],
+        value: value,
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        ),
+        items: items.map((String item) {
+          return DropdownMenuItem(
+            value: item,
+            child: Text(item),
+          );
+        }).toList(),
+        onChanged: onChanged,
+        validator: validator ?? FormValidator.required.build(),
+      ),
     );
   }
 
@@ -172,12 +133,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               children: [
                 AuthHeader(
                   title: 'Create Account',
-                  subtitle: 'Fill in your details to get started',
+                  subtitle: 'Join us and start your journey',
                   onBackPressed: () => context.go('/login'),
                 ),
                 const SizedBox(height: 32),
 
-                // Boutons de connexion sociale
+                // Social Login Buttons
                 SocialButton(
                   type: SocialButtonType.google,
                   onPressed: _handleGoogleSignIn,
@@ -191,23 +152,23 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Séparateur
+                // Divider
                 const Row(
                   children: [
                     Expanded(child: Divider()),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('or'),
+                      child: Text('or sign up with phone'),
                     ),
                     Expanded(child: Divider()),
                   ],
                 ),
                 const SizedBox(height: 32),
 
-                // Message d'erreur
+                // Error Message
                 if (_errorMessage != null) ErrorText(error: _errorMessage!),
 
-                // Formulaire d'inscription
+                // Phone Registration Form
                 Row(
                   children: [
                     Expanded(
@@ -216,7 +177,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         controller: _firstNameController,
                         validator: FormValidator.name.build(),
                         textInputAction: TextInputAction.next,
-                        enabled: !authState.isLoading,
+                        enabled: !authState.isLoading && !_isGettingOTP,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -226,56 +187,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         controller: _lastNameController,
                         validator: FormValidator.name.build(),
                         textInputAction: TextInputAction.next,
-                        enabled: !authState.isLoading,
+                        enabled: !authState.isLoading && !_isGettingOTP,
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 16),
-
-                CustomTextField(
-                  hint: 'Email',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: FormValidator.email.build(),
-                  textInputAction: TextInputAction.next,
-                  enabled: !authState.isLoading,
-                ),
-                const SizedBox(height: 16),
-
-                CustomTextField(
-                  hint: 'Password',
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  validator: FormValidator.password.build(),
-                  textInputAction: TextInputAction.next,
-                  suffixIcon: _obscurePassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  onSuffixIconPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  enabled: !authState.isLoading,
-                ),
-                const SizedBox(height: 16),
-
-                CustomTextField(
-                  hint: 'Confirm Password',
-                  controller: _confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  validator: (value) => FormValidator.confirmPassword(
-                    value,
-                    _passwordController.text,
-                  ),
-                  textInputAction: TextInputAction.next,
-                  suffixIcon: _obscureConfirmPassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  onSuffixIconPressed: () {
-                    setState(() =>
-                        _obscureConfirmPassword = !_obscureConfirmPassword);
-                  },
-                  enabled: !authState.isLoading,
                 ),
                 const SizedBox(height: 16),
 
@@ -285,7 +200,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   keyboardType: TextInputType.phone,
                   validator: FormValidator.phone.build(),
                   textInputAction: TextInputAction.next,
-                  enabled: !authState.isLoading,
+                  enabled: !authState.isLoading && !_isGettingOTP,
+                  prefixIcon: Icons.phone,
                 ),
                 const SizedBox(height: 16),
 
@@ -307,15 +223,28 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Bouton d'inscription
-                PrimaryButton(
-                  text: 'Create Account',
-                  onPressed: _handleEmailSignUp,
-                  isLoading: authState.isLoading,
+                // Get OTP Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: authState.isLoading || _isGettingOTP
+                        ? null
+                        : _handlePhoneSignUp,
+                    child: _isGettingOTP
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Get OTP'),
+                  ),
                 ),
                 const SizedBox(height: 24),
 
-                // Lien de connexion
+                // Login Link
                 Center(
                   child: TextButton(
                     onPressed: () => context.go('/login'),

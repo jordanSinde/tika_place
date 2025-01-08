@@ -5,9 +5,7 @@ import '../../../core/config/theme/app_colors.dart';
 import '../../common/widgets/buttons/social_button.dart';
 import '../../common/widgets/inputs/custom_textfield.dart';
 import '../providers/auth_provider.dart';
-
 import '../utils/error_text.dart';
-import '../utils/form_validator.dart';
 import '../widgets/auth_header.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -19,32 +17,14 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
+  final _phoneController = TextEditingController();
   String? _errorMessage;
+  bool _isGettingOTP = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _phoneController.dispose();
     super.dispose();
-  }
-
-  // Gérer la connexion avec email/mot de passe
-  Future<void> _handleEmailSignIn() async {
-    setState(() => _errorMessage = null);
-
-    if (_formKey.currentState?.validate() ?? false) {
-      try {
-        await ref.read(authProvider.notifier).signInWithEmail(
-              _emailController.text.trim(),
-              _passwordController.text,
-            );
-      } catch (e) {
-        setState(() => _errorMessage = e.toString());
-      }
-    }
   }
 
   // Gérer la connexion avec Google
@@ -67,6 +47,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  // Simuler l'envoi d'OTP
+  Future<void> _handlePhoneSignIn() async {
+    setState(() => _isGettingOTP = true);
+    await Future.delayed(const Duration(seconds: 2)); // Simulation
+    setState(() => _isGettingOTP = false);
+    // TODO: Implement actual phone authentication
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -83,13 +71,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AuthHeader(
-                  title: 'Welcome',
-                  subtitle: 'Sign in to continue',
+                  title: 'Welcome Back',
+                  subtitle: 'Sign in to continue your journey',
                   onBackPressed: () => context.go('/'),
                 ),
                 const SizedBox(height: 32),
 
-                // Boutons de connexion sociale
+                // Social Login Buttons
                 SocialButton(
                   type: SocialButtonType.google,
                   onPressed: _handleGoogleSignIn,
@@ -103,71 +91,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Séparateur
+                // Divider
                 const Row(
                   children: [
                     Expanded(child: Divider()),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('or'),
+                      child: Text('or continue with phone'),
                     ),
                     Expanded(child: Divider()),
                   ],
                 ),
                 const SizedBox(height: 32),
 
-                // Formulaire de connexion par email
+                // Error Message
                 if (_errorMessage != null) ErrorText(error: _errorMessage!),
 
+                // Phone Input Section
                 CustomTextField(
-                  hint: 'Email',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: FormValidator.email.build(),
-                  enabled: !authState.isLoading,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 16),
-
-                CustomTextField(
-                  hint: 'Password',
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  validator: FormValidator.password.build(),
-                  suffixIcon: _obscurePassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  onSuffixIconPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
-                  enabled: !authState.isLoading,
+                  hint: 'Phone Number',
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  enabled: !authState.isLoading && !_isGettingOTP,
+                  prefixIcon: Icons.phone,
                   textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _handleEmailSignIn(),
-                ),
-                const SizedBox(height: 8),
-
-                // Lien "Mot de passe oublié"
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => context.push('/forgot-password'),
-                    child: Text(
-                      'Forgot Password?',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
+                  onSubmitted: (_) => _handlePhoneSignIn(),
                 ),
                 const SizedBox(height: 24),
 
-                // Bouton de connexion
+                // Get OTP Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: authState.isLoading ? null : _handleEmailSignIn,
-                    child: authState.isLoading
+                    onPressed: authState.isLoading || _isGettingOTP
+                        ? null
+                        : _handlePhoneSignIn,
+                    child: _isGettingOTP
                         ? const SizedBox(
                             height: 20,
                             width: 20,
@@ -176,12 +135,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Login'),
+                        : const Text('Get OTP'),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-                // Lien d'inscription
+                // Sign Up Link
                 Center(
                   child: TextButton(
                     onPressed: () => context.go('/signup'),
