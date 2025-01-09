@@ -10,6 +10,9 @@ class AuthState with _$AuthState {
     @Default(false) bool isLoading,
     String? error,
     String? redirectPath,
+    // Nouveaux champs
+    @Default(false) bool isPhoneVerificationInProgress,
+    Map<String, dynamic>? pendingUserData,
   }) = _AuthState;
 
   const AuthState._();

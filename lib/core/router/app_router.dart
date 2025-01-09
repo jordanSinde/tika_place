@@ -38,48 +38,133 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     debugLogDiagnostics: true,
-    // Dans app_router.dart, modifier la partie redirect du GoRouter
     redirect: (context, state) {
-      // Obtenir le statut d'authentification
+      // États de base
       final isAuth = authState.isAuthenticated;
+      final isLoading = authState.isLoading;
+      final isVerificationInProgress = authState.isPhoneVerificationInProgress;
+
+      // Routes actuelles
+      final isSplash = state.matchedLocation == '/';
       final isLoggingIn = state.matchedLocation == '/login';
       final isSigningUp = state.matchedLocation == '/signup';
-      final isSplash = state.matchedLocation == '/';
-      final isVerifyingOTP = state.matchedLocation.contains('/verify-otp');
-      final isVerifyingPhone = ref.read(authProvider.notifier).isVerifyingPhone;
+      final isVerifyingOTP = state.matchedLocation.startsWith('/verify-otp');
 
-      // Si l'état d'authentification est en cours de chargement, ne pas rediriger
-      if (authState.isLoading) return null;
+      // Ne pas rediriger si l'état est en cours de chargement
+      if (isLoading) return null;
 
-      // Si une vérification de téléphone est en cours
-      if (isVerifyingPhone) {
-        // Si on est déjà sur la page OTP ou en train d'y aller, permettre
-        if (isVerifyingOTP) return null;
+      // Gestion de la vérification du téléphone
+      if (isVerificationInProgress) {
+        // Si on est sur le splash screen pendant la vérification
+        if (isSplash) {
+          final userData = authState.pendingUserData;
+          // Vérifier si nous avons des données utilisateur valides
+          if (userData != null) {
+            return '/verify-otp';
+          }
+          // Si pas de données, annuler la vérification et retourner à signup
+          ref.read(authProvider.notifier).cancelPhoneVerification();
+          return '/signup';
+        }
 
-        // Si on est sur le splash screen, retourner à la page précédente
-        if (isSplash) return state.extra as String? ?? '/login';
+        // Permettre l'accès aux pages pendant la vérification
+        if (isVerifyingOTP || isSigningUp || isLoggingIn) {
+          return null;
+        }
+      }
 
+      // Gestion du splash screen initial
+      if (isSplash) {
+        if (!isLoading && !isVerificationInProgress) {
+          return isAuth ? '/home' : '/login';
+        }
         return null;
       }
 
-      // Laisser le splash screen se charger normalement uniquement au démarrage initial
-      if (isSplash && !isVerifyingPhone) return null;
-
-      // Si l'utilisateur n'est pas authentifié
+      // Protection des routes authentifiées
       if (!isAuth) {
-        // Permettre l'accès aux routes d'authentification
-        if (isLoggingIn || isSigningUp || isVerifyingOTP) return null;
-        // Rediriger vers login pour toutes les autres routes
+        // Routes publiques autorisées
+        if (isLoggingIn || isSigningUp || isVerifyingOTP) {
+          return null;
+        }
         return '/login';
       }
 
-      // Si l'utilisateur est authentifié et sur une page d'auth
+      // Redirection des utilisateurs authentifiés
       if (isAuth && (isLoggingIn || isSigningUp)) {
         return '/home';
       }
 
       return null;
     },
+    /*redirect: (context, state) {
+      // États de base
+      final isAuth = authState.isAuthenticated;
+      final isLoading = authState.isLoading;
+      final isVerificationInProgress = authState.isPhoneVerificationInProgress;
+      
+      // Routes actuelles et cibles
+      final isSplash = state.matchedLocation == '/';
+      final isLoggingIn = state.matchedLocation == '/login';
+      final isSigningUp = state.matchedLocation == '/signup';
+      final isVerifyingOTP = state.matchedLocation.startsWith('/verify-otp');
+
+      // Ne pas rediriger si l'état est en cours de chargement
+      if (isLoading) return null;
+
+      // Gestion de la vérification du téléphone
+      if (isVerificationInProgress) {
+        // Si on est sur le splash screen pendant la vérification
+        if (isSplash) {
+          // Récupérer les données stockées dans pendingUserData
+          final userData = authState.pendingUserData;
+          if (userData != null) {
+            // Rediriger vers la page OTP avec les données sauvegardées
+            return '/verify-otp';
+          }
+        }
+
+        // Permettre l'accès à la page OTP et aux pages d'authentification pendant la vérification
+        if (isVerifyingOTP || isSigningUp || isLoggingIn) {
+          return null;
+        }
+      }
+
+      // Gestion du splash screen
+      if (isSplash) {
+        // Ne rediriger que si ce n'est pas le chargement initial
+        if (!isLoading && !isVerificationInProgress) {
+          return isAuth ? '/home' : '/login';
+        }
+        return null;
+      }
+
+      // Protection des routes authentifiées
+      if (!isAuth) {
+        // Routes publiques autorisées
+        if (isLoggingIn || isSigningUp || isVerifyingOTP) {
+          return null;
+        }
+        // Redirection vers login pour les autres routes
+        return '/login';
+      }
+
+      // Redirection des utilisateurs authentifiés hors des pages d'auth
+      if (isAuth && (isLoggingIn || isSigningUp)) {
+        return '/home';
+      }
+
+      // Si un chemin de redirection est défini dans l'état
+      if (authState.redirectPath != null) {
+        final redirectTo = authState.redirectPath!;
+        // Important: Nettoyer le redirectPath après utilisation
+        ref.read(authProvider.notifier).clearRedirectPath();
+        return redirectTo;
+      }
+
+      // Aucune redirection nécessaire
+      return null;
+    },*/
     routes: [
       // Routes publiques
       GoRoute(
@@ -105,13 +190,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/verify-otp',
         builder: (context, state) {
-          final Map<String, dynamic> params =
-              state.extra as Map<String, dynamic>;
+          // Utiliser les données du provider au lieu de state.extra
+          final authState = ref.read(authProvider);
+          final userData = authState.pendingUserData;
+
+          // Si pas de données, retourner à signup
+          if (userData == null) {
+            Future.microtask(() => context.go('/signup'));
+            return const SizedBox(); // Widget temporaire pendant la redirection
+          }
+
           return OTPVerificationScreen(
-            phoneNumber: params['phoneNumber'] as String,
-            firstName: params['firstName'] as String?,
-            lastName: params['lastName'] as String?,
-            isLogin: params['isLogin'] as bool? ?? false,
+            phoneNumber: userData['phoneNumber'] as String,
+            firstName: userData['firstName'] as String?,
+            lastName: userData['lastName'] as String?,
+            isLogin: userData['isLogin'] as bool? ?? false,
           );
         },
       ),

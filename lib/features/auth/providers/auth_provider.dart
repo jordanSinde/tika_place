@@ -232,14 +232,21 @@ class Auth extends _$Auth {
     }
   }
 
-  // Démarrer la vérification du numéro de téléphone
-  // Dans auth_provider.dart
+  // Mettre à jour pour la gestion de la vérification du téléphone
+  // Nouvelle méthode pour mettre à jour les données en attente
+  void updatePendingUserData(Map<String, dynamic> userData) {
+    state = state.copyWith(pendingUserData: userData);
+  }
 
   Future<void> startPhoneVerification(String phoneNumber) async {
     if (state.isLoading) return;
 
-    _isVerifyingPhone = true; // Ajout de cette ligne
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      isPhoneVerificationInProgress: true,
+      // Ne pas écraser pendingUserData ici
+    );
 
     try {
       await ref.read(firebaseAuthProvider).verifyPhoneNumber(
@@ -247,74 +254,100 @@ class Auth extends _$Auth {
             onCodeSent: (String verificationId) {
               _verificationId = verificationId;
               _startResendTimer();
-              state = state.copyWith(isLoading: false);
+              state = state.copyWith(
+                isLoading: false,
+                // Garder isPhoneVerificationInProgress à true
+              );
             },
             onError: (String error) {
-              _isVerifyingPhone = false; // Réinitialisation en cas d'erreur
               state = state.copyWith(
                 isLoading: false,
                 error: error,
+                isPhoneVerificationInProgress: false,
+                pendingUserData: null,
               );
             },
             onCompleted: (String? userId) {
-              _isVerifyingPhone = false; // Réinitialisation à la fin
-              if (userId != null) {
-                state = state.copyWith(isLoading: false);
-              }
+              state = state.copyWith(
+                isLoading: false,
+                isPhoneVerificationInProgress: false,
+                pendingUserData: null,
+              );
             },
           );
     } catch (e) {
-      _isVerifyingPhone = false; // Réinitialisation en cas d'exception
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
+        isPhoneVerificationInProgress: false,
+        pendingUserData: null,
       );
     }
   }
-
-  /*Future<void> startPhoneVerification(String phoneNumber) async {
+  /*Future<void> startPhoneVerification(String phoneNumber,
+      {Map<String, dynamic>? userData}) async {
     if (state.isLoading) return;
 
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      print('Début de la vérification du téléphone: $phoneNumber'); // Debug
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      isPhoneVerificationInProgress: true,
+      pendingUserData: userData,
+    );
 
+    try {
       await ref.read(firebaseAuthProvider).verifyPhoneNumber(
             phoneNumber: phoneNumber,
             onCodeSent: (String verificationId) {
-              print('Code envoyé avec succès'); // Debug
               _verificationId = verificationId;
               _startResendTimer();
               state = state.copyWith(
                 isLoading: false,
-                error: null,
+                // Garder isPhoneVerificationInProgress à true
               );
             },
             onError: (String error) {
-              print('Erreur lors de l\'envoi du code: $error'); // Debug
               state = state.copyWith(
                 isLoading: false,
                 error: error,
+                isPhoneVerificationInProgress: false,
+                pendingUserData: null,
               );
             },
             onCompleted: (String? userId) {
-              print('Vérification complétée pour userId: $userId'); // Debug
-              if (userId != null) {
-                state = state.copyWith(
-                  isLoading: false,
-                  error: null,
-                );
-              }
+              state = state.copyWith(
+                isLoading: false,
+                isPhoneVerificationInProgress: false,
+                pendingUserData: null,
+              );
             },
           );
     } catch (e) {
-      print('Exception lors de la vérification: $e'); // Debug
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
+        isPhoneVerificationInProgress: false,
+        pendingUserData: null,
       );
     }
   }*/
+
+  // Méthode pour terminer la vérification
+  void completePhoneVerification() {
+    state = state.copyWith(
+      isPhoneVerificationInProgress: false,
+      pendingUserData: null,
+    );
+  }
+
+  // Méthode pour annuler la vérification
+  void cancelPhoneVerification() {
+    state = state.copyWith(
+      isPhoneVerificationInProgress: false,
+      pendingUserData: null,
+      error: null,
+    );
+  }
 
   // Vérifier le code OTP
   Future<void> verifyOTP({

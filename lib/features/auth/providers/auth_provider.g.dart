@@ -20,7 +20,7 @@ final firebaseAuthProvider = AutoDisposeProvider<FirebaseAuthService>.internal(
 );
 
 typedef FirebaseAuthRef = AutoDisposeProviderRef<FirebaseAuthService>;
-String _$authHash() => r'22a0a26d748892b7530412e3f1703a6967bac331';
+String _$authHash() => r'12b2eea4cc93059dd55c172ccd8bd04689c3b523';
 
 /// See also [Auth].
 @ProviderFor(Auth)

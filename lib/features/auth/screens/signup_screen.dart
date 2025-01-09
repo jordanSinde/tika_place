@@ -133,8 +133,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
   }
 
-  // Dans SignupScreen, mettez à jour _handlePhoneSignUp
-
   Future<void> _handlePhoneSignUp() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
@@ -147,18 +145,25 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       final fullPhoneNumber =
           '+${_selectedCountryCode?.phoneCode ?? '237'}${_phoneController.text.trim()}';
 
+      final userData = {
+        'phoneNumber': fullPhoneNumber,
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'isLogin': false,
+      };
+
+      // Mettre à jour l'état avec les données utilisateur avant la vérification
+      ref.read(authProvider.notifier).updatePendingUserData(userData);
+
+      // Démarrer la vérification
+      await ref
+          .read(authProvider.notifier)
+          .startPhoneVerification(fullPhoneNumber);
+
       if (!mounted) return;
 
-      // Navigation avec les paramètres
-      if (context.mounted) {
-        context.push('/verify-otp', extra: {
-          'phoneNumber': fullPhoneNumber,
-          'firstName': _firstNameController.text.trim(),
-          'lastName': _lastNameController.text.trim(),
-          'isLogin': false,
-          'previousRoute': '/signup', // Ajouter cette ligne
-        });
-      }
+      // Navigation simple vers verify-otp
+      context.push('/verify-otp');
     } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = e.toString());
@@ -169,6 +174,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       }
     }
   }
+
   /*Future<void> _handlePhoneSignUp() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
@@ -178,22 +184,25 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     });
 
     try {
-      // Formatter le numéro de téléphone avec l'indicatif du pays sélectionné
       final fullPhoneNumber =
           '+${_selectedCountryCode?.phoneCode ?? '237'}${_phoneController.text.trim()}';
 
+      final userData = {
+        'phoneNumber': fullPhoneNumber,
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'isLogin': false,
+      };
+
+      await ref.read(authProvider.notifier).startPhoneVerification(
+            fullPhoneNumber,
+            userData: userData,
+          );
+
       if (!mounted) return;
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OTPVerificationScreen(
-            phoneNumber: fullPhoneNumber,
-            firstName: _firstNameController.text.trim(),
-            lastName: _lastNameController.text.trim(),
-          ),
-        ),
-      );
+      // La navigation sera gérée par le routeur
+      context.push('/verify-otp', extra: userData);
     } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = e.toString());

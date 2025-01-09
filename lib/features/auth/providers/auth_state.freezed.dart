@@ -19,7 +19,11 @@ mixin _$AuthState {
   User? get user => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
-  String? get redirectPath => throw _privateConstructorUsedError;
+  String? get redirectPath =>
+      throw _privateConstructorUsedError; // Nouveaux champs
+  bool get isPhoneVerificationInProgress => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get pendingUserData =>
+      throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $AuthStateCopyWith<AuthState> get copyWith =>
@@ -31,7 +35,13 @@ abstract class $AuthStateCopyWith<$Res> {
   factory $AuthStateCopyWith(AuthState value, $Res Function(AuthState) then) =
       _$AuthStateCopyWithImpl<$Res, AuthState>;
   @useResult
-  $Res call({User? user, bool isLoading, String? error, String? redirectPath});
+  $Res call(
+      {User? user,
+      bool isLoading,
+      String? error,
+      String? redirectPath,
+      bool isPhoneVerificationInProgress,
+      Map<String, dynamic>? pendingUserData});
 
   $UserCopyWith<$Res>? get user;
 }
@@ -53,6 +63,8 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
     Object? isLoading = null,
     Object? error = freezed,
     Object? redirectPath = freezed,
+    Object? isPhoneVerificationInProgress = null,
+    Object? pendingUserData = freezed,
   }) {
     return _then(_value.copyWith(
       user: freezed == user
@@ -71,6 +83,14 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
           ? _value.redirectPath
           : redirectPath // ignore: cast_nullable_to_non_nullable
               as String?,
+      isPhoneVerificationInProgress: null == isPhoneVerificationInProgress
+          ? _value.isPhoneVerificationInProgress
+          : isPhoneVerificationInProgress // ignore: cast_nullable_to_non_nullable
+              as bool,
+      pendingUserData: freezed == pendingUserData
+          ? _value.pendingUserData
+          : pendingUserData // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 
@@ -95,7 +115,13 @@ abstract class _$$AuthStateImplCopyWith<$Res>
       __$$AuthStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({User? user, bool isLoading, String? error, String? redirectPath});
+  $Res call(
+      {User? user,
+      bool isLoading,
+      String? error,
+      String? redirectPath,
+      bool isPhoneVerificationInProgress,
+      Map<String, dynamic>? pendingUserData});
 
   @override
   $UserCopyWith<$Res>? get user;
@@ -116,6 +142,8 @@ class __$$AuthStateImplCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? error = freezed,
     Object? redirectPath = freezed,
+    Object? isPhoneVerificationInProgress = null,
+    Object? pendingUserData = freezed,
   }) {
     return _then(_$AuthStateImpl(
       user: freezed == user
@@ -134,6 +162,14 @@ class __$$AuthStateImplCopyWithImpl<$Res>
           ? _value.redirectPath
           : redirectPath // ignore: cast_nullable_to_non_nullable
               as String?,
+      isPhoneVerificationInProgress: null == isPhoneVerificationInProgress
+          ? _value.isPhoneVerificationInProgress
+          : isPhoneVerificationInProgress // ignore: cast_nullable_to_non_nullable
+              as bool,
+      pendingUserData: freezed == pendingUserData
+          ? _value._pendingUserData
+          : pendingUserData // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
@@ -142,8 +178,14 @@ class __$$AuthStateImplCopyWithImpl<$Res>
 
 class _$AuthStateImpl extends _AuthState {
   const _$AuthStateImpl(
-      {this.user, this.isLoading = false, this.error, this.redirectPath})
-      : super._();
+      {this.user,
+      this.isLoading = false,
+      this.error,
+      this.redirectPath,
+      this.isPhoneVerificationInProgress = false,
+      final Map<String, dynamic>? pendingUserData})
+      : _pendingUserData = pendingUserData,
+        super._();
 
   @override
   final User? user;
@@ -154,10 +196,23 @@ class _$AuthStateImpl extends _AuthState {
   final String? error;
   @override
   final String? redirectPath;
+// Nouveaux champs
+  @override
+  @JsonKey()
+  final bool isPhoneVerificationInProgress;
+  final Map<String, dynamic>? _pendingUserData;
+  @override
+  Map<String, dynamic>? get pendingUserData {
+    final value = _pendingUserData;
+    if (value == null) return null;
+    if (_pendingUserData is EqualUnmodifiableMapView) return _pendingUserData;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
-    return 'AuthState(user: $user, isLoading: $isLoading, error: $error, redirectPath: $redirectPath)';
+    return 'AuthState(user: $user, isLoading: $isLoading, error: $error, redirectPath: $redirectPath, isPhoneVerificationInProgress: $isPhoneVerificationInProgress, pendingUserData: $pendingUserData)';
   }
 
   @override
@@ -170,12 +225,24 @@ class _$AuthStateImpl extends _AuthState {
                 other.isLoading == isLoading) &&
             (identical(other.error, error) || other.error == error) &&
             (identical(other.redirectPath, redirectPath) ||
-                other.redirectPath == redirectPath));
+                other.redirectPath == redirectPath) &&
+            (identical(other.isPhoneVerificationInProgress,
+                    isPhoneVerificationInProgress) ||
+                other.isPhoneVerificationInProgress ==
+                    isPhoneVerificationInProgress) &&
+            const DeepCollectionEquality()
+                .equals(other._pendingUserData, _pendingUserData));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, user, isLoading, error, redirectPath);
+  int get hashCode => Object.hash(
+      runtimeType,
+      user,
+      isLoading,
+      error,
+      redirectPath,
+      isPhoneVerificationInProgress,
+      const DeepCollectionEquality().hash(_pendingUserData));
 
   @JsonKey(ignore: true)
   @override
@@ -189,7 +256,9 @@ abstract class _AuthState extends AuthState {
       {final User? user,
       final bool isLoading,
       final String? error,
-      final String? redirectPath}) = _$AuthStateImpl;
+      final String? redirectPath,
+      final bool isPhoneVerificationInProgress,
+      final Map<String, dynamic>? pendingUserData}) = _$AuthStateImpl;
   const _AuthState._() : super._();
 
   @override
@@ -200,6 +269,10 @@ abstract class _AuthState extends AuthState {
   String? get error;
   @override
   String? get redirectPath;
+  @override // Nouveaux champs
+  bool get isPhoneVerificationInProgress;
+  @override
+  Map<String, dynamic>? get pendingUserData;
   @override
   @JsonKey(ignore: true)
   _$$AuthStateImplCopyWith<_$AuthStateImpl> get copyWith =>
