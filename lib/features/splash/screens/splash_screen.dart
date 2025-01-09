@@ -42,7 +42,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _fadeController.forward();
   }
 
-  Future<void> _initializeAndNavigate() async {
+  /*Future<void> _initializeAndNavigate() async {
     // Attendre que les animations soient terminées (4 secondes au lieu de 9)
     await Future.delayed(
       const Duration(seconds: 4),
@@ -58,6 +58,35 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       context.go('/home');
     } else {
       context.go('/login');
+    }
+  }*/
+  // Dans _initializeAndNavigate de splash_screen.dart
+  Future<void> _initializeAndNavigate() async {
+    // Réduire le délai d'attente à 2 secondes au lieu de 4
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    final authNotifier = ref.read(authProvider.notifier);
+    final isAuthenticated = ref.read(authProvider).isAuthenticated;
+    final isVerifyingPhone = authNotifier.isVerifyingPhone;
+
+    // Si une vérification de téléphone est en cours, ne rien faire
+    if (isVerifyingPhone) {
+      // Retourner à la page précédente au lieu de rester sur le splash screen
+      if (context.mounted) {
+        context.pop();
+      }
+      return;
+    }
+
+    // Navigation normale pour les autres cas
+    if (mounted) {
+      if (isAuthenticated) {
+        context.go('/home');
+      } else {
+        context.go('/login');
+      }
     }
   }
 

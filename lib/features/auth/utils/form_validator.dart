@@ -28,6 +28,15 @@ class FormValidator {
       .phone('Please enter a valid phone number')
       .maxLength(15, 'Phone number is too long');
 
+  static final ValidationBuilder phoneNumber = ValidationBuilder()
+      .minLength(9, 'Le numéro doit contenir au moins 9 chiffres')
+      .maxLength(15, 'Le numéro est trop long')
+      .regExp(
+        RegExp(r'^\d+$'),
+        'Le numéro ne doit contenir que des chiffres',
+      )
+      .required('Le numéro de téléphone est requis');
+
   static final ValidationBuilder required =
       ValidationBuilder().required('This field is required');
 

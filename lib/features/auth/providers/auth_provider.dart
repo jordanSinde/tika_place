@@ -17,6 +17,10 @@ class Auth extends _$Auth {
   Timer? _resendTimer;
   int _resendCountdown = 0;
 
+  bool _isVerifyingPhone = false;
+
+  bool get isVerifyingPhone => _isVerifyingPhone;
+
   // ... autres méthodes existantes ...
 
   @override
@@ -234,6 +238,43 @@ class Auth extends _$Auth {
   Future<void> startPhoneVerification(String phoneNumber) async {
     if (state.isLoading) return;
 
+    _isVerifyingPhone = true; // Ajout de cette ligne
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      await ref.read(firebaseAuthProvider).verifyPhoneNumber(
+            phoneNumber: phoneNumber,
+            onCodeSent: (String verificationId) {
+              _verificationId = verificationId;
+              _startResendTimer();
+              state = state.copyWith(isLoading: false);
+            },
+            onError: (String error) {
+              _isVerifyingPhone = false; // Réinitialisation en cas d'erreur
+              state = state.copyWith(
+                isLoading: false,
+                error: error,
+              );
+            },
+            onCompleted: (String? userId) {
+              _isVerifyingPhone = false; // Réinitialisation à la fin
+              if (userId != null) {
+                state = state.copyWith(isLoading: false);
+              }
+            },
+          );
+    } catch (e) {
+      _isVerifyingPhone = false; // Réinitialisation en cas d'exception
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /*Future<void> startPhoneVerification(String phoneNumber) async {
+    if (state.isLoading) return;
+
     state = state.copyWith(isLoading: true, error: null);
     try {
       print('Début de la vérification du téléphone: $phoneNumber'); // Debug
@@ -273,13 +314,13 @@ class Auth extends _$Auth {
         error: e.toString(),
       );
     }
-  }
+  }*/
 
   // Vérifier le code OTP
   Future<void> verifyOTP({
     required String smsCode,
-    required String firstName,
-    required String lastName,
+    String? firstName,
+    String? lastName,
     required String phoneNumber,
   }) async {
     if (state.isLoading || _verificationId == null) return;
@@ -289,9 +330,9 @@ class Auth extends _$Auth {
       final user = await ref.read(firebaseAuthProvider).verifyOTPAndSignIn(
             verificationId: _verificationId!,
             smsCode: smsCode,
-            firstName: firstName,
-            lastName: lastName,
             phoneNumber: phoneNumber,
+            firstName: firstName ?? "",
+            lastName: lastName ?? "",
           );
 
       _cancelResendTimer();
@@ -352,6 +393,8 @@ class Auth extends _$Auth {
         isLoading: false,
         error: e.toString(),
       );
+    } finally {
+      _isVerifyingPhone = false; // Fin de la vérification
     }
   }
 

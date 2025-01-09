@@ -1,3 +1,4 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,6 +28,65 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  // Ajouter en haut de la classe _LoginScreenState
+  Country? _selectedCountryCode = Country(
+    phoneCode: "237",
+    countryCode: "CM",
+    e164Sc: 0,
+    geographic: true,
+    level: 1,
+    name: "Cameroon",
+    example: "Example",
+    displayName: "Cameroon",
+    displayNameNoCountryCode: "CM",
+    e164Key: "",
+  );
+
+// Remplacer le CustomTextField existant par un widget personnalisé pour le téléphone
+  Widget _buildPhoneField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.inputBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          TextButton(
+            onPressed: () {
+              showCountryPicker(
+                context: context,
+                showPhoneCode: true,
+                onSelect: (Country country) {
+                  setState(() {
+                    _selectedCountryCode = country;
+                  });
+                },
+              );
+            },
+            child: Text(
+              '${_selectedCountryCode?.flagEmoji ?? '🌍'} +${_selectedCountryCode?.phoneCode ?? '237'}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 24,
+            color: AppColors.divider,
+          ),
+          Expanded(
+            child: CustomTextField(
+              hint: 'Phone Number',
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              enabled: !ref.watch(authProvider).isLoading && !_isGettingOTP,
+              contentPadding: const EdgeInsets.only(left: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Gérer la connexion avec Google
   Future<void> _handleGoogleSignIn() async {
     setState(() => _errorMessage = null);
@@ -47,12 +107,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  // Simuler l'envoi d'OTP
   Future<void> _handlePhoneSignIn() async {
-    setState(() => _isGettingOTP = true);
-    await Future.delayed(const Duration(seconds: 2)); // Simulation
-    setState(() => _isGettingOTP = false);
-    // TODO: Implement actual phone authentication
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _errorMessage = null;
+      _isGettingOTP = true;
+    });
+
+    try {
+      final fullPhoneNumber =
+          '+${_selectedCountryCode?.phoneCode ?? '237'}${_phoneController.text.trim()}';
+
+      if (!mounted) return;
+
+      context.push('/verify-otp', extra: {
+        'phoneNumber': fullPhoneNumber,
+        'isLogin': true,
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGettingOTP = false);
+      }
+    }
   }
 
   @override

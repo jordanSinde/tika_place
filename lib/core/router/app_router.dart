@@ -2,7 +2,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../features/auth/models/user.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/providers/auth_state.dart';
 import '../../features/auth/providers/session_provider.dart';
@@ -39,32 +38,39 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     debugLogDiagnostics: true,
+    // Dans app_router.dart, modifier la partie redirect du GoRouter
     redirect: (context, state) {
       // Obtenir le statut d'authentification
       final isAuth = authState.isAuthenticated;
       final isLoggingIn = state.matchedLocation == '/login';
       final isSigningUp = state.matchedLocation == '/signup';
       final isSplash = state.matchedLocation == '/';
-      final isVerifyingEmail = state.matchedLocation == '/verify-email';
+      final isVerifyingOTP = state.matchedLocation.contains('/verify-otp');
+      final isVerifyingPhone = ref.read(authProvider.notifier).isVerifyingPhone;
 
-      // Si l'utilisateur est sur le splash screen, ne pas rediriger
-      if (isSplash) return null;
+      // Si l'état d'authentification est en cours de chargement, ne pas rediriger
+      if (authState.isLoading) return null;
 
-      // Si l'utilisateur n'est pas authentifié et n'est pas sur une page d'auth
-      if (!isAuth) {
-        // Permettre l'accès aux routes d'authentification
-        if (isLoggingIn || isSigningUp) return null;
+      // Si une vérification de téléphone est en cours
+      if (isVerifyingPhone) {
+        // Si on est déjà sur la page OTP ou en train d'y aller, permettre
+        if (isVerifyingOTP) return null;
 
-        // Rediriger vers login pour toutes les autres routes
-        return '/login';
+        // Si on est sur le splash screen, retourner à la page précédente
+        if (isSplash) return state.extra as String? ?? '/login';
+
+        return null;
       }
 
-      // Vérification de l'email pour les utilisateurs connectés par email
-      if (isAuth &&
-          !isVerifyingEmail &&
-          authState.user?.provider == AuthProvider.email &&
-          !authState.user!.isEmailVerified) {
-        return '/verify-email';
+      // Laisser le splash screen se charger normalement uniquement au démarrage initial
+      if (isSplash && !isVerifyingPhone) return null;
+
+      // Si l'utilisateur n'est pas authentifié
+      if (!isAuth) {
+        // Permettre l'accès aux routes d'authentification
+        if (isLoggingIn || isSigningUp || isVerifyingOTP) return null;
+        // Rediriger vers login pour toutes les autres routes
+        return '/login';
       }
 
       // Si l'utilisateur est authentifié et sur une page d'auth
@@ -72,7 +78,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/home';
       }
 
-      // Dans tous les autres cas, ne pas rediriger
       return null;
     },
     routes: [
@@ -100,11 +105,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/verify-otp',
         builder: (context, state) {
-          final extra = state.extra as Map<String, String>;
+          final Map<String, dynamic> params =
+              state.extra as Map<String, dynamic>;
           return OTPVerificationScreen(
-            phoneNumber: extra['phoneNumber']!,
-            firstName: extra['firstName']!,
-            lastName: extra['lastName']!,
+            phoneNumber: params['phoneNumber'] as String,
+            firstName: params['firstName'] as String?,
+            lastName: params['lastName'] as String?,
+            isLogin: params['isLogin'] as bool? ?? false,
           );
         },
       ),

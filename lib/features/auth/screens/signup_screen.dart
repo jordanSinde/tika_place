@@ -134,7 +134,42 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   // Dans SignupScreen, mettez à jour _handlePhoneSignUp
+
   Future<void> _handlePhoneSignUp() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() {
+      _errorMessage = null;
+      _isGettingOTP = true;
+    });
+
+    try {
+      final fullPhoneNumber =
+          '+${_selectedCountryCode?.phoneCode ?? '237'}${_phoneController.text.trim()}';
+
+      if (!mounted) return;
+
+      // Navigation avec les paramètres
+      if (context.mounted) {
+        context.push('/verify-otp', extra: {
+          'phoneNumber': fullPhoneNumber,
+          'firstName': _firstNameController.text.trim(),
+          'lastName': _lastNameController.text.trim(),
+          'isLogin': false,
+          'previousRoute': '/signup', // Ajouter cette ligne
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGettingOTP = false);
+      }
+    }
+  }
+  /*Future<void> _handlePhoneSignUp() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() {
@@ -168,7 +203,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         setState(() => _isGettingOTP = false);
       }
     }
-  }
+  }*/
 
   Widget _buildDropdownField({
     required String hint,
