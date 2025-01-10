@@ -1,14 +1,55 @@
 // Créez un nouveau fichier otp_verification_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pinput/pinput.dart';
-import '../../../core/config/theme/app_colors.dart';
-import '../providers/auth_provider.dart';
 import '../widgets/auth_header.dart';
-import '../utils/error_text.dart';
+import '../widgets/opt_verification_widget.dart';
 
-class OTPVerificationScreen extends ConsumerStatefulWidget {
+class OTPVerificationScreen extends StatelessWidget {
+  final String phoneNumber;
+  final String? firstName;
+  final String? lastName;
+  final bool isLogin;
+
+  const OTPVerificationScreen({
+    super.key,
+    required this.phoneNumber,
+    this.firstName,
+    this.lastName,
+    this.isLogin = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AuthHeader(
+                  title: 'Verify Phone',
+                  subtitle: 'Enter the verification code',
+                  onBackPressed: () => Navigator.pop(context),
+                ),
+                const SizedBox(height: 32),
+                OTPVerificationWidget(
+                  phoneNumber: phoneNumber,
+                  firstName: firstName,
+                  lastName: lastName,
+                  isLogin: isLogin,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/*/class OTPVerificationScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
   final String? firstName; // Optional maintenant
   final String? lastName; // Optional maintenant
@@ -166,122 +207,5 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
         setState(() => _errorMessage = e.toString());
       }
     }
-  }
-}
-/*class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
-  final _otpController = TextEditingController();
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _startPhoneVerification();
-  }
-
-  @override
-  void dispose() {
-    _otpController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _startPhoneVerification() async {
-    try {
-      print(
-          'Démarrage de la vérification pour: ${widget.phoneNumber}'); // Debug
-      await ref
-          .read(authProvider.notifier)
-          .startPhoneVerification(widget.phoneNumber);
-    } catch (e) {
-      print('Erreur de vérification: $e'); // Debug
-      setState(() => _errorMessage = e.toString());
-    }
-  }
-
-  Future<void> _verifyOTP() async {
-    if (_otpController.text.length != 6) return;
-
-    setState(() => _errorMessage = null);
-
-    try {
-      await ref.read(authProvider.notifier).verifyOTP(
-            smsCode: _otpController.text,
-            firstName: widget.firstName,
-            lastName: widget.lastName,
-            phoneNumber: widget.phoneNumber,
-          );
-    } catch (e) {
-      setState(() => _errorMessage = e.toString());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final authState = ref.watch(authProvider);
-    final resendCountdown = ref.watch(authProvider.notifier).resendCountdown;
-
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AuthHeader(
-                  title: 'Verify Phone',
-                  subtitle: 'Enter the code sent to ${widget.phoneNumber}',
-                  onBackPressed: () => Navigator.pop(context),
-                ),
-                const SizedBox(height: 32),
-                if (_errorMessage != null) ErrorText(error: _errorMessage!),
-                const SizedBox(height: 16),
-                Pinput(
-                  length: 6,
-                  controller: _otpController,
-                  onCompleted: (pin) => _verifyOTP(),
-                  enabled: !authState.isLoading,
-                ),
-                const SizedBox(height: 24),
-                Center(
-                  child: TextButton(
-                    onPressed: resendCountdown == 0
-                        ? () => _startPhoneVerification()
-                        : null,
-                    child: Text(
-                      resendCountdown > 0
-                          ? 'Resend code in ${resendCountdown}s'
-                          : 'Resend code',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: resendCountdown > 0
-                            ? theme.disabledColor
-                            : theme.primaryColor,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: authState.isLoading ? null : _verifyOTP,
-                    child: authState.isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Verify'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }*/

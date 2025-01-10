@@ -40,36 +40,49 @@ final routerProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: true,
     // Dans app_router.dart, modifier la partie redirect du GoRouter
     redirect: (context, state) {
-      // Obtenir le statut d'authentification
+      // États de base
       final isAuth = authState.isAuthenticated;
+      final isVerifyingPhone = ref.read(authProvider.notifier).isVerifyingPhone;
+
+      // Routes actuelles
+      final isSplash = state.matchedLocation == '/';
       final isLoggingIn = state.matchedLocation == '/login';
       final isSigningUp = state.matchedLocation == '/signup';
-      final isSplash = state.matchedLocation == '/';
-      final isVerifyingOTP = state.matchedLocation.contains('/verify-otp');
-      final isVerifyingPhone = ref.read(authProvider.notifier).isVerifyingPhone;
+      final isVerifyingOTP = state.matchedLocation.startsWith('/verify-otp');
 
       // Si l'état d'authentification est en cours de chargement, ne pas rediriger
       if (authState.isLoading) return null;
 
-      // Si une vérification de téléphone est en cours
+      // Gestion spéciale pendant la vérification de téléphone
       if (isVerifyingPhone) {
-        // Si on est déjà sur la page OTP ou en train d'y aller, permettre
-        if (isVerifyingOTP) return null;
+        // Si nous sommes sur le splash screen ou la page de login pendant la vérification
+        if (isSplash || isLoggingIn) {
+          // Retourner à la dernière page (signup ou verify-otp)
+          return isVerifyingOTP ? '/verify-otp' : '/signup';
+        }
 
-        // Si on est sur le splash screen, retourner à la page précédente
-        if (isSplash) return state.extra as String? ?? '/login';
+        // Permettre l'accès à signup et verify-otp pendant la vérification
+        if (isSigningUp || isVerifyingOTP) {
+          return null;
+        }
+      }
 
+      // Laisser le splash screen se charger uniquement au démarrage initial
+      if (isSplash && !isVerifyingPhone) {
+        // Si ce n'est pas le chargement initial
+        if (!authState.isLoading) {
+          return isAuth ? '/home' : '/login';
+        }
         return null;
       }
 
-      // Laisser le splash screen se charger normalement uniquement au démarrage initial
-      if (isSplash && !isVerifyingPhone) return null;
-
       // Si l'utilisateur n'est pas authentifié
       if (!isAuth) {
-        // Permettre l'accès aux routes d'authentification
-        if (isLoggingIn || isSigningUp || isVerifyingOTP) return null;
-        // Rediriger vers login pour toutes les autres routes
+        // Permettre l'accès aux routes publiques
+        if (isLoggingIn || isSigningUp || isVerifyingOTP) {
+          return null;
+        }
+        // Rediriger vers login pour les routes protégées
         return '/login';
       }
 
@@ -78,6 +91,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/home';
       }
 
+      // Aucune redirection nécessaire
       return null;
     },
     routes: [
@@ -105,10 +119,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/verify-otp',
         builder: (context, state) {
-          final Map<String, dynamic> params =
-              state.extra as Map<String, dynamic>;
+          // Récupérer les paramètres extra en toute sécurité
+          final params = state.extra as Map<String, dynamic>? ?? {};
           return OTPVerificationScreen(
-            phoneNumber: params['phoneNumber'] as String,
+            phoneNumber: params['phoneNumber'] as String? ?? '',
             firstName: params['firstName'] as String?,
             lastName: params['lastName'] as String?,
             isLogin: params['isLogin'] as bool? ?? false,

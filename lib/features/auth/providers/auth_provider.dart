@@ -232,13 +232,10 @@ class Auth extends _$Auth {
     }
   }
 
-  // Démarrer la vérification du numéro de téléphone
-  // Dans auth_provider.dart
-
   Future<void> startPhoneVerification(String phoneNumber) async {
     if (state.isLoading) return;
 
-    _isVerifyingPhone = true; // Ajout de cette ligne
+    _isVerifyingPhone = true;
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -250,71 +247,27 @@ class Auth extends _$Auth {
               state = state.copyWith(isLoading: false);
             },
             onError: (String error) {
-              _isVerifyingPhone = false; // Réinitialisation en cas d'erreur
+              _isVerifyingPhone = false;
               state = state.copyWith(
                 isLoading: false,
                 error: error,
               );
             },
             onCompleted: (String? userId) {
-              _isVerifyingPhone = false; // Réinitialisation à la fin
+              _isVerifyingPhone = false;
               if (userId != null) {
                 state = state.copyWith(isLoading: false);
               }
             },
           );
     } catch (e) {
-      _isVerifyingPhone = false; // Réinitialisation en cas d'exception
+      _isVerifyingPhone = false;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
       );
     }
   }
-
-  /*Future<void> startPhoneVerification(String phoneNumber) async {
-    if (state.isLoading) return;
-
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      print('Début de la vérification du téléphone: $phoneNumber'); // Debug
-
-      await ref.read(firebaseAuthProvider).verifyPhoneNumber(
-            phoneNumber: phoneNumber,
-            onCodeSent: (String verificationId) {
-              print('Code envoyé avec succès'); // Debug
-              _verificationId = verificationId;
-              _startResendTimer();
-              state = state.copyWith(
-                isLoading: false,
-                error: null,
-              );
-            },
-            onError: (String error) {
-              print('Erreur lors de l\'envoi du code: $error'); // Debug
-              state = state.copyWith(
-                isLoading: false,
-                error: error,
-              );
-            },
-            onCompleted: (String? userId) {
-              print('Vérification complétée pour userId: $userId'); // Debug
-              if (userId != null) {
-                state = state.copyWith(
-                  isLoading: false,
-                  error: null,
-                );
-              }
-            },
-          );
-    } catch (e) {
-      print('Exception lors de la vérification: $e'); // Debug
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
-    }
-  }*/
 
   // Vérifier le code OTP
   Future<void> verifyOTP({
@@ -356,6 +309,15 @@ class Auth extends _$Auth {
         timer.cancel();
       }
     });
+  }
+
+  void cancelPhoneVerification() {
+    _isVerifyingPhone = false;
+    _cancelResendTimer();
+    state = state.copyWith(
+      isLoading: false,
+      error: null,
+    );
   }
 
   // Annuler le timer
