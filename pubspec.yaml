@@ -66,6 +66,7 @@ dependencies:
   flutter_facebook_auth: ^6.0.4
   pinput: ^5.0.0
   country_picker: ^2.0.27
+  dots_indicator: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -100,7 +101,7 @@ flutter:
     - assets/images/backgrounds/
     - assets/images/banner/
     - assets/images/blog/
-    - assets/images/car/
+    - assets/images/onboarding_carroussel/
     - assets/images/cities/
     - assets/images/flight_icon/
     - assets/images/hotel/

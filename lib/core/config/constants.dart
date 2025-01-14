@@ -3,6 +3,8 @@ abstract class AppConstants {
   static const Duration pageTransitionDuration = Duration(milliseconds: 300);
   static const Duration splashDuration = Duration(seconds: 3);
 
+  //Radius
+  static const double borderRadius = 8.0;
   // Animations
   static const Duration buttonAnimationDuration = Duration(milliseconds: 200);
   static const Duration globeAnimationDuration = Duration(seconds: 10);

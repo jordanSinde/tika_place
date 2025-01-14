@@ -42,24 +42,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _fadeController.forward();
   }
 
-  /*Future<void> _initializeAndNavigate() async {
-    // Attendre que les animations soient terminées (4 secondes au lieu de 9)
-    await Future.delayed(
-      const Duration(seconds: 4),
-    );
-
-    if (!mounted) return;
-
-    // Vérifier l'état d'authentification
-    final isAuthenticated = ref.read(authProvider).isAuthenticated;
-
-    // Navigation vers la page appropriée
-    if (isAuthenticated) {
-      context.go('/home');
-    } else {
-      context.go('/login');
-    }
-  }*/
   // Dans _initializeAndNavigate de splash_screen.dart
   Future<void> _initializeAndNavigate() async {
     // Réduire le délai d'attente à 2 secondes au lieu de 4

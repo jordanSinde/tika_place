@@ -18,6 +18,8 @@ import '../../features/new/bus_booking_screen.dart';
 import '../../features/new/bus_destination.dart';
 import '../../features/new/bus_detail_screen.dart';
 import '../../features/new/bus_routes_provider.dart';
+import '../../features/onboarding/provider/onboarding_provider.dart';
+import '../../features/onboarding/screens/onboarding_screen.dart';
 import '../../features/splash/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
@@ -33,43 +35,45 @@ final GlobalKey<NavigatorState> _shellNavigatorKey =
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
+  final onboardingCompleted = ref.watch(onboardingCompletedProvider);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     debugLogDiagnostics: true,
-    // Dans app_router.dart, modifier la partie redirect du GoRouter
     redirect: (context, state) {
       // États de base
       final isAuth = authState.isAuthenticated;
       final isVerifyingPhone = ref.read(authProvider.notifier).isVerifyingPhone;
+      final onboardingDone = onboardingCompleted;
 
       // Routes actuelles
       final isSplash = state.matchedLocation == '/';
       final isLoggingIn = state.matchedLocation == '/login';
       final isSigningUp = state.matchedLocation == '/signup';
       final isVerifyingOTP = state.matchedLocation.startsWith('/verify-otp');
+      final isOnboarding = state.matchedLocation == '/onboarding';
 
       // Si l'état d'authentification est en cours de chargement, ne pas rediriger
       if (authState.isLoading) return null;
 
-      // Gestion spéciale pendant la vérification de téléphone
+      // Vérifier d'abord l'onboarding
+      if (!onboardingDone) {
+        return isOnboarding ? null : '/onboarding';
+      }
+
+      // Gestion de la vérification du téléphone
       if (isVerifyingPhone) {
-        // Si nous sommes sur le splash screen ou la page de login pendant la vérification
         if (isSplash || isLoggingIn) {
-          // Retourner à la dernière page (signup ou verify-otp)
           return isVerifyingOTP ? '/verify-otp' : '/signup';
         }
-
-        // Permettre l'accès à signup et verify-otp pendant la vérification
         if (isSigningUp || isVerifyingOTP) {
           return null;
         }
       }
 
-      // Laisser le splash screen se charger uniquement au démarrage initial
+      // Gestion du splash screen
       if (isSplash && !isVerifyingPhone) {
-        // Si ce n'est pas le chargement initial
         if (!authState.isLoading) {
           return isAuth ? '/home' : '/login';
         }
@@ -78,20 +82,17 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Si l'utilisateur n'est pas authentifié
       if (!isAuth) {
-        // Permettre l'accès aux routes publiques
         if (isLoggingIn || isSigningUp || isVerifyingOTP) {
           return null;
         }
-        // Rediriger vers login pour les routes protégées
         return '/login';
       }
 
-      // Si l'utilisateur est authentifié et sur une page d'auth
-      if (isAuth && (isLoggingIn || isSigningUp)) {
+      // Si l'utilisateur est authentifié et sur une page d'auth ou d'onboarding
+      if (isAuth && (isLoggingIn || isSigningUp || isOnboarding)) {
         return '/home';
       }
 
-      // Aucune redirection nécessaire
       return null;
     },
     routes: [
@@ -101,9 +102,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
       ),
+
       GoRoute(
         path: '/signup',
         builder: (context, state) => const SignupScreen(),
