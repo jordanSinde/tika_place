@@ -73,8 +73,7 @@ class _OTPVerificationWidgetState extends ConsumerState<OTPVerificationWidget> {
 
       // Vérifier si l'authentification a réussi
       if (mounted && ref.read(authProvider).isAuthenticated) {
-        // Utiliser GoRouter pour la navigation
-        context.go('/home');
+        context.go('/home'); // Utilisez go au lieu de push
       }
     } catch (e) {
       if (mounted) {

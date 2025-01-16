@@ -23,18 +23,19 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  late PageController _pageController;
+  // ... votre _buildTabItem reste le même ...
 
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  Widget _buildContent(int selectedTab) {
+    switch (selectedTab) {
+      case 0:
+        return const BusBookingView();
+      case 1:
+        return const HotelBookingView();
+      case 2:
+        return const ApartmentBookingView();
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   Widget _buildTabItem({
@@ -119,86 +120,58 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        // Ajout du SingleChildScrollView pour permettre le défilement
-        child: Column(
-          children: [
-            // Carrousel
-            const CustomCarousel(),
+      body: ListView(
+        children: [
+          // Carousel
+          const CustomCarousel(),
 
-            // TabBar
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 16),
-              //padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildTabItem(
-                      icon: Icons.directions_bus_rounded,
-                      label: 'Bus',
-                      isSelected: selectedTab == 0,
-                      onTap: () {
-                        _pageController.animateToPage(
-                          0,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildTabItem(
-                      icon: Icons.hotel_rounded,
-                      label: 'Hôtels',
-                      isSelected: selectedTab == 1,
-                      onTap: () {
-                        _pageController.animateToPage(
-                          1,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildTabItem(
-                      icon: Icons.apartment_rounded,
-                      label: 'Appartements',
-                      isSelected: selectedTab == 2,
-                      onTap: () {
-                        _pageController.animateToPage(
-                          2,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Contenu des pages dans un container avec hauteur fixe
-            SizedBox(
-              height: 400,
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  ref.read(selectedTabProvider.notifier).state = index;
-                },
-                children: const [
-                  BusBookingView(),
-                  HotelBookingView(),
-                  ApartmentBookingView(),
+          // Tab Bar
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 16),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildTabItem(
+                    icon: Icons.directions_bus_rounded,
+                    label: 'Bus',
+                    isSelected: selectedTab == 0,
+                    onTap: () {
+                      ref.read(selectedTabProvider.notifier).state = 0;
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  _buildTabItem(
+                    icon: Icons.hotel_rounded,
+                    label: 'Hôtels',
+                    isSelected: selectedTab == 1,
+                    onTap: () {
+                      ref.read(selectedTabProvider.notifier).state = 1;
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  _buildTabItem(
+                    icon: Icons.apartment_rounded,
+                    label: 'Appartements',
+                    isSelected: selectedTab == 2,
+                    onTap: () {
+                      ref.read(selectedTabProvider.notifier).state = 2;
+                    },
+                  ),
                 ],
               ),
             ),
+          ),
 
-            // Section Contact
-            const SizedBox(height: 12), // Espacement avant la section contact
-            const ContactSection(),
-            const SizedBox(height: 12), // Espacement après la section contact
-          ],
-        ),
+          // Content
+          _buildContent(selectedTab),
+
+          // Contact Section
+          const SizedBox(height: 12),
+          const ContactSection(),
+          const SizedBox(height: 12),
+        ],
       ),
     );
   }

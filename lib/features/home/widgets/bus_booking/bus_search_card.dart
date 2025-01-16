@@ -179,6 +179,7 @@ class _BusSearchCardState extends State<BusSearchCard> {
               onPressed: _handleSearch,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: AppColors.secondary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

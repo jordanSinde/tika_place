@@ -64,12 +64,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Gestion de la vérification du téléphone
       if (isVerifyingPhone) {
-        if (isSplash || isLoggingIn) {
-          return isVerifyingOTP ? '/verify-otp' : '/signup';
+        // Si on est sur le splash ou en train de se connecter/s'inscrire
+        if (isSplash || isLoggingIn || isSigningUp) {
+          // Rediriger vers la page de vérification OTP
+          return isVerifyingOTP ? '/verify-otp' : null;
         }
-        if (isSigningUp || isVerifyingOTP) {
-          return null;
-        }
+        // Laisser les autres pages se comporter normalement
+        return null;
       }
 
       // Gestion du splash screen

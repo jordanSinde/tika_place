@@ -609,77 +609,74 @@ class _ApartmentBookingViewState extends ConsumerState<ApartmentBookingView> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: _filters.map((filter) {
-                final isSelected = ref
-                    .watch(selectedApartmentFiltersProvider)
-                    .contains(filter);
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      final filters =
-                          ref.read(selectedApartmentFiltersProvider);
-                      if (selected) {
-                        ref
-                            .read(selectedApartmentFiltersProvider.notifier)
-                            .state = {...filters, filter};
-                      } else {
-                        ref
-                            .read(selectedApartmentFiltersProvider.notifier)
-                            .state = filters.where((f) => f != filter).toSet();
-                      }
-                    },
-                    selectedColor: AppColors.primary.withOpacity(0.2),
-                    checkmarkColor: AppColors.primary,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ApartmentSearchCard(onSearch: _handleSearch),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'En Vedette',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+    return Column(
+      mainAxisSize: MainAxisSize.min, // Important !
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: _filters.map((filter) {
+              final isSelected =
+                  ref.watch(selectedApartmentFiltersProvider).contains(filter);
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  label: Text(filter),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    final filters = ref.read(selectedApartmentFiltersProvider);
+                    if (selected) {
+                      ref
+                          .read(selectedApartmentFiltersProvider.notifier)
+                          .state = {...filters, filter};
+                    } else {
+                      ref
+                          .read(selectedApartmentFiltersProvider.notifier)
+                          .state = filters.where((f) => f != filter).toSet();
+                    }
+                  },
+                  selectedColor: AppColors.primary.withOpacity(0.2),
+                  checkmarkColor: AppColors.primary,
                 ),
-                const SizedBox(height: 16),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: mockApartments
-                        .take(3)
-                        .map((apartment) => Container(
-                              width: 300,
-                              margin: const EdgeInsets.only(right: 16),
-                              child: _buildApartmentCard(apartment),
-                            ))
-                        .toList(),
-                  ),
-                ),
-              ],
-            ),
+              );
+            }).toList(),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        ApartmentSearchCard(onSearch: _handleSearch),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'En Vedette',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: mockApartments
+                      .take(3)
+                      .map((apartment) => Container(
+                            width: 300,
+                            margin: const EdgeInsets.only(right: 16),
+                            child: _buildApartmentCard(apartment),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

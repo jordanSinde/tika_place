@@ -26,7 +26,6 @@ class _HotelBookingViewState extends ConsumerState<HotelBookingView> {
   ];
 
   List<Hotel> _filteredHotels = [];
-  bool _isSearching = false;
 
   @override
   void initState() {
@@ -35,8 +34,6 @@ class _HotelBookingViewState extends ConsumerState<HotelBookingView> {
   }
 
   void _handleSearch(Map<String, dynamic> searchParams) {
-    setState(() => _isSearching = true);
-
     // Simuler une recherche asynchrone
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
@@ -46,7 +43,6 @@ class _HotelBookingViewState extends ConsumerState<HotelBookingView> {
                 searchParams['city'].toString().toLowerCase(),
               );
         }).toList();
-        _isSearching = false;
       });
 
       // Afficher les résultats dans une modal bottom sheet
@@ -555,81 +551,84 @@ class _HotelBookingViewState extends ConsumerState<HotelBookingView> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
+    return Column(
+      mainAxisSize: MainAxisSize.min, // Important !
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
 
-          // Filtres
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: _filters.map((filter) {
-                final isSelected =
-                    ref.watch(selectedFiltersProvider).contains(filter);
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      final filters = ref.read(selectedFiltersProvider);
-                      if (selected) {
-                        ref.read(selectedFiltersProvider.notifier).state = {
-                          ...filters,
-                          filter
-                        };
-                      } else {
-                        ref.read(selectedFiltersProvider.notifier).state =
-                            filters.where((f) => f != filter).toSet();
-                      }
-                    },
-                    selectedColor: AppColors.primary.withOpacity(0.2),
-                    checkmarkColor: AppColors.primary,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Recherche
-          HotelSearchCard(onSearch: _handleSearch),
-
-          // Promotions
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Special Offers',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+        // Filtres
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: _filters.map((filter) {
+              final isSelected =
+                  ref.watch(selectedFiltersProvider).contains(filter);
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  label: Text(filter),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    final filters = ref.read(selectedFiltersProvider);
+                    if (selected) {
+                      ref.read(selectedFiltersProvider.notifier).state = {
+                        ...filters,
+                        filter
+                      };
+                    } else {
+                      ref.read(selectedFiltersProvider.notifier).state =
+                          filters.where((f) => f != filter).toSet();
+                    }
+                  },
+                  selectedColor: AppColors.primary.withOpacity(0.2),
+                  checkmarkColor: AppColors.primary,
                 ),
-                const SizedBox(height: 16),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: mockHotels
-                        .take(3)
-                        .map((hotel) => Container(
-                              width: 280,
-                              margin: const EdgeInsets.only(right: 16),
-                              child: _buildHotelCard(hotel),
-                            ))
-                        .toList(),
-                  ),
-                ),
-              ],
-            ),
+              );
+            }).toList(),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+
+        // Recherche
+        HotelSearchCard(onSearch: _handleSearch),
+        /*Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: 
+        ),*/
+
+        // Promotions
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Special Offers',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: mockHotels
+                      .take(3)
+                      .map((hotel) => Container(
+                            width: 280,
+                            margin: const EdgeInsets.only(right: 16),
+                            child: _buildHotelCard(hotel),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

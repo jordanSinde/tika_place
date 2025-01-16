@@ -44,6 +44,37 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   // Dans _initializeAndNavigate de splash_screen.dart
   Future<void> _initializeAndNavigate() async {
+    // Réduire le délai d'attente à 2 secondes
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    final authNotifier = ref.read(authProvider.notifier);
+    final isAuthenticated = ref.read(authProvider).isAuthenticated;
+    final isVerifyingPhone = authNotifier.isVerifyingPhone;
+
+    // Si une vérification de téléphone est en cours
+    if (isVerifyingPhone) {
+      // Rediriger vers la page de vérification OTP
+      if (context.mounted) {
+        context.go('/verify-otp', extra: {
+          'phoneNumber': authNotifier.currentPhoneNumber,
+          'isLogin': true, // ou false selon le contexte
+        });
+      }
+      return;
+    }
+
+    // Navigation normale pour les autres cas
+    if (mounted) {
+      if (isAuthenticated) {
+        context.go('/home');
+      } else {
+        context.go('/login');
+      }
+    }
+  }
+  /*Future<void> _initializeAndNavigate() async {
     // Réduire le délai d'attente à 2 secondes au lieu de 4
     await Future.delayed(const Duration(seconds: 2));
 
@@ -70,7 +101,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         context.go('/login');
       }
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {

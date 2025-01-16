@@ -852,7 +852,7 @@ class _BusBookingViewState extends ConsumerState<BusBookingView> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Le ticket a été envoyé par SMS'),
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: AppColors.secondary,
                   ),
                 );
               },
@@ -866,101 +866,50 @@ class _BusBookingViewState extends ConsumerState<BusBookingView> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
+    return Column(
+      mainAxisSize: MainAxisSize.min, // Important !
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Bus Search Card
+        BusSearchCard(onSearch: _handleSearch),
 
-          // Class Selection
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Classe',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
+        // Popular Routes Section
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Trajets populaires',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              _buildPopularRouteCard(
+                departure: 'Douala',
+                arrival: 'Yaoundé',
+                duration: '4h',
+                price: '6,000',
+              ),
+              const SizedBox(height: 12),
+              _buildPopularRouteCard(
+                departure: 'Yaoundé',
+                arrival: 'Bafoussam',
+                duration: '5h',
+                price: '7,000',
+              ),
+              const SizedBox(height: 12),
+              _buildPopularRouteCard(
+                departure: 'Douala',
+                arrival: 'Kribi',
+                duration: '3h',
+                price: '5,000',
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-
-          // Class Selection Cards
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                _buildClassCard(
-                  title: 'Economy',
-                  price: '5,000',
-                  features: ['Sièges standards', 'Services de base'],
-                  busClass: BusClass.economy,
-                ),
-                const SizedBox(width: 16),
-                _buildClassCard(
-                  title: 'Business',
-                  price: '8,000',
-                  features: ['Sièges conforts', 'Climatisation', 'Collation'],
-                  busClass: BusClass.business,
-                ),
-                const SizedBox(width: 16),
-                _buildClassCard(
-                  title: 'VIP',
-                  price: '12,000',
-                  features: [
-                    'Sièges premium',
-                    'Climatisation',
-                    'Repas',
-                    'Wifi'
-                  ],
-                  busClass: BusClass.vip,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Bus Search Card
-          BusSearchCard(onSearch: _handleSearch),
-
-          // Popular Routes Section
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Trajets populaires',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                _buildPopularRouteCard(
-                  departure: 'Douala',
-                  arrival: 'Yaoundé',
-                  duration: '4h',
-                  price: '6,000',
-                ),
-                const SizedBox(height: 12),
-                _buildPopularRouteCard(
-                  departure: 'Yaoundé',
-                  arrival: 'Bafoussam',
-                  duration: '5h',
-                  price: '7,000',
-                ),
-                const SizedBox(height: 12),
-                _buildPopularRouteCard(
-                  departure: 'Douala',
-                  arrival: 'Kribi',
-                  duration: '3h',
-                  price: '5,000',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

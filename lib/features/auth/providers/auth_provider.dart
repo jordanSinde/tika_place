@@ -16,12 +16,13 @@ class Auth extends _$Auth {
   String? _verificationId;
   Timer? _resendTimer;
   int _resendCountdown = 0;
+  String?
+      _currentPhoneNumber; // Ajout d'une variable pour stocker le numéro de téléphone
 
   bool _isVerifyingPhone = false;
 
   bool get isVerifyingPhone => _isVerifyingPhone;
-
-  // ... autres méthodes existantes ...
+  String? get currentPhoneNumber => _currentPhoneNumber;
 
   @override
   AuthState build() {
@@ -236,6 +237,7 @@ class Auth extends _$Auth {
     if (state.isLoading) return;
 
     _isVerifyingPhone = true;
+    _currentPhoneNumber = phoneNumber; // Stocker le numéro
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -248,6 +250,7 @@ class Auth extends _$Auth {
             },
             onError: (String error) {
               _isVerifyingPhone = false;
+              _currentPhoneNumber = null; // Réinitialiser en cas d'erreur
               state = state.copyWith(
                 isLoading: false,
                 error: error,
@@ -255,6 +258,7 @@ class Auth extends _$Auth {
             },
             onCompleted: (String? userId) {
               _isVerifyingPhone = false;
+              _currentPhoneNumber = null; // Réinitialiser une fois terminé
               if (userId != null) {
                 state = state.copyWith(isLoading: false);
               }
@@ -262,6 +266,7 @@ class Auth extends _$Auth {
           );
     } catch (e) {
       _isVerifyingPhone = false;
+      _currentPhoneNumber = null; // Réinitialiser en cas d'erreur
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -313,6 +318,7 @@ class Auth extends _$Auth {
 
   void cancelPhoneVerification() {
     _isVerifyingPhone = false;
+    _currentPhoneNumber = null; // Réinitialiser le numéro
     _cancelResendTimer();
     state = state.copyWith(
       isLoading: false,

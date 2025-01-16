@@ -8,7 +8,6 @@ import '../../common/widgets/inputs/custom_textfield.dart';
 import '../providers/auth_provider.dart';
 import '../utils/error_text.dart';
 import '../widgets/auth_header.dart';
-import '../widgets/opt_verification_widget.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +21,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _phoneController = TextEditingController();
   String? _errorMessage;
   bool _isGettingOTP = false;
-  bool _showOtpVerification = false;
+  //bool _showOtpVerification = false;
 
   @override
   void dispose() {
@@ -123,10 +122,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .startPhoneVerification(fullPhoneNumber);
 
       if (mounted) {
-        setState(() {
-          _showOtpVerification = true;
-          _isGettingOTP = false;
+        // Navigation vers l'écran de vérification OTP
+        context.push('/verify-otp', extra: {
+          'phoneNumber': fullPhoneNumber,
+          'isLogin': true,
         });
+        setState(() => _isGettingOTP = false);
       }
     } catch (e) {
       if (mounted) {
@@ -141,16 +142,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final isVerifyingPhone = ref.watch(authProvider.notifier).isVerifyingPhone;
     final theme = Theme.of(context);
-
-    // Mettre à jour _showOtpVerification en fonction de isVerifyingPhone
-    if (isVerifyingPhone && !_showOtpVerification) {
-      setState(() {
-        _showOtpVerification = true;
-        _isGettingOTP = false;
-      });
-    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -163,110 +155,89 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AuthHeader(
-                  title: _showOtpVerification
-                      ? 'Verify Phone Login'
-                      : 'Welcome Back',
-                  subtitle: _showOtpVerification
-                      ? 'Enter verification code Login'
-                      : 'Sign in to continue your journey',
-                  onBackPressed: () {
-                    if (_showOtpVerification) {
-                      // Annuler la vérification du téléphone
-                      ref.read(authProvider.notifier).cancelPhoneVerification();
-                      setState(() => _showOtpVerification = false);
-                    } else {
-                      context.go('/');
-                    }
-                  },
+                  title: 'Welcome Back',
+                  subtitle: 'Sign in to continue your journey',
+                  onBackPressed: () => context.go('/'),
                 ),
                 const SizedBox(height: 32),
-                if (_showOtpVerification)
-                  OTPVerificationWidget(
-                    phoneNumber:
-                        '+${_selectedCountryCode?.phoneCode ?? '237'}${_phoneController.text.trim()}',
-                    isLogin: true,
-                    autoStartVerification: false,
-                  )
-                else ...[
-                  // Social Login Buttons
-                  SocialButton(
-                    type: SocialButtonType.google,
-                    onPressed: _handleGoogleSignIn,
-                    isLoading: authState.isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                  SocialButton(
-                    type: SocialButtonType.facebook,
-                    onPressed: _handleFacebookSignIn,
-                    isLoading: authState.isLoading,
-                  ),
-                  const SizedBox(height: 32),
+                // Social Login Buttons
+                SocialButton(
+                  type: SocialButtonType.google,
+                  onPressed: _handleGoogleSignIn,
+                  isLoading: authState.isLoading,
+                ),
+                const SizedBox(height: 16),
+                SocialButton(
+                  type: SocialButtonType.facebook,
+                  onPressed: _handleFacebookSignIn,
+                  isLoading: authState.isLoading,
+                ),
+                const SizedBox(height: 32),
 
-                  // Divider
-                  const Row(
-                    children: [
-                      Expanded(child: Divider()),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('or continue with phone'),
-                      ),
-                      Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Error Message
-                  if (_errorMessage != null) ErrorText(error: _errorMessage!),
-
-                  // Phone Input Section
-                  _buildPhoneField(),
-                  const SizedBox(height: 24),
-
-                  // Get OTP Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: authState.isLoading || _isGettingOTP
-                          ? null
-                          : _handlePhoneSignIn,
-                      child: _isGettingOTP
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Get OTP'),
+                // Divider
+                const Row(
+                  children: [
+                    Expanded(child: Divider()),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Text('or continue with phone'),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 32),
 
-                  // Sign Up Link
-                  Center(
-                    child: TextButton(
-                      onPressed: () => context.go('/signup'),
-                      child: RichText(
-                        text: TextSpan(
-                          text: 'Don\'t have an account? ',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: 'Sign up',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                // Error Message
+                if (_errorMessage != null) ErrorText(error: _errorMessage!),
+
+                // Phone Input Section
+                _buildPhoneField(),
+                const SizedBox(height: 24),
+
+                // Get OTP Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: authState.isLoading || _isGettingOTP
+                        ? null
+                        : _handlePhoneSignIn,
+                    child: _isGettingOTP
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
                             ),
-                          ],
+                          )
+                        : const Text('Get OTP'),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Sign Up Link
+                Center(
+                  child: TextButton(
+                    onPressed: () => context.go('/signup'),
+                    child: RichText(
+                      text: TextSpan(
+                        text: 'Don\'t have an account? ',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
                         ),
+                        children: [
+                          TextSpan(
+                            text: 'Sign up',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
+                ),
               ],
             ),
           ),
