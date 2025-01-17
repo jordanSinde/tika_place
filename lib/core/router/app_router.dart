@@ -45,53 +45,41 @@ final routerProvider = Provider<GoRouter>((ref) {
       // États de base
       final isAuth = authState.isAuthenticated;
       final isVerifyingPhone = ref.read(authProvider.notifier).isVerifyingPhone;
+      final isInRecaptchaFlow =
+          ref.read(authProvider.notifier).isInRecaptchaFlow;
       final onboardingDone = onboardingCompleted;
 
       // Routes actuelles
       final isSplash = state.matchedLocation == '/';
       final isLoggingIn = state.matchedLocation == '/login';
       final isSigningUp = state.matchedLocation == '/signup';
-      final isVerifyingOTP = state.matchedLocation.startsWith('/verify-otp');
-      final isOnboarding = state.matchedLocation == '/onboarding';
+      final isVerifyingOTP = state.matchedLocation == '/verify-otp';
 
-      // Si l'état d'authentification est en cours de chargement, ne pas rediriger
-      if (authState.isLoading) return null;
+      // Si en cours de chargement ou dans le flux Recaptcha, ne pas rediriger
+      if (authState.isLoading || isInRecaptchaFlow) return null;
 
       // Vérifier d'abord l'onboarding
-      if (!onboardingDone) {
-        return isOnboarding ? null : '/onboarding';
+      if (!onboardingDone && !isVerifyingPhone) {
+        return '/onboarding';
       }
 
-      // Gestion de la vérification du téléphone
-      if (isVerifyingPhone) {
-        // Si on est sur le splash ou en train de se connecter/s'inscrire
-        if (isSplash || isLoggingIn || isSigningUp) {
-          // Rediriger vers la page de vérification OTP
-          return isVerifyingOTP ? '/verify-otp' : null;
-        }
-        // Laisser les autres pages se comporter normalement
-        return null;
+      // Priorité à la vérification OTP
+      if (isVerifyingPhone && !isVerifyingOTP) {
+        return '/verify-otp';
       }
 
-      // Gestion du splash screen
-      if (isSplash && !isVerifyingPhone) {
-        if (!authState.isLoading) {
-          return isAuth ? '/home' : '/login';
+      // Si l'utilisateur est authentifié
+      if (isAuth) {
+        if (isLoggingIn || isSigningUp || isSplash || isVerifyingOTP) {
+          return '/home';
         }
         return null;
       }
 
-      // Si l'utilisateur n'est pas authentifié
-      if (!isAuth) {
-        if (isLoggingIn || isSigningUp || isVerifyingOTP) {
-          return null;
-        }
-        return '/login';
-      }
-
-      // Si l'utilisateur est authentifié et sur une page d'auth ou d'onboarding
-      if (isAuth && (isLoggingIn || isSigningUp || isOnboarding)) {
-        return '/home';
+      // Si non authentifié
+      if (!isAuth && !isVerifyingPhone) {
+        if (isSplash) return '/login';
+        if (!isLoggingIn && !isSigningUp && !isVerifyingOTP) return '/login';
       }
 
       return null;

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../core/exceptions/auth_exception.dart';
 import '../services/firebase_auth_service.dart';
 import 'auth_state.dart';
 
@@ -20,6 +21,10 @@ class Auth extends _$Auth {
       _currentPhoneNumber; // Ajout d'une variable pour stocker le numéro de téléphone
 
   bool _isVerifyingPhone = false;
+  bool _isInRecaptchaFlow = false;
+// Obtenir le temps restant pour le renvoi
+  int get resendCountdown => _resendCountdown;
+  bool get isInRecaptchaFlow => _isInRecaptchaFlow;
 
   bool get isVerifyingPhone => _isVerifyingPhone;
   String? get currentPhoneNumber => _currentPhoneNumber;
@@ -28,7 +33,7 @@ class Auth extends _$Auth {
   AuthState build() {
     _initializeAuth();
     ref.onDispose(() {
-      _cancelResendTimer(); // Cette fonction sera appelée quand le provider sera disposé
+      _cancelResendTimer();
     });
     return const AuthState();
   }
@@ -234,11 +239,12 @@ class Auth extends _$Auth {
   }
 
   Future<void> startPhoneVerification(String phoneNumber) async {
-    if (state.isLoading) return;
+    if (state.isLoading || phoneNumber.isEmpty) return;
 
-    _isVerifyingPhone = true;
-    _currentPhoneNumber = phoneNumber; // Stocker le numéro
     state = state.copyWith(isLoading: true, error: null);
+    _isVerifyingPhone = true;
+    _currentPhoneNumber = phoneNumber;
+    _isInRecaptchaFlow = false;
 
     try {
       await ref.read(firebaseAuthProvider).verifyPhoneNumber(
@@ -246,32 +252,45 @@ class Auth extends _$Auth {
             onCodeSent: (String verificationId) {
               _verificationId = verificationId;
               _startResendTimer();
+              _isInRecaptchaFlow = false;
               state = state.copyWith(isLoading: false);
             },
             onError: (String error) {
-              _isVerifyingPhone = false;
-              _currentPhoneNumber = null; // Réinitialiser en cas d'erreur
+              _resetVerificationState();
               state = state.copyWith(
                 isLoading: false,
                 error: error,
               );
             },
             onCompleted: (String? userId) {
-              _isVerifyingPhone = false;
-              _currentPhoneNumber = null; // Réinitialiser une fois terminé
               if (userId != null) {
+                _resetVerificationState();
                 state = state.copyWith(isLoading: false);
               }
             },
           );
     } catch (e) {
-      _isVerifyingPhone = false;
-      _currentPhoneNumber = null; // Réinitialiser en cas d'erreur
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      _resetVerificationState();
+      if (e is AuthException) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.message,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+      }
     }
+  }
+
+  void _resetVerificationState() {
+    _isVerifyingPhone = false;
+    _currentPhoneNumber = null;
+    _verificationId = null;
+    _isInRecaptchaFlow = false;
+    _cancelResendTimer();
   }
 
   // Vérifier le code OTP
@@ -293,13 +312,20 @@ class Auth extends _$Auth {
             lastName: lastName ?? "",
           );
 
-      _cancelResendTimer();
+      _resetVerificationState();
       state = AuthState(user: user);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      if (e is AuthException) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.message,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+      }
     }
   }
 
@@ -317,9 +343,7 @@ class Auth extends _$Auth {
   }
 
   void cancelPhoneVerification() {
-    _isVerifyingPhone = false;
-    _currentPhoneNumber = null; // Réinitialiser le numéro
-    _cancelResendTimer();
+    _resetVerificationState();
     state = state.copyWith(
       isLoading: false,
       error: null,
@@ -333,8 +357,10 @@ class Auth extends _$Auth {
     _resendCountdown = 0;
   }
 
-  // Obtenir le temps restant pour le renvoi
-  int get resendCountdown => _resendCountdown;
+  // Méthode pour gérer l'état du Recaptcha
+  void handleRecaptchaFlow(bool isInFlow) {
+    _isInRecaptchaFlow = isInFlow;
+  }
 
   // Renvoyer le code OTP
   Future<void> resendOTP(String phoneNumber) async {
@@ -357,12 +383,17 @@ class Auth extends _$Auth {
             },
           );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
-    } finally {
-      _isVerifyingPhone = false; // Fin de la vérification
+      if (e is AuthException) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.message,
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+      }
     }
   }
 

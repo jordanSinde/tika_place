@@ -8,6 +8,7 @@ class FirebaseAuthService {
   final firebase_auth.FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
   final FacebookAuth _facebookAuth;
+  int? _resendToken; // Ajout du token pour le renvoi
 
   FirebaseAuthService({
     firebase_auth.FirebaseAuth? firebaseAuth,
@@ -206,29 +207,36 @@ class FirebaseAuthService {
     required Function(String?) onCompleted,
   }) async {
     try {
+      if (phoneNumber.isEmpty) {
+        onError('Le numéro de téléphone ne peut pas être vide');
+        return;
+      }
+
       await _firebaseAuth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted:
             (firebase_auth.PhoneAuthCredential credential) async {
-          // Auto-résolution sur Android
           try {
             final userCredential =
                 await _firebaseAuth.signInWithCredential(credential);
             onCompleted(userCredential.user?.uid);
           } catch (e) {
-            onError(_handleFirebaseAuthError(e).message);
+            final error = _handleFirebaseAuthError(e);
+            onError(error.message);
           }
         },
         verificationFailed: (firebase_auth.FirebaseAuthException e) {
           onError(_handleFirebaseAuthError(e).message);
         },
         codeSent: (String verificationId, int? resendToken) {
+          _resendToken = resendToken;
           onCodeSent(verificationId);
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          // Timeout de la récupération automatique du code
+          // Timeout de la récupération automatique
         },
         timeout: const Duration(seconds: 60),
+        forceResendingToken: _resendToken,
       );
     } catch (e) {
       onError(_handleFirebaseAuthError(e).message);
@@ -239,42 +247,39 @@ class FirebaseAuthService {
   Future<User> verifyOTPAndSignIn({
     required String verificationId,
     required String smsCode,
+    required String phoneNumber,
     required String firstName,
     required String lastName,
-    required String phoneNumber,
   }) async {
     try {
-      // Créer les credentials avec le code OTP
+      if (smsCode.length != 6) {
+        throw const AuthException.invalidCredentials();
+      }
+
       final credential = firebase_auth.PhoneAuthProvider.credential(
         verificationId: verificationId,
         smsCode: smsCode,
       );
 
-      // Connecter l'utilisateur
       final userCredential =
           await _firebaseAuth.signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
 
-      if (userCredential.user == null) {
-        throw const AuthException.unknown('User is null after phone auth');
+      if (firebaseUser == null) {
+        throw const AuthException.userNotFound();
       }
 
-      // Mettre à jour le profil utilisateur
-      await userCredential.user!.updateDisplayName('$firstName $lastName');
+      // Mettre à jour le profil si nécessaire
+      if (firstName.isNotEmpty || lastName.isNotEmpty) {
+        await updateProfile(
+          userId: firebaseUser.uid,
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber,
+        );
+      }
 
-      // Créer l'objet User personnalisé
-      return User(
-        id: userCredential.user!.uid,
-        email: '', // Le téléphone n'a pas d'email
-        firstName: firstName,
-        lastName: lastName,
-        phoneNumber: phoneNumber,
-        provider: AuthProvider
-            .email, // Vous pourriez vouloir ajouter un nouveau provider 'phone'
-        isEmailVerified: true, // Pas besoin de vérification pour le téléphone
-        hasCompletedProfile: true,
-        createdAt: DateTime.now(),
-        lastLoginAt: DateTime.now(),
-      );
+      return _firebaseUserToUser(firebaseUser);
     } catch (e) {
       throw _handleFirebaseAuthError(e);
     }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import '../providers/auth_provider.dart';
 import '../utils/error_text.dart';
@@ -30,6 +29,7 @@ class _OTPVerificationWidgetState extends ConsumerState<OTPVerificationWidget> {
   final _otpController = TextEditingController();
   String? _errorMessage;
   bool _isInitialized = false;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -37,7 +37,29 @@ class _OTPVerificationWidgetState extends ConsumerState<OTPVerificationWidget> {
     super.dispose();
   }
 
+  /*@override
+  void initState() {
+    super.initState();
+    if (!_isInitialized && widget.autoStartVerification) {
+      _isInitialized = true;
+      Future.microtask(() => _startPhoneVerification());
+    }
+  }*/
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_isInitialized && widget.autoStartVerification) {
+      _isInitialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startPhoneVerification();
+      });
+    }
+  }
+
   Future<void> _startPhoneVerification() async {
+    if (widget.phoneNumber.isEmpty) return;
+
     try {
       await ref
           .read(authProvider.notifier)
@@ -50,34 +72,26 @@ class _OTPVerificationWidgetState extends ConsumerState<OTPVerificationWidget> {
   }
 
   Future<void> _verifyOTP() async {
-    if (_otpController.text.length != 6) return;
+    if (_otpController.text.length != 6 || _isSubmitting) return;
 
-    setState(() => _errorMessage = null);
+    setState(() {
+      _errorMessage = null;
+      _isSubmitting = true;
+    });
 
     try {
-      if (widget.isLogin) {
-        await ref.read(authProvider.notifier).verifyOTP(
-              smsCode: _otpController.text,
-              phoneNumber: widget.phoneNumber,
-              firstName: '',
-              lastName: '',
-            );
-      } else {
-        await ref.read(authProvider.notifier).verifyOTP(
-              smsCode: _otpController.text,
-              phoneNumber: widget.phoneNumber,
-              firstName: widget.firstName ?? '',
-              lastName: widget.lastName ?? '',
-            );
-      }
-
-      // Vérifier si l'authentification a réussi
-      if (mounted && ref.read(authProvider).isAuthenticated) {
-        context.go('/home'); // Utilisez go au lieu de push
-      }
+      await ref.read(authProvider.notifier).verifyOTP(
+            smsCode: _otpController.text,
+            phoneNumber: widget.phoneNumber,
+            firstName: widget.isLogin ? '' : (widget.firstName ?? ''),
+            lastName: widget.isLogin ? '' : (widget.lastName ?? ''),
+          );
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = e.toString());
+        setState(() {
+          _errorMessage = e.toString();
+          _isSubmitting = false;
+        });
       }
     }
   }

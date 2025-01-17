@@ -1,3 +1,4 @@
+//lib/core/exceptions/auth_exception.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'auth_exception.freezed.dart';

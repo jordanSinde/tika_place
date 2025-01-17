@@ -14,11 +14,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   final prefs = await SharedPreferences.getInstance();
-  // Configuration du cache d'images
-  //PaintingBinding.instance.imageCache.maximumSize = 50;
-  // Limite le nombre d'images en cache
-  //PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20;
-  // Limite à 50MB
 
   runApp(
     ProviderScope(

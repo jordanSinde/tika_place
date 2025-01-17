@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_assets.dart';
 import '../../../core/config/theme/app_colors.dart';
-import '../../auth/providers/auth_provider.dart';
 import '../widgets/parallax_globe.dart';
-import 'package:go_router/go_router.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -22,7 +20,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void initState() {
     super.initState();
     _setupAnimations();
-    _initializeAndNavigate();
+    _initializeAuth();
   }
 
   void _setupAnimations() {
@@ -42,66 +40,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _fadeController.forward();
   }
 
-  // Dans _initializeAndNavigate de splash_screen.dart
-  Future<void> _initializeAndNavigate() async {
-    // Réduire le délai d'attente à 2 secondes
+  Future<void> _initializeAuth() async {
+    // Délai minimal pour l'animation
     await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
-    final authNotifier = ref.read(authProvider.notifier);
-    final isAuthenticated = ref.read(authProvider).isAuthenticated;
-    final isVerifyingPhone = authNotifier.isVerifyingPhone;
-
-    // Si une vérification de téléphone est en cours
-    if (isVerifyingPhone) {
-      // Rediriger vers la page de vérification OTP
-      if (context.mounted) {
-        context.go('/verify-otp', extra: {
-          'phoneNumber': authNotifier.currentPhoneNumber,
-          'isLogin': true, // ou false selon le contexte
-        });
-      }
-      return;
-    }
-
-    // Navigation normale pour les autres cas
-    if (mounted) {
-      if (isAuthenticated) {
-        context.go('/home');
-      } else {
-        context.go('/login');
-      }
-    }
+    // La redirection sera gérée par le routeur
   }
-  /*Future<void> _initializeAndNavigate() async {
-    // Réduire le délai d'attente à 2 secondes au lieu de 4
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
-    final authNotifier = ref.read(authProvider.notifier);
-    final isAuthenticated = ref.read(authProvider).isAuthenticated;
-    final isVerifyingPhone = authNotifier.isVerifyingPhone;
-
-    // Si une vérification de téléphone est en cours, ne rien faire
-    if (isVerifyingPhone) {
-      // Retourner à la page précédente au lieu de rester sur le splash screen
-      if (context.mounted) {
-        context.pop();
-      }
-      return;
-    }
-
-    // Navigation normale pour les autres cas
-    if (mounted) {
-      if (isAuthenticated) {
-        context.go('/home');
-      } else {
-        context.go('/login');
-      }
-    }
-  }*/
 
   @override
   Widget build(BuildContext context) {
