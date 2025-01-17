@@ -15,6 +15,7 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       phoneNumber: json['phoneNumber'] as String?,
       hashedPassword: json['hashedPassword'] as String?,
       profilePicture: json['profilePicture'] as String?,
+      cniNumber: (json['cniNumber'] as num?)?.toInt(),
       provider: $enumDecode(_$AuthProviderEnumMap, json['provider']),
       isEmailVerified: json['isEmailVerified'] as bool,
       country: json['country'] as String?,
@@ -27,6 +28,10 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
+      contacts: (json['contacts'] as List<dynamic>?)
+              ?.map((e) => Contact.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
@@ -38,6 +43,7 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'phoneNumber': instance.phoneNumber,
       'hashedPassword': instance.hashedPassword,
       'profilePicture': instance.profilePicture,
+      'cniNumber': instance.cniNumber,
       'provider': _$AuthProviderEnumMap[instance.provider]!,
       'isEmailVerified': instance.isEmailVerified,
       'country': instance.country,
@@ -46,6 +52,7 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'lastLoginAt': instance.lastLoginAt?.toIso8601String(),
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
+      'contacts': instance.contacts,
     };
 
 const _$AuthProviderEnumMap = {
@@ -54,3 +61,21 @@ const _$AuthProviderEnumMap = {
   AuthProvider.facebook: 'facebook',
   AuthProvider.phone: 'phone',
 };
+
+_$ContactImpl _$$ContactImplFromJson(Map<String, dynamic> json) =>
+    _$ContactImpl(
+      id: json['id'] as String,
+      firstName: json['firstName'] as String,
+      lastName: json['lastName'] as String?,
+      phoneNumber: json['phoneNumber'] as String,
+      relationship: json['relationship'] as String?,
+    );
+
+Map<String, dynamic> _$$ContactImplToJson(_$ContactImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'firstName': instance.firstName,
+      'lastName': instance.lastName,
+      'phoneNumber': instance.phoneNumber,
+      'relationship': instance.relationship,
+    };

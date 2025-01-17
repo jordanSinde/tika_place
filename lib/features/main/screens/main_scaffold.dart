@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/theme/app_colors.dart';
 import '../../home/screens/home_screen.dart';
-import '../../auth/screens/profil_screen.dart';
+import '../../profile/screens/profile_screen.dart';
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
 

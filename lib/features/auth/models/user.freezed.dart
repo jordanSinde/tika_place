@@ -25,9 +25,9 @@ mixin _$UserModel {
   String get firstName => throw _privateConstructorUsedError;
   String? get lastName => throw _privateConstructorUsedError;
   String? get phoneNumber => throw _privateConstructorUsedError;
-  String? get hashedPassword =>
-      throw _privateConstructorUsedError; // Nouveau champ pour le mot de passe haché
+  String? get hashedPassword => throw _privateConstructorUsedError;
   String? get profilePicture => throw _privateConstructorUsedError;
+  int? get cniNumber => throw _privateConstructorUsedError;
   AuthProvider get provider => throw _privateConstructorUsedError;
   bool get isEmailVerified => throw _privateConstructorUsedError;
   String? get country => throw _privateConstructorUsedError;
@@ -35,7 +35,9 @@ mixin _$UserModel {
   bool get hasCompletedProfile => throw _privateConstructorUsedError;
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
-  DateTime? get updatedAt => throw _privateConstructorUsedError;
+  DateTime? get updatedAt =>
+      throw _privateConstructorUsedError; // Nouvelle propriété uniquement pour les contacts
+  List<Contact> get contacts => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -56,6 +58,7 @@ abstract class $UserModelCopyWith<$Res> {
       String? phoneNumber,
       String? hashedPassword,
       String? profilePicture,
+      int? cniNumber,
       AuthProvider provider,
       bool isEmailVerified,
       String? country,
@@ -63,7 +66,8 @@ abstract class $UserModelCopyWith<$Res> {
       bool hasCompletedProfile,
       DateTime? lastLoginAt,
       DateTime createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      List<Contact> contacts});
 }
 
 /// @nodoc
@@ -86,6 +90,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? phoneNumber = freezed,
     Object? hashedPassword = freezed,
     Object? profilePicture = freezed,
+    Object? cniNumber = freezed,
     Object? provider = null,
     Object? isEmailVerified = null,
     Object? country = freezed,
@@ -94,6 +99,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? lastLoginAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = freezed,
+    Object? contacts = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -124,6 +130,10 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
           ? _value.profilePicture
           : profilePicture // ignore: cast_nullable_to_non_nullable
               as String?,
+      cniNumber: freezed == cniNumber
+          ? _value.cniNumber
+          : cniNumber // ignore: cast_nullable_to_non_nullable
+              as int?,
       provider: null == provider
           ? _value.provider
           : provider // ignore: cast_nullable_to_non_nullable
@@ -156,6 +166,10 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      contacts: null == contacts
+          ? _value.contacts
+          : contacts // ignore: cast_nullable_to_non_nullable
+              as List<Contact>,
     ) as $Val);
   }
 }
@@ -176,6 +190,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
       String? phoneNumber,
       String? hashedPassword,
       String? profilePicture,
+      int? cniNumber,
       AuthProvider provider,
       bool isEmailVerified,
       String? country,
@@ -183,7 +198,8 @@ abstract class _$$UserModelImplCopyWith<$Res>
       bool hasCompletedProfile,
       DateTime? lastLoginAt,
       DateTime createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      List<Contact> contacts});
 }
 
 /// @nodoc
@@ -204,6 +220,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? phoneNumber = freezed,
     Object? hashedPassword = freezed,
     Object? profilePicture = freezed,
+    Object? cniNumber = freezed,
     Object? provider = null,
     Object? isEmailVerified = null,
     Object? country = freezed,
@@ -212,6 +229,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? lastLoginAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = freezed,
+    Object? contacts = null,
   }) {
     return _then(_$UserModelImpl(
       id: null == id
@@ -242,6 +260,10 @@ class __$$UserModelImplCopyWithImpl<$Res>
           ? _value.profilePicture
           : profilePicture // ignore: cast_nullable_to_non_nullable
               as String?,
+      cniNumber: freezed == cniNumber
+          ? _value.cniNumber
+          : cniNumber // ignore: cast_nullable_to_non_nullable
+              as int?,
       provider: null == provider
           ? _value.provider
           : provider // ignore: cast_nullable_to_non_nullable
@@ -274,6 +296,10 @@ class __$$UserModelImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      contacts: null == contacts
+          ? _value._contacts
+          : contacts // ignore: cast_nullable_to_non_nullable
+              as List<Contact>,
     ));
   }
 }
@@ -289,6 +315,7 @@ class _$UserModelImpl implements _UserModel {
       this.phoneNumber,
       this.hashedPassword,
       this.profilePicture,
+      this.cniNumber,
       required this.provider,
       required this.isEmailVerified,
       this.country,
@@ -296,7 +323,9 @@ class _$UserModelImpl implements _UserModel {
       this.hasCompletedProfile = false,
       this.lastLoginAt,
       required this.createdAt,
-      this.updatedAt});
+      this.updatedAt,
+      final List<Contact> contacts = const []})
+      : _contacts = contacts;
 
   factory _$UserModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserModelImplFromJson(json);
@@ -313,9 +342,10 @@ class _$UserModelImpl implements _UserModel {
   final String? phoneNumber;
   @override
   final String? hashedPassword;
-// Nouveau champ pour le mot de passe haché
   @override
   final String? profilePicture;
+  @override
+  final int? cniNumber;
   @override
   final AuthProvider provider;
   @override
@@ -333,10 +363,20 @@ class _$UserModelImpl implements _UserModel {
   final DateTime createdAt;
   @override
   final DateTime? updatedAt;
+// Nouvelle propriété uniquement pour les contacts
+  final List<Contact> _contacts;
+// Nouvelle propriété uniquement pour les contacts
+  @override
+  @JsonKey()
+  List<Contact> get contacts {
+    if (_contacts is EqualUnmodifiableListView) return _contacts;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_contacts);
+  }
 
   @override
   String toString() {
-    return 'UserModel(id: $id, email: $email, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber, hashedPassword: $hashedPassword, profilePicture: $profilePicture, provider: $provider, isEmailVerified: $isEmailVerified, country: $country, language: $language, hasCompletedProfile: $hasCompletedProfile, lastLoginAt: $lastLoginAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'UserModel(id: $id, email: $email, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber, hashedPassword: $hashedPassword, profilePicture: $profilePicture, cniNumber: $cniNumber, provider: $provider, isEmailVerified: $isEmailVerified, country: $country, language: $language, hasCompletedProfile: $hasCompletedProfile, lastLoginAt: $lastLoginAt, createdAt: $createdAt, updatedAt: $updatedAt, contacts: $contacts)';
   }
 
   @override
@@ -356,6 +396,8 @@ class _$UserModelImpl implements _UserModel {
                 other.hashedPassword == hashedPassword) &&
             (identical(other.profilePicture, profilePicture) ||
                 other.profilePicture == profilePicture) &&
+            (identical(other.cniNumber, cniNumber) ||
+                other.cniNumber == cniNumber) &&
             (identical(other.provider, provider) ||
                 other.provider == provider) &&
             (identical(other.isEmailVerified, isEmailVerified) ||
@@ -370,7 +412,8 @@ class _$UserModelImpl implements _UserModel {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            const DeepCollectionEquality().equals(other._contacts, _contacts));
   }
 
   @JsonKey(ignore: true)
@@ -384,6 +427,7 @@ class _$UserModelImpl implements _UserModel {
       phoneNumber,
       hashedPassword,
       profilePicture,
+      cniNumber,
       provider,
       isEmailVerified,
       country,
@@ -391,7 +435,8 @@ class _$UserModelImpl implements _UserModel {
       hasCompletedProfile,
       lastLoginAt,
       createdAt,
-      updatedAt);
+      updatedAt,
+      const DeepCollectionEquality().hash(_contacts));
 
   @JsonKey(ignore: true)
   @override
@@ -416,6 +461,7 @@ abstract class _UserModel implements UserModel {
       final String? phoneNumber,
       final String? hashedPassword,
       final String? profilePicture,
+      final int? cniNumber,
       required final AuthProvider provider,
       required final bool isEmailVerified,
       final String? country,
@@ -423,7 +469,8 @@ abstract class _UserModel implements UserModel {
       final bool hasCompletedProfile,
       final DateTime? lastLoginAt,
       required final DateTime createdAt,
-      final DateTime? updatedAt}) = _$UserModelImpl;
+      final DateTime? updatedAt,
+      final List<Contact> contacts}) = _$UserModelImpl;
 
   factory _UserModel.fromJson(Map<String, dynamic> json) =
       _$UserModelImpl.fromJson;
@@ -440,8 +487,10 @@ abstract class _UserModel implements UserModel {
   String? get phoneNumber;
   @override
   String? get hashedPassword;
-  @override // Nouveau champ pour le mot de passe haché
+  @override
   String? get profilePicture;
+  @override
+  int? get cniNumber;
   @override
   AuthProvider get provider;
   @override
@@ -458,8 +507,231 @@ abstract class _UserModel implements UserModel {
   DateTime get createdAt;
   @override
   DateTime? get updatedAt;
+  @override // Nouvelle propriété uniquement pour les contacts
+  List<Contact> get contacts;
   @override
   @JsonKey(ignore: true)
   _$$UserModelImplCopyWith<_$UserModelImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+Contact _$ContactFromJson(Map<String, dynamic> json) {
+  return _Contact.fromJson(json);
+}
+
+/// @nodoc
+mixin _$Contact {
+  String get id => throw _privateConstructorUsedError;
+  String get firstName => throw _privateConstructorUsedError;
+  String? get lastName => throw _privateConstructorUsedError;
+  String get phoneNumber => throw _privateConstructorUsedError;
+  String? get relationship => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $ContactCopyWith<Contact> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ContactCopyWith<$Res> {
+  factory $ContactCopyWith(Contact value, $Res Function(Contact) then) =
+      _$ContactCopyWithImpl<$Res, Contact>;
+  @useResult
+  $Res call(
+      {String id,
+      String firstName,
+      String? lastName,
+      String phoneNumber,
+      String? relationship});
+}
+
+/// @nodoc
+class _$ContactCopyWithImpl<$Res, $Val extends Contact>
+    implements $ContactCopyWith<$Res> {
+  _$ContactCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? firstName = null,
+    Object? lastName = freezed,
+    Object? phoneNumber = null,
+    Object? relationship = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: null == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phoneNumber: null == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      relationship: freezed == relationship
+          ? _value.relationship
+          : relationship // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ContactImplCopyWith<$Res> implements $ContactCopyWith<$Res> {
+  factory _$$ContactImplCopyWith(
+          _$ContactImpl value, $Res Function(_$ContactImpl) then) =
+      __$$ContactImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String firstName,
+      String? lastName,
+      String phoneNumber,
+      String? relationship});
+}
+
+/// @nodoc
+class __$$ContactImplCopyWithImpl<$Res>
+    extends _$ContactCopyWithImpl<$Res, _$ContactImpl>
+    implements _$$ContactImplCopyWith<$Res> {
+  __$$ContactImplCopyWithImpl(
+      _$ContactImpl _value, $Res Function(_$ContactImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? firstName = null,
+    Object? lastName = freezed,
+    Object? phoneNumber = null,
+    Object? relationship = freezed,
+  }) {
+    return _then(_$ContactImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: null == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phoneNumber: null == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      relationship: freezed == relationship
+          ? _value.relationship
+          : relationship // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ContactImpl implements _Contact {
+  const _$ContactImpl(
+      {required this.id,
+      required this.firstName,
+      this.lastName,
+      required this.phoneNumber,
+      this.relationship});
+
+  factory _$ContactImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ContactImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String firstName;
+  @override
+  final String? lastName;
+  @override
+  final String phoneNumber;
+  @override
+  final String? relationship;
+
+  @override
+  String toString() {
+    return 'Contact(id: $id, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber, relationship: $relationship)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ContactImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.firstName, firstName) ||
+                other.firstName == firstName) &&
+            (identical(other.lastName, lastName) ||
+                other.lastName == lastName) &&
+            (identical(other.phoneNumber, phoneNumber) ||
+                other.phoneNumber == phoneNumber) &&
+            (identical(other.relationship, relationship) ||
+                other.relationship == relationship));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, id, firstName, lastName, phoneNumber, relationship);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ContactImplCopyWith<_$ContactImpl> get copyWith =>
+      __$$ContactImplCopyWithImpl<_$ContactImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ContactImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _Contact implements Contact {
+  const factory _Contact(
+      {required final String id,
+      required final String firstName,
+      final String? lastName,
+      required final String phoneNumber,
+      final String? relationship}) = _$ContactImpl;
+
+  factory _Contact.fromJson(Map<String, dynamic> json) = _$ContactImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get firstName;
+  @override
+  String? get lastName;
+  @override
+  String get phoneNumber;
+  @override
+  String? get relationship;
+  @override
+  @JsonKey(ignore: true)
+  _$$ContactImplCopyWith<_$ContactImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

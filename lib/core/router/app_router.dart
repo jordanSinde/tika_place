@@ -7,7 +7,6 @@ import '../../features/auth/providers/auth_state.dart';
 import '../../features/auth/providers/session_provider.dart';
 import '../../features/auth/screens/manage_sessions_screen.dart';
 import '../../features/auth/screens/opt_verification_screen.dart';
-import '../../features/auth/screens/profil_screen.dart';
 import '../../features/common/widgets/drawers/custom_drawer.dart';
 import '../../features/main/screens/main_scaffold.dart';
 import '../../features/new/apartments_provider.dart';
@@ -20,6 +19,8 @@ import '../../features/new/bus_detail_screen.dart';
 import '../../features/new/bus_routes_provider.dart';
 import '../../features/onboarding/provider/onboarding_provider.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
+import '../../features/profile/screens/profile_screen.dart';
+import '../../features/settings/screens/settings_screen.dart';
 import '../../features/splash/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
@@ -133,6 +134,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           state,
           const MainScaffold(),
         ),
+      ),
+
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
 
       // Routes protégées avec Shell

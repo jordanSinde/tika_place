@@ -14,8 +14,9 @@ class UserModel with _$UserModel {
     required String firstName,
     String? lastName,
     String? phoneNumber,
-    String? hashedPassword, // Nouveau champ pour le mot de passe haché
+    String? hashedPassword,
     String? profilePicture,
+    int? cniNumber,
     required AuthProvider provider,
     required bool isEmailVerified,
     String? country,
@@ -24,8 +25,24 @@ class UserModel with _$UserModel {
     DateTime? lastLoginAt,
     required DateTime createdAt,
     DateTime? updatedAt,
+    // Nouvelle propriété uniquement pour les contacts
+    @Default([]) List<Contact> contacts, // Pour les proches
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);
+}
+
+@freezed
+class Contact with _$Contact {
+  const factory Contact({
+    required String id,
+    required String firstName,
+    String? lastName,
+    required String phoneNumber,
+    String? relationship, // ex: family, friend, etc.
+  }) = _Contact;
+
+  factory Contact.fromJson(Map<String, dynamic> json) =>
+      _$ContactFromJson(json);
 }
