@@ -7,6 +7,7 @@ import '../../../core/config/theme/app_colors.dart';
 // lib/features/home/screens/home_screen.dart
 
 import '../../auth/providers/auth_provider.dart';
+import '../../common/widgets/drawers/custom_drawer.dart';
 import '../widgets/bus_booking/bus_booking_view.dart';
 import '../widgets/contact_section.dart';
 import '../widgets/custom_carroussel.dart';
@@ -87,6 +88,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: const CustomDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

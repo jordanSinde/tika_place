@@ -6,7 +6,8 @@ part of 'user.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
+_$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
+    _$UserModelImpl(
       id: json['id'] as String,
       email: json['email'] as String,
       firstName: json['firstName'] as String,
@@ -28,7 +29,7 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
           : DateTime.parse(json['updatedAt'] as String),
     );
 
-Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
+Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'email': instance.email,
@@ -51,4 +52,5 @@ const _$AuthProviderEnumMap = {
   AuthProvider.email: 'email',
   AuthProvider.google: 'google',
   AuthProvider.facebook: 'facebook',
+  AuthProvider.phone: 'phone',
 };

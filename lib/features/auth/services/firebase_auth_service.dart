@@ -19,8 +19,8 @@ class FirebaseAuthService {
         _facebookAuth = facebookAuth ?? FacebookAuth.instance;
 
   // Convertir un utilisateur Firebase en modèle User
-  User _firebaseUserToUser(firebase_auth.User firebaseUser) {
-    return User(
+  UserModel _firebaseUserToUser(firebase_auth.User firebaseUser) {
+    return UserModel(
       id: firebaseUser.uid,
       email: firebaseUser.email ?? '',
       firstName: firebaseUser.displayName?.split(' ').first ?? '',
@@ -80,7 +80,7 @@ class FirebaseAuthService {
   }
 
   // Connexion avec email/mot de passe
-  Future<User> signInWithEmail(String email, String password) async {
+  Future<UserModel> signInWithEmail(String email, String password) async {
     try {
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
@@ -96,7 +96,7 @@ class FirebaseAuthService {
   }
 
   // Inscription avec email/mot de passe
-  Future<User> signUpWithEmail({
+  Future<UserModel> signUpWithEmail({
     required String email,
     required String password,
     required String firstName,
@@ -127,7 +127,7 @@ class FirebaseAuthService {
   }
 
   // Connexion avec Google
-  Future<User> signInWithGoogle() async {
+  Future<UserModel> signInWithGoogle() async {
     try {
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
@@ -153,7 +153,7 @@ class FirebaseAuthService {
   }
 
   // Connexion avec Facebook
-  Future<User> signInWithFacebook() async {
+  Future<UserModel> signInWithFacebook() async {
     try {
       final LoginResult loginResult = await _facebookAuth.login();
 
@@ -244,7 +244,7 @@ class FirebaseAuthService {
   }
 
   // Vérifier le code OTP et créer/mettre à jour l'utilisateur
-  Future<User> verifyOTPAndSignIn({
+  Future<UserModel> verifyOTPAndSignIn({
     required String verificationId,
     required String smsCode,
     required String phoneNumber,
@@ -327,14 +327,14 @@ class FirebaseAuthService {
   }
 
   // Obtenir l'utilisateur courant
-  Future<User?> getCurrentUser() async {
+  Future<UserModel?> getCurrentUser() async {
     final firebaseUser = _firebaseAuth.currentUser;
     if (firebaseUser == null) return null;
     return _firebaseUserToUser(firebaseUser);
   }
 
   // Mettre à jour le profil
-  Future<User> updateProfile({
+  Future<UserModel> updateProfile({
     required String userId,
     String? firstName,
     String? lastName,
@@ -399,7 +399,7 @@ class FirebaseAuthService {
   }
 
   // Stream des changements d'authentification
-  Stream<User?> authStateChanges() {
+  Stream<UserModel?> authStateChanges() {
     return _firebaseAuth.authStateChanges().map((firebaseUser) {
       return firebaseUser == null ? null : _firebaseUserToUser(firebaseUser);
     });

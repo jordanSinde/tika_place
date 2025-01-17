@@ -4,11 +4,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'user.freezed.dart';
 part 'user.g.dart';
 
-enum AuthProvider { email, google, facebook }
+enum AuthProvider { email, google, facebook, phone }
 
 @freezed
-class User with _$User {
-  const factory User({
+class UserModel with _$UserModel {
+  const factory UserModel({
     required String id,
     required String email,
     required String firstName,
@@ -24,7 +24,8 @@ class User with _$User {
     DateTime? lastLoginAt,
     required DateTime createdAt,
     DateTime? updatedAt,
-  }) = _User;
+  }) = _UserModel;
 
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
 }

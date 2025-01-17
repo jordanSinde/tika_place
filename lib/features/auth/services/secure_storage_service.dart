@@ -20,7 +20,7 @@ class SecureStorageService {
   }
 
   // Stocker un nouvel utilisateur
-  Future<User> createUser(Map<String, dynamic> userData) async {
+  Future<UserModel> createUser(Map<String, dynamic> userData) async {
     try {
       // Récupérer les utilisateurs existants
       final users = await _getUsers();
@@ -33,7 +33,7 @@ class SecureStorageService {
       }
 
       // Créer le nouvel utilisateur avec mot de passe haché
-      final newUser = User(
+      final newUser = UserModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         email: userData['email'],
         firstName: userData['firstName'],
@@ -59,7 +59,7 @@ class SecureStorageService {
   }
 
   // Vérifier les identifiants
-  Future<User> verifyCredentials(String email, String password) async {
+  Future<UserModel> verifyCredentials(String email, String password) async {
     try {
       final users = await _getUsers();
       final hashedPassword = _hashPassword(password);
@@ -79,7 +79,7 @@ class SecureStorageService {
   }
 
   // Mettre à jour un utilisateur
-  Future<User> updateUser(User updatedUser) async {
+  Future<UserModel> updateUser(UserModel updatedUser) async {
     try {
       final users = await _getUsers();
       final index = users.indexWhere((u) => u.id == updatedUser.id);
@@ -105,26 +105,26 @@ class SecureStorageService {
   }
 
   // Récupérer tous les utilisateurs
-  Future<List<User>> _getUsers() async {
+  Future<List<UserModel>> _getUsers() async {
     final usersJson = _prefs.getString(_usersKey);
     if (usersJson == null) return [];
 
     try {
       final usersList = jsonDecode(usersJson) as List;
-      return usersList.map((json) => User.fromJson(json)).toList();
+      return usersList.map((json) => UserModel.fromJson(json)).toList();
     } catch (e) {
       return [];
     }
   }
 
   // Sauvegarder la liste des utilisateurs
-  Future<void> _saveUsers(List<User> users) async {
+  Future<void> _saveUsers(List<UserModel> users) async {
     final usersJson = jsonEncode(users.map((u) => u.toJson()).toList());
     await _prefs.setString(_usersKey, usersJson);
   }
 
   // Gérer la session courante
-  Future<void> setCurrentUser(User user) async {
+  Future<void> setCurrentUser(UserModel user) async {
     await _prefs.setString(_currentUserKey, jsonEncode(user.toJson()));
   }
 
@@ -132,12 +132,12 @@ class SecureStorageService {
     await _prefs.remove(_currentUserKey);
   }
 
-  Future<User?> getCurrentUser() async {
+  Future<UserModel?> getCurrentUser() async {
     final userJson = _prefs.getString(_currentUserKey);
     if (userJson == null) return null;
 
     try {
-      return User.fromJson(jsonDecode(userJson));
+      return UserModel.fromJson(jsonDecode(userJson));
     } catch (e) {
       await clearCurrentUser();
       return null;

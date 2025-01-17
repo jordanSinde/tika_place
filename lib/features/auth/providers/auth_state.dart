@@ -6,7 +6,7 @@ part 'auth_state.freezed.dart';
 @freezed
 class AuthState with _$AuthState {
   const factory AuthState({
-    User? user,
+    UserModel? user,
     @Default(false) bool isLoading,
     String? error,
     String? redirectPath,

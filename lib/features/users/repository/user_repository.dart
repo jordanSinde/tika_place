@@ -14,13 +14,13 @@ class UserRepository {
   UserRepository(this._prefs);
 
   // Récupérer un utilisateur par email (simulation de base de données)
-  Future<User?> getUserByEmail(String email) async {
+  Future<UserModel?> getUserByEmail(String email) async {
     try {
       final usersJson = _prefs.getString(_usersKey);
       if (usersJson == null) return null;
 
       final users = (jsonDecode(usersJson) as List)
-          .map((userJson) => User.fromJson(userJson))
+          .map((userJson) => UserModel.fromJson(userJson))
           .toList();
 
       return users.firstWhere(
@@ -34,15 +34,15 @@ class UserRepository {
   }
 
   // Sauvegarder un utilisateur
-  Future<void> saveUser(User user) async {
+  Future<void> saveUser(UserModel user) async {
     try {
       // Récupérer la liste existante des utilisateurs
       final usersJson = _prefs.getString(_usersKey);
-      List<User> users = [];
+      List<UserModel> users = [];
 
       if (usersJson != null) {
         users = (jsonDecode(usersJson) as List)
-            .map((userJson) => User.fromJson(userJson))
+            .map((userJson) => UserModel.fromJson(userJson))
             .toList();
       }
 
@@ -67,13 +67,13 @@ class UserRepository {
   }
 
   // Mettre à jour un utilisateur
-  Future<void> updateUser(User user) async {
+  Future<void> updateUser(UserModel user) async {
     try {
       final usersJson = _prefs.getString(_usersKey);
       if (usersJson == null) throw const RepositoryException.notFound();
 
-      List<User> users = (jsonDecode(usersJson) as List)
-          .map((userJson) => User.fromJson(userJson))
+      List<UserModel> users = (jsonDecode(usersJson) as List)
+          .map((userJson) => UserModel.fromJson(userJson))
           .toList();
 
       final index = users.indexWhere((u) => u.id == user.id);
@@ -86,7 +86,7 @@ class UserRepository {
       // Mettre à jour l'utilisateur courant si c'est le même
       final currentUserJson = _prefs.getString(_userKey);
       if (currentUserJson != null) {
-        final currentUser = User.fromJson(jsonDecode(currentUserJson));
+        final currentUser = UserModel.fromJson(jsonDecode(currentUserJson));
         if (currentUser.id == user.id) {
           await _prefs.setString(_userKey, jsonEncode(user.toJson()));
         }
@@ -103,8 +103,8 @@ class UserRepository {
       final usersJson = _prefs.getString(_usersKey);
       if (usersJson == null) return;
 
-      List<User> users = (jsonDecode(usersJson) as List)
-          .map((userJson) => User.fromJson(userJson))
+      List<UserModel> users = (jsonDecode(usersJson) as List)
+          .map((userJson) => UserModel.fromJson(userJson))
           .toList();
 
       users.removeWhere((user) => user.id == userId);
@@ -114,7 +114,7 @@ class UserRepository {
       // Supprimer l'utilisateur courant si c'est le même
       final currentUserJson = _prefs.getString(_userKey);
       if (currentUserJson != null) {
-        final currentUser = User.fromJson(jsonDecode(currentUserJson));
+        final currentUser = UserModel.fromJson(jsonDecode(currentUserJson));
         if (currentUser.id == userId) {
           await clearLocalUser();
         }
@@ -125,10 +125,10 @@ class UserRepository {
   }
 
   // Récupérer l'utilisateur courant
-  Future<User?> getCurrentUser() async {
+  Future<UserModel?> getCurrentUser() async {
     final userJson = _prefs.getString(_userKey);
     if (userJson == null) return null;
-    return User.fromJson(jsonDecode(userJson));
+    return UserModel.fromJson(jsonDecode(userJson));
   }
 
   // Effacer l'utilisateur courant

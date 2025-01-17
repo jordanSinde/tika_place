@@ -16,7 +16,7 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$AuthState {
-  User? get user => throw _privateConstructorUsedError;
+  UserModel? get user => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
   String? get redirectPath => throw _privateConstructorUsedError;
@@ -31,9 +31,10 @@ abstract class $AuthStateCopyWith<$Res> {
   factory $AuthStateCopyWith(AuthState value, $Res Function(AuthState) then) =
       _$AuthStateCopyWithImpl<$Res, AuthState>;
   @useResult
-  $Res call({User? user, bool isLoading, String? error, String? redirectPath});
+  $Res call(
+      {UserModel? user, bool isLoading, String? error, String? redirectPath});
 
-  $UserCopyWith<$Res>? get user;
+  $UserModelCopyWith<$Res>? get user;
 }
 
 /// @nodoc
@@ -58,7 +59,7 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
       user: freezed == user
           ? _value.user
           : user // ignore: cast_nullable_to_non_nullable
-              as User?,
+              as UserModel?,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -76,12 +77,12 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
 
   @override
   @pragma('vm:prefer-inline')
-  $UserCopyWith<$Res>? get user {
+  $UserModelCopyWith<$Res>? get user {
     if (_value.user == null) {
       return null;
     }
 
-    return $UserCopyWith<$Res>(_value.user!, (value) {
+    return $UserModelCopyWith<$Res>(_value.user!, (value) {
       return _then(_value.copyWith(user: value) as $Val);
     });
   }
@@ -95,10 +96,11 @@ abstract class _$$AuthStateImplCopyWith<$Res>
       __$$AuthStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({User? user, bool isLoading, String? error, String? redirectPath});
+  $Res call(
+      {UserModel? user, bool isLoading, String? error, String? redirectPath});
 
   @override
-  $UserCopyWith<$Res>? get user;
+  $UserModelCopyWith<$Res>? get user;
 }
 
 /// @nodoc
@@ -121,7 +123,7 @@ class __$$AuthStateImplCopyWithImpl<$Res>
       user: freezed == user
           ? _value.user
           : user // ignore: cast_nullable_to_non_nullable
-              as User?,
+              as UserModel?,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -146,7 +148,7 @@ class _$AuthStateImpl extends _AuthState {
       : super._();
 
   @override
-  final User? user;
+  final UserModel? user;
   @override
   @JsonKey()
   final bool isLoading;
@@ -186,14 +188,14 @@ class _$AuthStateImpl extends _AuthState {
 
 abstract class _AuthState extends AuthState {
   const factory _AuthState(
-      {final User? user,
+      {final UserModel? user,
       final bool isLoading,
       final String? error,
       final String? redirectPath}) = _$AuthStateImpl;
   const _AuthState._() : super._();
 
   @override
-  User? get user;
+  UserModel? get user;
   @override
   bool get isLoading;
   @override
