@@ -1,11 +1,12 @@
 // lib/features/profile/widgets/profile_header.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/config/app_assets.dart';
 import '../../../core/config/theme/app_colors.dart';
 import '../../auth/models/user.dart';
+
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileHeader extends ConsumerWidget {
   final UserModel user;
@@ -15,101 +16,140 @@ class ProfileHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 280, // Augmenté pour plus d'impact visuel
       pinned: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      flexibleSpace: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Image de fond
-          Positioned.fill(
-            child: Image.asset(
-              AppAssets.hotelDetail1,
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Arc blanc
-          Positioned(
-            bottom: -1, // Pour éviter la ligne entre l'arc et le contenu
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 20,
-              decoration: const BoxDecoration(
-                color: AppColors.background, //Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(40),
-                ),
+
+      flexibleSpace: FlexibleSpaceBar(
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Image de fond avec effet de gradient
+            ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withOpacity(0.7),
+                ],
+              ).createShader(bounds),
+              blendMode: BlendMode.darken,
+              child: Image.asset(
+                AppAssets.hotelDetail1,
+                fit: BoxFit.cover,
               ),
             ),
-          ),
-          // Image de profil
-          Positioned(
-            bottom: -50,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                    ),
+            // Overlay gradient pour améliorer la lisibilité
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.5),
                   ],
                 ),
-                child: user.profilePicture != null
-                    ? CircleAvatar(
-                        radius: 50,
-                        backgroundImage: NetworkImage(user.profilePicture!),
-                      )
-                    : CircleAvatar(
-                        radius: 50,
-                        backgroundColor: AppColors.primary,
-                        child: Text(
-                          user.firstName[0].toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 32,
-                            color: Colors.white,
-                          ),
+              ),
+            ),
+            // Informations de l'utilisateur
+            Positioned(
+              bottom: 60,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  // Photo de profil avec bordure animée
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 12,
+                          spreadRadius: 2,
                         ),
-                      ),
+                      ],
+                    ),
+                    child: user.profilePicture != null
+                        ? CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.grey[200],
+                            child: ClipOval(
+                              child: CachedNetworkImage(
+                                imageUrl: user.profilePicture!,
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  color: Colors.grey[200],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    _buildInitialsAvatar(user),
+                              ),
+                            ),
+                          )
+                        : _buildInitialsAvatar(user),
+                  ),
+                  const SizedBox(height: 16),
+                  // Nom de l'utilisateur avec effet de brillance
+                  Text(
+                    '${user.firstName} ${user.lastName ?? ""}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(0, 2),
+                          blurRadius: 4,
+                          color: Colors.black45,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+            // Arc décoratif en bas
+            Positioned(
+              bottom: -1,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(32),
+                  ),
                 ),
-              ],
-            ),
-            child: IconButton(
-              icon: const Icon(
-                Icons.settings,
-                color: Colors.black,
-                size: 30,
               ),
-              onPressed: () => context.push('/settings'),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildInitialsAvatar(UserModel user) {
+    return CircleAvatar(
+      radius: 50,
+      backgroundColor: AppColors.primary,
+      child: Text(
+        user.firstName[0].toUpperCase(),
+        style: const TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 }

@@ -29,15 +29,15 @@ final List<DrawerMenuItem> menuItems = [
     icon: Icons.directions_bus_outlined,
     subItems: [
       DrawerMenuItem(
-        title: 'Destinations',
-        icon: Icons.map_outlined,
-        route: '/bus/destinations',
-      ),
+          title: 'Destinations',
+          icon: Icons.map_outlined,
+          route: '' //'/bus/destinations',
+          ),
       DrawerMenuItem(
-        title: 'Réserver un billet',
-        icon: Icons.confirmation_number_outlined,
-        route: '/bus/booking',
-      ),
+          title: 'Réserver un billet',
+          icon: Icons.confirmation_number_outlined,
+          route: '' //'/bus/booking',
+          ),
     ],
   ),
   const DrawerMenuItem(
@@ -45,15 +45,15 @@ final List<DrawerMenuItem> menuItems = [
     icon: Icons.apartment_outlined,
     subItems: [
       DrawerMenuItem(
-        title: 'Liste des appartements',
-        icon: Icons.list_outlined,
-        route: '/apartments/list',
-      ),
+          title: 'Liste des appartements',
+          icon: Icons.list_outlined,
+          route: '' //'/apartments/list',
+          ),
       DrawerMenuItem(
-        title: 'Réserver un appartement',
-        icon: Icons.book_outlined,
-        route: '/apartments/booking',
-      ),
+          title: 'Réserver un appartement',
+          icon: Icons.book_outlined,
+          route: '' //'/apartments/booking',
+          ),
     ],
   ),
   const DrawerMenuItem(
@@ -61,25 +61,25 @@ final List<DrawerMenuItem> menuItems = [
     icon: Icons.hotel_outlined,
     subItems: [
       DrawerMenuItem(
-        title: 'Liste des hotels',
-        icon: Icons.list_outlined,
-        route: '/hotels/list',
-      ),
+          title: 'Liste des hotels',
+          icon: Icons.list_outlined,
+          route: '' //'/hotels/list',
+          ),
       DrawerMenuItem(
-        title: 'Chambres disponibles',
-        icon: Icons.bed_outlined,
-        route: '/hotels/rooms',
-      ),
+          title: 'Chambres disponibles',
+          icon: Icons.bed_outlined,
+          route: '' //'/hotels/rooms',
+          ),
       DrawerMenuItem(
-        title: 'Réserver une chambre',
-        icon: Icons.book_outlined,
-        route: '/hotels/booking',
-      ),
+          title: 'Réserver une chambre',
+          icon: Icons.book_outlined,
+          route: '' //'/hotels/booking',
+          ),
     ],
   ),
 ];
 
-final List<DrawerMenuItem> pageMenuItems = [
+/*final List<DrawerMenuItem> pageMenuItems = [
   const DrawerMenuItem(
     title: 'Pages',
     icon: Icons.apartment_outlined,
@@ -96,7 +96,7 @@ final List<DrawerMenuItem> pageMenuItems = [
       ),
     ],
   ),
-];
+];*/
 
 class CustomDrawer extends ConsumerStatefulWidget {
   const CustomDrawer({super.key});
@@ -146,7 +146,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                       },
                     ),
                     const Divider(color: AppColors.divider),
-                    // Pages menu
+                    /*// Pages menu
                     ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -157,6 +157,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                         return _buildMenuItemWithSubItems(item);
                       },
                     ),
+
                     _buildSimpleMenuItem(
                       icon: Icons.info_outline,
                       title: 'About',
@@ -166,7 +167,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                       icon: Icons.contact_support_outlined,
                       title: 'Contact',
                       onTap: () => context.go('/contact'),
-                    ),
+                    ),*/
                   ],
                 ),
               ),

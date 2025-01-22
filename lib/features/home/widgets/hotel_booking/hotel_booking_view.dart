@@ -1,5 +1,6 @@
 // lib/features/home/widgets/hotel_booking/hotel_booking_view.dart
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/theme/app_colors.dart';
@@ -288,6 +289,43 @@ class _HotelBookingViewState extends ConsumerState<HotelBookingView> {
     );
   }
 
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 150,
+      color: Colors.grey[200],
+      child: Center(
+        child: Container(
+          width: 30,
+          height: 30,
+          padding: const EdgeInsets.all(8),
+          child: const CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          ),
+        ),
+      ),
+    );
+  }
+
+// Fonction pour optimiser l'URL de l'image
+  String _getOptimizedImageUrl(String originalUrl) {
+    // Si vous utilisez Cloudinary
+    if (originalUrl.contains('cloudinary')) {
+      return originalUrl.replaceAll('/upload/', '/upload/w_600,f_auto,q_auto/');
+    }
+    return originalUrl;
+  }
+
+// À ajouter dans votre initState ou contrôleur pour précharger les images
+/*void _precacheHotelImages(List<Hotel> hotels) {
+  for (final hotel in hotels) {
+    precacheImage(
+      CachedNetworkImageProvider(_getOptimizedImageUrl(hotel.images[0])),
+      context,
+    );
+  }
+}*/
+
   Widget _buildHotelCard(Hotel hotel) {
     return InkWell(
       onTap: () => _showHotelDetails(hotel),
@@ -306,20 +344,22 @@ class _HotelBookingViewState extends ConsumerState<HotelBookingView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
             ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(
-                hotel.images[0],
+              child: CachedNetworkImage(
+                imageUrl: _getOptimizedImageUrl(hotel.images[0]),
                 height: 150,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
+                placeholder: (context, url) => _buildImagePlaceholder(),
+                errorWidget: (context, url, error) => Container(
                   height: 150,
                   color: Colors.grey[300],
                   child: const Icon(Icons.image_not_supported),
                 ),
+                memCacheHeight: 300, // Optimisé pour la hauteur de 150
+                maxHeightDiskCache: 300,
               ),
             ),
             Padding(

@@ -7,7 +7,6 @@ import '../../common/widgets/buttons/social_button.dart';
 import '../../common/widgets/inputs/custom_textfield.dart';
 import '../providers/auth_provider.dart';
 import '../utils/error_text.dart';
-import '../widgets/auth_header.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +20,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _phoneController = TextEditingController();
   String? _errorMessage;
   bool _isGettingOTP = false;
+  String title = "Se connecter";
+  String? subtitle = "connectez-vous pour continuer votre voyage.";
   //bool _showOtpVerification = false;
 
   @override
@@ -74,7 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           Expanded(
             child: CustomTextField(
-              hint: 'Phone Number',
+              hint: 'Numéro',
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               enabled: !ref.watch(authProvider).isLoading && !_isGettingOTP,
@@ -154,11 +155,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AuthHeader(
-                  title: 'Welcome Back',
-                  subtitle: 'Sign in to continue your journey',
-                  onBackPressed: () => context.go('/'),
+                const SizedBox(height: 24),
+                Text(
+                  title,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle!,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 32),
                 // Social Login Buttons
                 SocialButton(
@@ -180,7 +193,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Expanded(child: Divider()),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('or continue with phone'),
+                      child: Text('ou numéro de téléphone'),
                     ),
                     Expanded(child: Divider()),
                   ],
@@ -221,13 +234,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: () => context.go('/signup'),
                     child: RichText(
                       text: TextSpan(
-                        text: 'Don\'t have an account? ',
+                        text: "Vous n'avez pas de compte ?",
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
                         children: [
                           TextSpan(
-                            text: 'Sign up',
+                            text: "S'inscrire",
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,

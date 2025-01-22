@@ -2,105 +2,168 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/config/theme/app_colors.dart';
+
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../../auth/providers/auth_provider.dart';
 
 class SettingItem {
   final String title;
   final IconData icon;
   final String? route;
+  final String? actionUrl;
+  final Color? iconColor;
+  final String? subtitle;
 
   const SettingItem({
     required this.title,
     required this.icon,
     this.route,
+    this.actionUrl,
+    this.iconColor,
+    this.subtitle,
   });
 }
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  static const String termsUrl = "https://www.mongodb.com/legal";
+
   static const List<Map<String, List<SettingItem>>> settingsSections = [
     {
-      'Account': [
+      'Compte': [
         SettingItem(
-          title: 'Edit profile',
+          title: 'Modifier le Profile',
           icon: Icons.person_outline,
-          route: '/profile/edit',
+          route: '/edit-profile',
         ),
-        SettingItem(
-          title: 'Security',
+        /*SettingItem(
+          title: 'Securité',
           icon: Icons.security_outlined,
-        ),
+        ),*/
         SettingItem(
           title: 'Notifications',
           icon: Icons.notifications_outlined,
+          route: '/notifications-settings',
+        ),
+        /*SettingItem(
+          title: 'Confidentialité',
+          icon: Icons.lock_outline,
+        ),*/
+      ],
+    },
+    {
+      'Contact': [
+        SettingItem(
+          title: 'WhatsApp',
+          icon: FontAwesomeIcons.whatsapp,
+          actionUrl: 'https://wa.me/237694679620',
+          iconColor: Color(0xFF25D366),
+          //subtitle: '+237 694 679 620',
         ),
         SettingItem(
-          title: 'Privacy',
-          icon: Icons.lock_outline,
+          title: 'Appel direct',
+          icon: Icons.phone,
+          actionUrl: 'tel:+237694679620',
+          iconColor: AppColors.primary,
+          //subtitle: '+237 694 679 620',
+        ),
+        SettingItem(
+          title: 'Email',
+          icon: Icons.email,
+          actionUrl:
+              'mailto:ftgroupsarl@gmail.com?subject=Contact%20from%20App&body=Hello,',
+          iconColor: AppColors.primary,
+          //subtitle: 'eveiltechnologique100@gmail.com',
         ),
       ],
     },
     {
-      'Support & About': [
+      'Support & A Propos': [
         /*SettingItem(
-          title: 'My Subscription',
-          icon: Icons.card_membership_outlined,
+          title: 'Aide & Support',
+          icon: Icons.help_outline,
         ),*/
         SettingItem(
-          title: 'Help & Support',
-          icon: Icons.help_outline,
-        ),
-        SettingItem(
-          title: 'Terms and Policies',
+          title: 'Conditions et politiques',
           icon: Icons.description_outlined,
-        ),
-      ],
-    },
-    {
-      'Cache & cellular': [
-        SettingItem(
-          title: 'Free up space',
-          icon: Icons.delete_outline,
-        ),
-        SettingItem(
-          title: 'Data Saver',
-          icon: Icons.data_saver_off_outlined,
+          actionUrl: termsUrl,
         ),
       ],
     },
     {
       'Actions': [
         SettingItem(
-          title: 'Report a problem',
+          title: 'Reportter un problème',
           icon: Icons.flag_outlined,
+          route: '/report-problem',
         ),
-        /*SettingItem(
-          title: 'Add account',
-          icon: Icons.person_add_outlined,
-        ),*/
         SettingItem(
-          title: 'Log out',
+          title: 'Deconnexion',
           icon: Icons.logout,
-          route: '/login',
+          //route: '/login',
         ),
       ],
     },
   ];
 
-  void _handleItemTap(BuildContext context, SettingItem item) {
-    if (item.title == 'Log out') {
-      // Gérer la déconnexion ici
+  Future<void> _handleItemTap(
+      BuildContext context, WidgetRef ref, SettingItem item) async {
+    if (item.title == 'Deconnexion') {
+      await ref.read(authProvider.notifier).signOut();
+      if (context.mounted) {
+        context.go('/login');
+      }
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Aucune action disponible pour: ${item.title}'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (item.actionUrl != null) {
+      final uri = Uri.parse(item.actionUrl!);
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Impossible de lancer cette action'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur: ${e.toString()}'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+      return;
+    }
+    if (item.route != null && context.mounted) {
+      context.push(item.route!);
+      return;
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Aucune action disponible pour: ${item.title}'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -151,12 +214,13 @@ class SettingsScreen extends ConsumerWidget {
                       leading: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.inputBackground,
+                          color: (item.iconColor ?? AppColors.primary)
+                              .withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           item.icon,
-                          color: AppColors.primary,
+                          color: item.iconColor ?? AppColors.primary,
                           size: 20,
                         ),
                       ),
@@ -167,11 +231,25 @@ class SettingsScreen extends ConsumerWidget {
                               color: AppColors.textLight,
                             ),
                       ),
-                      trailing: const Icon(
-                        Icons.chevron_right,
-                        color: AppColors.textLight,
+                      subtitle: item.subtitle != null
+                          ? Text(
+                              item.subtitle!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                            )
+                          : null,
+                      trailing: Icon(
+                        item.actionUrl != null
+                            ? Icons.arrow_forward_ios
+                            : Icons.chevron_right,
+                        color: item.iconColor ?? AppColors.textLight,
+                        size: 16,
                       ),
-                      onTap: () => _handleItemTap(context, item),
+                      onTap: () => _handleItemTap(context, ref, item),
                     );
                   },
                 ),

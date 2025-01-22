@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/theme/app_colors.dart';
 import '../../home/screens/home_screen.dart';
 import '../../profile/screens/profile_screen.dart';
+import '../../settings/screens/settings_screen.dart';
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
 
@@ -19,6 +20,7 @@ class MainScaffold extends ConsumerWidget {
     final screens = [
       const HomeScreen(),
       const ProfileScreen(),
+      const SettingsScreen(),
     ];
 
     return Scaffold(
@@ -54,7 +56,7 @@ class MainScaffold extends ConsumerWidget {
                     padding: EdgeInsets.only(bottom: 4),
                     child: Icon(Icons.home_rounded),
                   ),
-                  label: 'Home',
+                  label: 'Accueil',
                 ),
                 BottomNavigationBarItem(
                   icon: Padding(
@@ -62,6 +64,13 @@ class MainScaffold extends ConsumerWidget {
                     child: Icon(Icons.person_rounded),
                   ),
                   label: 'Profile',
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.settings),
+                  ),
+                  label: 'Paramètre',
                 ),
               ],
             ),

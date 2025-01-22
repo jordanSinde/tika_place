@@ -1,5 +1,6 @@
 // lib/features/home/widgets/apartment_booking/apartment_booking_view.dart
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/theme/app_colors.dart';
@@ -162,6 +163,45 @@ class _ApartmentBookingViewState extends ConsumerState<ApartmentBookingView> {
     );
   }
 
+  // Dans votre initState ou dans un controlleur :
+/*void _precacheImages() {
+  for (final apartment in featuredApartments) {
+    precacheImage(
+      CachedNetworkImageProvider(_getOptimizedImageUrl(apartment.images[0])),
+      context,
+    );
+  }
+}*/
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 200,
+      color: Colors.grey[200],
+      child: Center(
+        child: Container(
+          width: 30,
+          height: 30,
+          padding: const EdgeInsets.all(8),
+          child: const CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          ),
+        ),
+      ),
+    );
+  }
+
+// Fonction pour optimiser l'URL de l'image (exemple avec Cloudinary)
+  String _getOptimizedImageUrl(String originalUrl) {
+    // Si vous utilisez un service comme Cloudinary, vous pouvez ajouter
+    // des paramètres pour optimiser l'image
+    // Exemple : w_800,f_auto,q_auto
+    if (originalUrl.contains('cloudinary')) {
+      return originalUrl.replaceAll('/upload/', '/upload/w_800,f_auto,q_auto/');
+    }
+    return originalUrl;
+  }
+
   Widget _buildApartmentCard(Apartment apartment) {
     return InkWell(
       onTap: () => _showApartmentDetails(apartment),
@@ -183,16 +223,19 @@ class _ApartmentBookingViewState extends ConsumerState<ApartmentBookingView> {
             ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(
-                apartment.images[0],
+              child: CachedNetworkImage(
+                imageUrl: _getOptimizedImageUrl(apartment.images[0]),
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
+                placeholder: (context, url) => _buildImagePlaceholder(),
+                errorWidget: (context, url, error) => Container(
                   height: 200,
                   color: Colors.grey[300],
                   child: const Icon(Icons.image_not_supported),
                 ),
+                memCacheHeight: 400, // Optimise la mémoire cache
+                maxHeightDiskCache: 400, // Optimise le cache disque
               ),
             ),
             Padding(

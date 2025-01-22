@@ -7,7 +7,6 @@ import '../../common/widgets/inputs/custom_textfield.dart';
 import '../providers/auth_provider.dart';
 import '../utils/error_text.dart';
 import '../utils/form_validator.dart';
-import '../widgets/auth_header.dart';
 import '../../common/widgets/buttons/social_button.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -25,7 +24,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   String? _errorMessage;
   String? _selectedLanguage;
   bool _isGettingOTP = false;
-  //bool _showOtpVerification = false;
+  String title = "Créer un compte";
+  String? subtitle = "Rejoignez-nous et commencez votre voyage.";
 
   final List<String> _languages = ['English', 'French', 'Arabic'];
 
@@ -82,7 +82,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           ),
           Expanded(
             child: CustomTextField(
-              hint: 'Phone Number',
+              hint: 'Numéro',
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               validator: FormValidator.phone.build(),
@@ -124,47 +124,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       context.push('/complete-profile');
     }
   }
-
-  /*Future<void> _handlePhoneSignUp() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-
-    setState(() {
-      _errorMessage = null;
-      _isGettingOTP = true;
-    });
-
-    try {
-      final fullPhoneNumber =
-          '+${_selectedCountryCode?.phoneCode ?? '237'}${_phoneController.text.trim()}';
-
-      // Démarrer la vérification du téléphone avant de montrer l'interface OTP
-      await ref
-          .read(authProvider.notifier)
-          .startPhoneVerification(fullPhoneNumber);
-
-      /*if (mounted) {
-        // Ne basculer vers l'interface OTP que si la vérification a réussi
-        setState(() {
-          _showOtpVerification = true;
-          _isGettingOTP = false;
-        });
-      }*/
-      if (mounted) {
-        context.push('/verify-otp', extra: {
-          'phoneNumber': fullPhoneNumber,
-          'isLogin': false, // ou false pour SignupScreen
-          // autres paramètres nécessaires
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString();
-          _isGettingOTP = false;
-        });
-      }
-    }
-  }*/
 
   Widget _buildDropdownField({
     required String hint,
@@ -255,11 +214,41 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AuthHeader(
-                  title: 'Create Account',
-                  subtitle: 'Join us and start your journey',
-                  onBackPressed: () => context.go('/login'),
+                GestureDetector(
+                  onTap: () => context.go('/login'),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.arrow_back_ios,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      Text(
+                        'Back',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(height: 24),
+                Text(
+                  title,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle!,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 32),
                 SocialButton(
                   type: SocialButtonType.google,
@@ -278,7 +267,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     Expanded(child: Divider()),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('or sign up with phone'),
+                      child: Text('ou numéro de téléphone'),
                     ),
                     Expanded(child: Divider()),
                   ],
@@ -289,7 +278,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   children: [
                     Expanded(
                       child: CustomTextField(
-                        hint: 'First Name',
+                        hint: 'Prénom',
                         controller: _firstNameController,
                         validator: FormValidator.name.build(),
                         textInputAction: TextInputAction.next,
@@ -299,7 +288,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: CustomTextField(
-                        hint: 'Last Name',
+                        hint: 'Nom',
                         controller: _lastNameController,
                         validator: FormValidator.name.build(),
                         textInputAction: TextInputAction.next,
@@ -312,7 +301,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 _buildPhoneField(),
                 const SizedBox(height: 16),
                 _buildDropdownField(
-                  hint: 'Language',
+                  hint: 'Langue',
                   value: _selectedLanguage,
                   items: _languages,
                   onChanged: (value) =>
@@ -343,13 +332,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     onPressed: () => context.go('/login'),
                     child: RichText(
                       text: TextSpan(
-                        text: 'Already have an account? ',
+                        text: 'Vous avez déjà un compte ? ',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
                         children: [
                           TextSpan(
-                            text: 'Login',
+                            text: 'Se connecter',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,

@@ -4,90 +4,116 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/models/user.dart';
 import '../../../core/config/theme/app_colors.dart';
+/*
 import '../../auth/utils/form_validator.dart';
 import '../../common/widgets/inputs/custom_textfield.dart';
-import '../../common/widgets/buttons/primary_button.dart';
+import '../../common/widgets/buttons/primary_button.dart';*/
 
 class ContactsSection extends ConsumerWidget {
   final List<Contact> contacts;
 
   const ContactsSection({super.key, required this.contacts});
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 100), // Contrainte minimale
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // Important !
         children: [
-          const SizedBox(height: 24),
-          Text(
-            'Aucun proche ajouté',
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(color: AppColors.textLight),
+          // En-tête avec titre et bouton d'ajout
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Vos proches',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                _AddContactButton(
+                  onPressed: () => _showAddContactDialog(context),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          PrimaryButton(
-            text: 'Ajouter un proche',
+          const SizedBox(height: 20),
+          // Liste des contacts ou état vide
+          contacts.isEmpty
+              ? _buildEmptyState(context)
+              : _buildContactsList(context, contacts),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.people_outline,
+              size: 48,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Aucun proche ajouté',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Ajoutez vos proches pour faciliter\nvos réservations de groupe',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey[600],
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          _AddContactButton(
             onPressed: () => _showAddContactDialog(context),
-            icon: Icons.add,
+            isExpanded: true,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContactsList(List<Contact> contacts) {
+  Widget _buildContactsList(BuildContext context, List<Contact> contacts) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: contacts.length,
       itemBuilder: (context, index) {
         final contact = contacts[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: AppColors.primary,
-              child: Text(
-                contact.firstName[0].toUpperCase(),
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-            title: Text('${contact.firstName} ${contact.lastName ?? ""}'),
-            subtitle: Text(contact.phoneNumber),
-            trailing: PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'edit') {
-                  _showAddContactDialog(context, contact: contact);
-                } else if (value == 'delete') {
-                  _showDeleteDialog(context, contact);
-                }
-              },
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit, size: 20),
-                      SizedBox(width: 8),
-                      Text('Modifier'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, size: 20, color: AppColors.error),
-                      SizedBox(width: 8),
-                      Text('Supprimer',
-                          style: TextStyle(color: AppColors.error)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+        return _ContactCard(
+          contact: contact,
+          onEdit: () => {}, //_showAddContactDialog(context, contact: contact),
+          onDelete: () => _showDeleteDialog(context, contact),
         );
       },
     );
@@ -97,15 +123,39 @@ class ContactsSection extends ConsumerWidget {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
         title: const Text('Supprimer le contact'),
-        content: Text(
-            'Êtes-vous sûr de vouloir supprimer ${contact.firstName} de vos proches ?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.delete_outline,
+                color: AppColors.error,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Êtes-vous sûr de vouloir supprimer ${contact.firstName} de vos proches ?',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Annuler'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               // Implémenter la suppression
               Navigator.pop(context);
@@ -116,114 +166,227 @@ class ContactsSection extends ConsumerWidget {
                 ),
               );
             },
-            child: const Text('Supprimer',
-                style: TextStyle(color: AppColors.error)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Supprimer'),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _showAddContactDialog(BuildContext context, {Contact? contact}) {
-    final formKey = GlobalKey<FormState>();
-    final firstNameController = TextEditingController(text: contact?.firstName);
-    final lastNameController = TextEditingController(text: contact?.lastName);
-    final phoneController = TextEditingController(text: contact?.phoneNumber);
-    final relationshipController =
-        TextEditingController(text: contact?.relationship);
+  _showAddContactDialog(
+    BuildContext context,
+  ) {}
+}
 
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title:
-            Text(contact == null ? 'Ajouter un proche' : 'Modifier le contact'),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+class _ContactCard extends StatelessWidget {
+  final Contact contact;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _ContactCard({
+    required this.contact,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onEdit,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                CustomTextField(
-                  label: 'Prénom',
-                  controller: firstNameController,
-                  validator: FormValidator.name.build(),
+                // Avatar avec initiales ou image
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary,
+                        AppColors.primary.withOpacity(0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Center(
+                    child: Text(
+                      contact.firstName[0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Nom',
-                  controller: lastNameController,
-                  validator: FormValidator.name.build(),
+                const SizedBox(width: 16),
+                // Informations du contact
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${contact.firstName} ${contact.lastName ?? ""}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        contact.phoneNumber,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (contact.relationship != null) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            contact.relationship!,
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Téléphone',
-                  controller: phoneController,
-                  validator: FormValidator.phoneNumber.build(),
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Relation',
-                  controller: relationshipController,
-                  hint: 'Ex: Famille, Ami, etc.',
+                // Menu d'actions
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.edit_outlined,
+                            size: 20,
+                            color: Colors.grey[700],
+                          ),
+                          const SizedBox(width: 12),
+                          const Text('Modifier'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            size: 20,
+                            color: AppColors.error,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'Supprimer',
+                            style: TextStyle(color: AppColors.error),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      onEdit();
+                    } else if (value == 'delete') {
+                      onDelete();
+                    }
+                  },
                 ),
               ],
             ),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                // Implémenter l'ajout/modification
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(contact == null
-                        ? 'Contact ajouté avec succès'
-                        : 'Contact modifié avec succès'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              }
-            },
-            child: Text(contact == null ? 'Ajouter' : 'Modifier'),
-          ),
-        ],
       ),
     );
   }
+}
+
+class _AddContactButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final bool isExpanded;
+
+  const _AddContactButton({
+    required this.onPressed,
+    this.isExpanded = false,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Vos proches',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline),
-                onPressed: () => _showAddContactDialog(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          contacts.isEmpty
-              ? _buildEmptyState(context)
-              : _buildContactsList(contacts),
-        ],
+  Widget build(BuildContext context) {
+    Widget button = ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: const Icon(Icons.person_add_outlined),
+      label: const Text('Ajouter'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.secondary,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        // Définir une contrainte de taille minimale
+        minimumSize: const Size(0, 48),
       ),
+    );
+
+    // Si isExpanded est true, wrap le bouton dans un SizedBox
+    if (isExpanded) {
+      return SizedBox(
+        width: double.infinity,
+        child: button,
+      );
+    }
+
+    // Sinon, wrap le bouton dans un Container avec des contraintes
+    return Container(
+      constraints: const BoxConstraints(minWidth: 150),
+      child: button,
     );
   }
 }
