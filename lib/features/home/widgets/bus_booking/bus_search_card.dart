@@ -1,8 +1,11 @@
 // lib/features/home/widgets/bus_booking/bus_search_card.dart
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/config/theme/app_colors.dart';
 import 'package:intl/intl.dart';
+
+import '../../models/bus_mock_data.dart';
 
 class BusSearchCard extends StatefulWidget {
   final Function(Map<String, dynamic>) onSearch;
@@ -84,23 +87,30 @@ class _BusSearchCardState extends State<BusSearchCard> {
     }
   }
 
+  // Dans BusSearchCard, modifiez la méthode _handleSearch
+
   void _handleSearch() {
     if (_departureCity.isEmpty || _arrivalCity.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select departure and arrival cities'),
+          content:
+              Text('Veuillez sélectionner les villes de départ et d\'arrivée'),
           backgroundColor: AppColors.error,
         ),
       );
       return;
     }
 
-    widget.onSearch({
-      'departureCity': _departureCity,
-      'arrivalCity': _arrivalCity,
-      'date': _selectedDate,
-      'time': _selectedTime,
-    });
+    // Créer les filtres initiaux
+    final filters = BusSearchFilters(
+      departureCity: _departureCity,
+      arrivalCity: _arrivalCity,
+      departureDate: _selectedDate,
+      departureTime: _selectedTime,
+    );
+
+    // Naviguer vers la page de liste des bus
+    context.go('/bus-list', extra: {'filters': filters});
   }
 
   @override
@@ -185,7 +195,7 @@ class _BusSearchCardState extends State<BusSearchCard> {
                 ),
               ),
               child: const Text(
-                'Search Bus',
+                'Rechercher',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

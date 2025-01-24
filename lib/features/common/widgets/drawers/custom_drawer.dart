@@ -29,10 +29,10 @@ final List<DrawerMenuItem> menuItems = [
     icon: Icons.directions_bus_outlined,
     subItems: [
       DrawerMenuItem(
-          title: 'Destinations',
-          icon: Icons.map_outlined,
-          route: '' //'/bus/destinations',
-          ),
+        title: 'Destinations',
+        icon: Icons.map_outlined,
+        route: '/bus-list', //'/bus/destinations',
+      ),
       DrawerMenuItem(
           title: 'Réserver un billet',
           icon: Icons.confirmation_number_outlined,

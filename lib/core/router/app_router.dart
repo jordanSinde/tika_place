@@ -4,13 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/manage_sessions_screen.dart';
 import '../../features/auth/screens/opt_verification_screen.dart';
+import '../../features/home/models/bus_mock_data.dart';
+import '../../features/home/widgets/bus_booking/bus_booking_list_screen.dart';
 import '../../features/main/screens/main_scaffold.dart';
-import '../../features/new/appartement_list_screen.dart';
-import '../../features/new/appartements_booking_screen.dart';
-import '../../features/new/appartements_detail_screen.dart';
-import '../../features/new/bus_booking_screen.dart';
-import '../../features/new/bus_destination.dart';
-import '../../features/new/bus_detail_screen.dart';
 import '../../features/onboarding/provider/onboarding_provider.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
@@ -156,36 +152,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
-      // Bus Routes
       GoRoute(
-        path: '/bus/destinations',
-        builder: (context, state) => const BusDestinationsScreen(),
-      ),
-      GoRoute(
-        path: '/bus/details/:id',
-        builder: (context, state) => BusDetailsScreen(
-          busId: state.pathParameters['id']!,
-        ),
-      ),
-      GoRoute(
-        path: '/bus/booking',
-        builder: (context, state) => const BusBookingScreen(),
-      ),
-
-      // Apartment Routes
-      GoRoute(
-        path: '/apartments/list',
-        builder: (context, state) => const ApartmentsListScreen(),
-      ),
-      GoRoute(
-        path: '/apartments/details/:id',
-        builder: (context, state) => ApartmentDetailsScreen(
-          apartmentId: state.pathParameters['id']!,
-        ),
-      ),
-      GoRoute(
-        path: '/apartments/booking',
-        builder: (context, state) => const ApartmentBookingScreen(),
+        path: '/bus-list',
+        builder: (context, state) {
+          final params = state.extra as Map<String, dynamic>? ?? {};
+          return BusBookingListScreen(
+            initialFilters: params['filters'] as BusSearchFilters? ??
+                const BusSearchFilters(),
+          );
+        },
       ),
 
       // Hotel Routes

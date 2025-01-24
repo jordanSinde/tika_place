@@ -1,126 +1,134 @@
 // lib/features/home/models/bus_mock_data.dart
+// lib/features/bus_booking/models/bus_models.dart
+
+import 'package:flutter/material.dart';
+
+enum BusClass { standard, vip, luxe }
+
+extension BusClassExtension on BusClass {
+  String get label {
+    switch (this) {
+      case BusClass.standard:
+        return 'Standard';
+      case BusClass.vip:
+        return 'VIP';
+      case BusClass.luxe:
+        return 'Luxe';
+    }
+  }
+}
+
+class BusAmenities {
+  final bool hasAirConditioning;
+  final bool hasToilet;
+  final bool hasLunch;
+  final bool hasDrinks;
+  final bool hasWifi;
+  final bool hasUSBCharging;
+  final bool hasTv;
+  final bool hasLuggageSpace;
+
+  const BusAmenities({
+    this.hasAirConditioning = false,
+    this.hasToilet = false,
+    this.hasLunch = false,
+    this.hasDrinks = false,
+    this.hasWifi = false,
+    this.hasUSBCharging = false,
+    this.hasTv = false,
+    this.hasLuggageSpace = true,
+  });
+}
 
 class Bus {
   final String id;
   final String company;
+  final String agencyLocation;
+  final String registrationNumber;
   final String departureCity;
   final String arrivalCity;
   final DateTime departureTime;
   final DateTime arrivalTime;
   final BusClass busClass;
   final double price;
+  final int totalSeats;
   final int availableSeats;
-  final List<String> amenities;
+  final BusAmenities amenities;
   final String busNumber;
   final double rating;
   final int reviews;
+  final bool isPopularRoute;
+  final List<DateTime> nextAvailableDepartures;
 
   const Bus({
     required this.id,
     required this.company,
+    required this.agencyLocation,
+    required this.registrationNumber,
     required this.departureCity,
     required this.arrivalCity,
     required this.departureTime,
     required this.arrivalTime,
     required this.busClass,
     required this.price,
+    required this.totalSeats,
     required this.availableSeats,
     required this.amenities,
     required this.busNumber,
     required this.rating,
     required this.reviews,
+    this.isPopularRoute = false,
+    this.nextAvailableDepartures = const [],
   });
 }
 
-enum BusClass {
-  economy('Économique', 1.0),
-  business('Business', 1.5),
-  vip('VIP', 2.0);
+class BusSearchFilters {
+  final String? departureCity;
+  final String? arrivalCity;
+  final DateTime? departureDate;
+  final TimeOfDay? departureTime;
+  final BusClass? busClass;
+  final RangeValues? priceRange;
+  final BusAmenities? requiredAmenities;
+  final String? company;
 
-  final String label;
-  final double priceMultiplier;
-  const BusClass(this.label, this.priceMultiplier);
-}
-
-final List<Bus> mockBuses = [
-  Bus(
-    id: '1',
-    company: 'Finex Voyages',
-    departureCity: 'Douala',
-    arrivalCity: 'Yaoundé',
-    departureTime: DateTime.now().add(const Duration(hours: 2)),
-    arrivalTime: DateTime.now().add(const Duration(hours: 6)),
-    busClass: BusClass.vip,
-    price: 7000,
-    availableSeats: 15,
-    amenities: ['Wifi', 'Climatisation', 'USB', 'Collation'],
-    busNumber: 'FX-001',
-    rating: 4.8,
-    reviews: 245,
-  ),
-  Bus(
-    id: '2',
-    company: 'Générale Express',
-    departureCity: 'Yaoundé',
-    arrivalCity: 'Douala',
-    departureTime: DateTime.now().add(const Duration(hours: 3)),
-    arrivalTime: DateTime.now().add(const Duration(hours: 7)),
-    busClass: BusClass.business,
-    price: 5000,
-    availableSeats: 20,
-    amenities: ['Climatisation', 'USB'],
-    busNumber: 'GE-102',
-    rating: 4.5,
-    reviews: 180,
-  ),
-  Bus(
-    id: '3',
-    company: 'Buca Voyages',
-    departureCity: 'Douala',
-    arrivalCity: 'Buea',
-    departureTime: DateTime.now().add(const Duration(hours: 1)),
-    arrivalTime: DateTime.now().add(const Duration(hours: 4)),
-    busClass: BusClass.economy,
-    price: 3000,
-    availableSeats: 25,
-    amenities: ['Climatisation'],
-    busNumber: 'BV-203',
-    rating: 4.2,
-    reviews: 156,
-  ),
-];
-
-class Seat {
-  final String id;
-  final int number;
-  final bool isAvailable;
-  final bool isWindow;
-
-  const Seat({
-    required this.id,
-    required this.number,
-    required this.isAvailable,
-    required this.isWindow,
+  const BusSearchFilters({
+    this.departureCity,
+    this.arrivalCity,
+    this.departureDate,
+    this.departureTime,
+    this.busClass,
+    this.priceRange,
+    this.requiredAmenities,
+    this.company,
   });
-}
 
-List<Seat> generateMockSeats(int totalSeats, int availableSeats) {
-  final List<Seat> seats = [];
-  for (int i = 1; i <= totalSeats; i++) {
-    seats.add(Seat(
-      id: 'S$i',
-      number: i,
-      isAvailable: i <= availableSeats,
-      isWindow: i % 2 == 0,
-    ));
+  BusSearchFilters copyWith({
+    String? departureCity,
+    String? arrivalCity,
+    DateTime? departureDate,
+    TimeOfDay? departureTime,
+    BusClass? busClass,
+    RangeValues? priceRange,
+    BusAmenities? requiredAmenities,
+    String? company,
+  }) {
+    return BusSearchFilters(
+      departureCity: departureCity ?? this.departureCity,
+      arrivalCity: arrivalCity ?? this.arrivalCity,
+      departureDate: departureDate ?? this.departureDate,
+      departureTime: departureTime ?? this.departureTime,
+      busClass: busClass ?? this.busClass,
+      priceRange: priceRange ?? this.priceRange,
+      requiredAmenities: requiredAmenities ?? this.requiredAmenities,
+      company: company ?? this.company,
+    );
   }
-  return seats;
 }
 
 class Ticket {
   final String id;
   final Bus bus;
-  final List<int> seatNumbers;
   final String passengerName;
   final String phoneNumber;
   final DateTime purchaseDate;
@@ -129,7 +137,6 @@ class Ticket {
   const Ticket({
     required this.id,
     required this.bus,
-    required this.seatNumbers,
     required this.passengerName,
     required this.phoneNumber,
     required this.purchaseDate,
