@@ -161,7 +161,6 @@ Bus _createMockBus({
     hasWifi: busClass != BusClass.standard,
     hasUSBCharging: busClass != BusClass.standard,
     hasTv: busClass == BusClass.luxe,
-    hasLuggageSpace: true,
   );
 
   // Générer un numéro d'immatriculation aléatoire

@@ -1,7 +1,6 @@
 // lib/features/bus_booking/widgets/bus_card.dart
 
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/config/theme/app_colors.dart';
 import '../../models/bus_mock_data.dart';
@@ -18,421 +17,343 @@ class BusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        children: [
-          // En-tête avec classe et agence
-          _buildHeader(context),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: _buildMobileLayout(context),
+    );
+  }
 
-          // Corps de la carte
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Informations principales
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildBusIcon(),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildMainInfo(context)),
+  Widget _buildMobileLayout(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Image et badges
+        Stack(
+          children: [
+            AspectRatio(
+              aspectRatio: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(16),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.directions_bus,
+                    size: 48,
+                    color: AppColors.secondary,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 24,
+              left: 24,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                    ),
                   ],
                 ),
-                const Divider(
-                  height: 24,
-                  color: AppColors.textLight,
+                child: Text(
+                  bus.busClass.label,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                _buildAmenities(),
-                const SizedBox(height: 16),
-                _buildBookingSection(context),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              _buildStandingBadge(),
-              const SizedBox(width: 12),
-              _buildRegistrationNumber(),
-            ],
-          ),
-          _buildAgencyInfo(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStandingBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        bus.busClass.label,
-        style: const TextStyle(
-          color: AppColors.primary,
-          fontWeight: FontWeight.bold,
+            Positioned(
+              top: 24,
+              right: 24,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.event_seat, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      bus.totalSeats.toString(),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
 
-  Widget _buildRegistrationNumber() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        bus.registrationNumber,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAgencyInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          bus.company,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          bus.agencyLocation,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBusIcon() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const FaIcon(
-        FontAwesomeIcons.busSimple,
-        size: 32,
-        color: AppColors.primary,
-      ),
-    );
-  }
-
-  Widget _buildMainInfo(BuildContext context) {
-    final timeFormat = DateFormat('HH:mm');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildJourneyTimes(timeFormat),
-        const SizedBox(height: 12),
-        _buildSeatsInfo(),
-        const SizedBox(height: 8),
-        _buildRating(),
-      ],
-    );
-  }
-
-  Widget _buildJourneyTimes(DateFormat timeFormat) {
-    return Row(
-      children: [
-        Expanded(
+        // Contenu
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTimeInfo(
-                icon: Icons.departure_board,
-                time: timeFormat.format(bus.departureTime),
-                label: bus.departureCity,
-                color: AppColors.primary,
+              Text(
+                'Bus de l\'agence ${bus.company}',
+                style: const TextStyle(color: AppColors.textLight),
               ),
+              const SizedBox(height: 8),
+              _buildAmenities(),
+              const SizedBox(height: 16),
+
+              // Date
               Container(
-                margin: const EdgeInsets.only(left: 12),
-                width: 1,
-                height: 20,
-                color: Colors.grey[300],
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${DateFormat('HH:mm dd MMM').format(bus.departureTime)} - ${DateFormat('HH:mm dd MMM').format(bus.arrivalTime)}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14),
+                ),
               ),
-              _buildTimeInfo(
-                icon: Icons.location_on,
-                time: timeFormat.format(bus.arrivalTime),
-                label: bus.arrivalCity,
-                color: AppColors.secondary,
+              const SizedBox(height: 16),
+
+              // Détails
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Lieu de départ',
+                        style: TextStyle(
+                          color: AppColors.textLight,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 28),
+                    child: Text(
+                      bus.agencyLocation,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Row(
+                    children: [
+                      Icon(Icons.directions, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Trajet',
+                        style: TextStyle(
+                          color: AppColors.textLight,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 28),
+                    child: Text(
+                      '${bus.departureCity} - ${bus.arrivalCity}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Footer
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${NumberFormat('#,###').format(bus.price)} FCFA',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                        const Text(
+                          'Par siège',
+                          style: TextStyle(
+                            color: AppColors.textLight,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                bus.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    child: ElevatedButton(
+                      onPressed: onBookingPressed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondary,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Reserver',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            '${_calculateDuration()} h',
-            style: const TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTimeInfo({
-    required IconData icon,
-    required String time,
-    required String label,
-    required Color color,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                time,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Text(
-                label,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSeatsInfo() {
-    final availabilityColor =
-        bus.availableSeats > 0 ? Colors.green : Colors.red;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: availabilityColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.event_seat, size: 16, color: availabilityColor),
-          const SizedBox(width: 6),
-          Text(
-            '${bus.availableSeats}/${bus.totalSeats} places',
-            style: TextStyle(
-              color: availabilityColor,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRating() {
-    return Row(
-      children: [
-        const Icon(Icons.star, color: Colors.amber, size: 16),
-        const SizedBox(width: 4),
-        Text(
-          bus.rating.toStringAsFixed(1),
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          '(${bus.reviews} avis)',
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-
+  // Dans la classe BusCard, ajoutez les deux nouvelles méthodes pour gérer les commodités
   Widget _buildAmenities() {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
         _buildAmenityChip(
-          icon: FontAwesomeIcons.wind,
-          label: 'Climatisation',
+          availableIcon: Icons.ac_unit,
+          unavailableIcon: Icons.ac_unit_outlined,
+          label: 'Clim',
           isAvailable: bus.amenities.hasAirConditioning,
         ),
         _buildAmenityChip(
-          icon: FontAwesomeIcons.toilet,
-          label: 'Toilettes',
+          availableIcon: Icons.wc,
+          unavailableIcon: Icons.no_adult_content_outlined,
+          label: 'WC',
           isAvailable: bus.amenities.hasToilet,
         ),
         _buildAmenityChip(
-          icon: FontAwesomeIcons.utensils,
+          availableIcon: Icons.restaurant,
+          unavailableIcon: Icons.no_meals_outlined,
           label: 'Repas',
           isAvailable: bus.amenities.hasLunch,
         ),
         _buildAmenityChip(
-          icon: FontAwesomeIcons.wineGlass,
-          label: 'Boissons',
-          isAvailable: bus.amenities.hasDrinks,
-        ),
-        _buildAmenityChip(
-          icon: FontAwesomeIcons.wifi,
+          availableIcon: Icons.wifi,
+          unavailableIcon: Icons.wifi_off,
           label: 'WiFi',
           isAvailable: bus.amenities.hasWifi,
+        ),
+        _buildAmenityChip(
+          availableIcon: Icons.usb,
+          unavailableIcon: Icons.usb_off,
+          label: 'USB',
+          isAvailable: bus.amenities.hasUSBCharging,
         ),
       ],
     );
   }
 
   Widget _buildAmenityChip({
-    required IconData icon,
+    required IconData availableIcon,
+    required IconData unavailableIcon,
     required String label,
     required bool isAvailable,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color:
-            isAvailable ? AppColors.primary.withOpacity(0.1) : Colors.grey[200],
+        color: isAvailable
+            ? AppColors.success.withOpacity(0.1)
+            : AppColors.background,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FaIcon(
-            icon,
-            size: 12,
-            color: isAvailable ? AppColors.primary : Colors.grey,
+          Icon(
+            isAvailable ? availableIcon : unavailableIcon,
+            size: 16,
+            color: isAvailable ? AppColors.success : AppColors.textLight,
           ),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
-              color: isAvailable ? AppColors.primary : Colors.grey,
+              color: isAvailable ? AppColors.success : AppColors.textLight,
             ),
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildBookingSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Prix et note
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${NumberFormat('#,###').format(bus.price)} FCFA',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 16),
-                  const SizedBox(width: 4),
-                  Text(bus.rating.toStringAsFixed(1)),
-                  Text(' (${bus.reviews} avis)'),
-                ],
-              ),
-            ],
-          ),
-
-          // Bouton de réservation
-          SizedBox(
-            // Ajout d'une contrainte de largeur
-            width: 165, // Largeur fixe pour le bouton
-            child: ElevatedButton(
-              onPressed: bus.availableSeats > 0 ? onBookingPressed : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.secondary,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment:
-                    MainAxisAlignment.center, // Centre le contenu
-                children: [
-                  Icon(Icons.confirmation_number_outlined, size: 20),
-                  SizedBox(width: 8),
-                  Text('Réserver'),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _calculateDuration() {
-    final duration = bus.arrivalTime.difference(bus.departureTime);
-    return (duration.inMinutes / 60).toStringAsFixed(1);
   }
 }

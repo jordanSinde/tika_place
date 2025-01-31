@@ -156,11 +156,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           // Content
           _buildContent(selectedTab),
-
-          // Contact Section
           const SizedBox(height: 12),
-          /*const ContactSection(),
-          const SizedBox(height: 12),*/
         ],
       ),
     );

@@ -79,25 +79,6 @@ final List<DrawerMenuItem> menuItems = [
   ),
 ];
 
-/*final List<DrawerMenuItem> pageMenuItems = [
-  const DrawerMenuItem(
-    title: 'Pages',
-    icon: Icons.apartment_outlined,
-    subItems: [
-      DrawerMenuItem(
-        title: 'Connexion',
-        icon: Icons.list_outlined,
-        route: '/login',
-      ),
-      DrawerMenuItem(
-        title: 'Inscription',
-        icon: Icons.book_outlined,
-        route: '/signup',
-      ),
-    ],
-  ),
-];*/
-
 class CustomDrawer extends ConsumerStatefulWidget {
   const CustomDrawer({super.key});
 
@@ -146,28 +127,6 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                       },
                     ),
                     const Divider(color: AppColors.divider),
-                    /*// Pages menu
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: pageMenuItems
-                          .length, // Changer menuItems en pageMenuItems
-                      itemBuilder: (context, index) {
-                        final item = pageMenuItems[index];
-                        return _buildMenuItemWithSubItems(item);
-                      },
-                    ),
-
-                    _buildSimpleMenuItem(
-                      icon: Icons.info_outline,
-                      title: 'About',
-                      onTap: () => context.go('/about'),
-                    ),
-                    _buildSimpleMenuItem(
-                      icon: Icons.contact_support_outlined,
-                      title: 'Contact',
-                      onTap: () => context.go('/contact'),
-                    ),*/
                   ],
                 ),
               ),
@@ -268,44 +227,6 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
               isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
               color: AppColors.primary,
               size: 24,
-            )
-          : null,
-      onTap: onTap,
-    );
-  }
-
-  Widget _buildSimpleMenuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    bool showArrow = false,
-  }) {
-    return ListTile(
-      leading: Container(
-        margin: const EdgeInsets.only(right: 16),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: AppColors.primary,
-            width: 6,
-          ),
-        ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 16,
-        ),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(color: Colors.white),
-      ),
-      trailing: showArrow
-          ? const Icon(
-              Icons.arrow_forward_ios,
-              color: AppColors.primary,
-              size: 16,
             )
           : null,
       onTap: onTap,

@@ -54,11 +54,6 @@ class BusAmenitiesRow extends StatelessWidget {
               icon: FontAwesomeIcons.tv,
               label: 'TV',
             ),
-          if (amenities.hasLuggageSpace)
-            _buildAmenityChip(
-              icon: FontAwesomeIcons.suitcase,
-              label: 'Bagages',
-            ),
         ],
       ),
     );

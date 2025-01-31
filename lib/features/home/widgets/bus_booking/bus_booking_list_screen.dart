@@ -71,7 +71,8 @@ class _BusBookingListScreenState extends ConsumerState<BusBookingListScreen> {
         actions: [
           IconButton(
             icon: Icon(
-                _isFilterExpanded ? Icons.filter_list_off : Icons.filter_list),
+              _isFilterExpanded ? Icons.filter_list_off : Icons.filter_list,
+            ),
             onPressed: () {
               setState(() {
                 _isFilterExpanded = !_isFilterExpanded;
@@ -80,48 +81,65 @@ class _BusBookingListScreenState extends ConsumerState<BusBookingListScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Panneau de filtres extensible
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            height: _isFilterExpanded ? 320 : 0,
-            child: SingleChildScrollView(
-              child: BusFilterPanel(
-                initialFilters: _currentFilters,
-                onFiltersChanged: _onFiltersChanged,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Panneau de filtres extensible
+            if (_isFilterExpanded)
+              Container(
+                constraints:
+                    const BoxConstraints(maxHeight: 500), // Hauteur max
+                child: SingleChildScrollView(
+                  child: BusFilterPanel(
+                    initialFilters: _currentFilters,
+                    onFiltersChanged: _onFiltersChanged,
+                    agencies: agencesList,
+                  ),
+                ),
+              ),
+
+            // Sélecteur de tri
+            BusSortSelector(
+              selectedOption: _currentSortOption,
+              onSortChanged: (newOption) {
+                setState(() {
+                  _currentSortOption = newOption;
+                  _buses = _sortBuses(_buses);
+                });
+              },
+            ),
+
+            // Liste des bus
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _loadBuses,
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buses.isEmpty
+                        ? _buildEmptyState()
+                        : Scrollbar(
+                            child: ListView.builder(
+                              // Changé separated par builder
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _buses.length,
+                              itemBuilder: (context, index) {
+                                final bus = _buses[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: BusCard(
+                                    key: ValueKey(
+                                        bus.id), // Ajout d'une key unique
+                                    bus: bus,
+                                    onBookingPressed: () => _handleBooking(bus),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
               ),
             ),
-          ),
-
-          // Sélecteur de tri
-          BusSortSelector(
-            selectedOption: _currentSortOption,
-            onSortChanged: (newOption) {
-              setState(() {
-                _currentSortOption = newOption;
-                _buses = _sortBuses(_buses);
-              });
-            },
-          ),
-
-          // Liste des bus
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _buses.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _buses.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 16),
-                        itemBuilder: (context, index) => BusCard(
-                          bus: _buses[index],
-                          onBookingPressed: () => _handleBooking(_buses[index]),
-                        ),
-                      ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -312,7 +330,7 @@ class _BusBookingListScreenState extends ConsumerState<BusBookingListScreen> {
 
   List<Bus> _filterBuses(BusSearchFilters filters) {
     // Générer les données mockées une seule fois
-    final allBuses = generateMockBuses();
+    final allBuses = generateMockBuses().where((bus) => bus.isValid()).toList();
 
     return allBuses.where((bus) {
       // Filtrer par ville de départ et d'arrivée
@@ -359,12 +377,15 @@ class _BusBookingListScreenState extends ConsumerState<BusBookingListScreen> {
       if (filters.requiredAmenities != null) {
         if (filters.requiredAmenities!.hasAirConditioning &&
             !bus.amenities.hasAirConditioning) return false;
-        if (filters.requiredAmenities!.hasToilet && !bus.amenities.hasToilet)
+        if (filters.requiredAmenities!.hasToilet && !bus.amenities.hasToilet) {
           return false;
-        if (filters.requiredAmenities!.hasLunch && !bus.amenities.hasLunch)
+        }
+        if (filters.requiredAmenities!.hasLunch && !bus.amenities.hasLunch) {
           return false;
-        if (filters.requiredAmenities!.hasWifi && !bus.amenities.hasWifi)
+        }
+        if (filters.requiredAmenities!.hasWifi && !bus.amenities.hasWifi) {
           return false;
+        }
         if (filters.requiredAmenities!.hasUSBCharging &&
             !bus.amenities.hasUSBCharging) return false;
       }

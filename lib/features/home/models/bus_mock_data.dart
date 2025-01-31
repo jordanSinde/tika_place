@@ -26,7 +26,6 @@ class BusAmenities {
   final bool hasWifi;
   final bool hasUSBCharging;
   final bool hasTv;
-  final bool hasLuggageSpace;
 
   const BusAmenities({
     this.hasAirConditioning = false,
@@ -36,7 +35,6 @@ class BusAmenities {
     this.hasWifi = false,
     this.hasUSBCharging = false,
     this.hasTv = false,
-    this.hasLuggageSpace = true,
   });
 }
 
@@ -80,6 +78,24 @@ class Bus {
     this.isPopularRoute = false,
     this.nextAvailableDepartures = const [],
   });
+
+  bool isValid() {
+    return departureTime.isBefore(arrivalTime);
+  }
+  /*factory Bus.fromJson(Map<String, dynamic> json) {
+        final departureTime = DateTime.parse(json['departureTime']);
+        final arrivalTime = DateTime.parse(json['arrivalTime']);
+        
+        if (departureTime.isAfter(arrivalTime)) {
+          throw ArgumentError("Le temps de départ doit être avant le temps d'arrivée");
+        }
+
+        return Bus(
+          // ... autres propriétés ...
+          departureTime: departureTime,
+          arrivalTime: arrivalTime, id: '', company: '',
+        );
+      }*/
 }
 
 class BusSearchFilters {

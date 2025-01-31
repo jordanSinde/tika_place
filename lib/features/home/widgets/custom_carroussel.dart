@@ -1,8 +1,7 @@
 // lib/features/home/widgets/custom_carousel.dart
 
 import 'package:flutter/material.dart';
-import 'package:dots_indicator/dots_indicator.dart';
-import 'package:tika_place/core/config/constants.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tika_place/core/config/theme/app_colors.dart';
 
 class CarouselItem {
@@ -33,80 +32,61 @@ class CustomCarousel extends StatefulWidget {
 class _CustomCarouselState extends State<CustomCarousel> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  late final List<CarouselItem> items;
 
-  final List<ImageProvider> _preloadedImages = [];
-
-  Future<void> _preloadImages() async {
-    for (var item in items) {
-      final imageProvider = AssetImage(item.imagePath);
-      _preloadedImages.add(imageProvider);
-      // Précacher l'image
-      await precacheImage(imageProvider, context);
-    }
-  }
+  final List<CarouselItem> items = [
+    CarouselItem(
+      title: 'Réservez',
+      subtitle: ' des chambres d\'hôtels',
+      buttonText: 'Voir les offres',
+      description: 'Trouvez votre chambre idéale au Cameroun.',
+      imagePath: 'assets/images/hotel/hotel-detail-1.png',
+      onButtonPressed: () {},
+    ),
+    CarouselItem(
+      title: 'Réservez',
+      subtitle: ' un ticket de bus express',
+      buttonText: 'Voir les trajets',
+      description: 'Voyagez sereinement à travers le pays.',
+      imagePath:
+          'assets/images/hotel/hotel-detail-1.png', //'assets/images/onboarding_carroussel/bus_travel2-min.jpg',
+      onButtonPressed: () {},
+    ),
+    CarouselItem(
+      title: 'Location',
+      subtitle: ' appartements courte/longue durée',
+      buttonText: 'Voir les biens',
+      description: 'L\'appartement parfait pour votre séjour.',
+      imagePath: 'assets/images/images/achievement-image.png',
+      onButtonPressed: () {},
+    ),
+  ];
 
   @override
   void initState() {
-    _preloadImages();
     super.initState();
-    items = [
-      CarouselItem(
-        title: 'Réservez votre',
-        subtitle: 'chambre d\'hôtel',
-        buttonText: 'Découvrez nos offres d\'hôtels',
-        description:
-            'Avec TIKA PLACE, trouvez et réservez la chambre d\'hôtel idéale partout au Cameroun en quelques clics.',
-        imagePath:
-            'assets/images/hotel/hotel-detail-1.png', //assets/images/onboarding_carroussel/hotel_booking2-min.jpg
-        onButtonPressed: () {},
-      ),
-      CarouselItem(
-        title: 'Réservez votre',
-        subtitle: 'billet de bus',
-        buttonText: 'Voir les trajets disponibles',
-        description:
-            'Voyagez en toute tranquillité avec nos partenaires de transport à travers le Cameroun.',
-        imagePath:
-            'assets/images/onboarding_carroussel/bus_travel2-min.jpg', //assets/images/onboarding_carroussel/bus_travel2-min.jpg
-        onButtonPressed: () {},
-      ),
-      CarouselItem(
-        title: 'Louez un',
-        subtitle: 'appartement',
-        buttonText: 'Découvrez nos appartements',
-        description:
-            'Trouvez l\'appartement qui vous convient pour vos séjours courts ou longs.',
-        imagePath: 'assets/images/images/achievement-image.png',
-        onButtonPressed: () {},
-      ),
-    ];
-
-    // Auto-scroll
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        autoScroll();
-      }
-    });
+    _startAutoScroll();
   }
 
-  void autoScroll() {
-    Future.delayed(const Duration(seconds: 8), () {
+  void _startAutoScroll() {
+    Future.delayed(const Duration(seconds: 6), () {
       if (mounted) {
-        if (_currentPage < items.length - 1) {
-          _currentPage++;
-        } else {
-          _currentPage = 0;
-        }
+        final nextPage = (_currentPage + 1) % items.length;
         _pageController.animateToPage(
-          _currentPage,
+          nextPage,
           duration: const Duration(milliseconds: 500),
           curve: Curves.easeInOut,
         );
-        autoScroll();
+        _startAutoScroll();
       }
     });
   }
+
+  //
+  void _goToBusList() {
+    context.go('/bus-list');
+  }
+
+//
 
   @override
   void dispose() {
@@ -116,152 +96,145 @@ class _CustomCarouselState extends State<CustomCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        SizedBox(
-          height: 360,
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return Stack(
-                children: [
-                  // Image de fond optimisée
-                  Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: _preloadedImages.isNotEmpty
-                            ? _preloadedImages[index]
-                            : AssetImage(item.imagePath),
-                        fit: BoxFit.cover,
+    // Calcul d'une hauteur adaptative basée sur la taille de l'écran
+    final screenHeight = MediaQuery.of(context).size.height;
+    final carouselHeight = screenHeight * 0.25; // 25% de la hauteur de l'écran
+
+    return Container(
+      height: carouselHeight, // Hauteur adaptative au lieu de 360 fixe
+      margin: const EdgeInsets.all(16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() => _currentPage = index);
+              },
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Image
+                    Image.asset(
+                      item.imagePath,
+                      fit: BoxFit.cover,
+                    ),
+                    // Overlay gradient
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Colors.black.withOpacity(0.7),
+                            Colors.black.withOpacity(0.3),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  // Overlay pour l'assombrissement
-                  Container(
-                    color: Colors.black.withOpacity(0.5),
-                  ),
-                  // Contenu
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        RichText(
-                          text: TextSpan(
+                    // Content
+                    Padding(
+                      padding: const EdgeInsets.all(16.0), // Padding réduit
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TextSpan(
-                                text: item.subtitle,
+                              Text(
+                                item.title,
                                 style: const TextStyle(
-                                  color: AppColors.secondary,
-                                  fontSize: 26,
+                                  color: Colors.white,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const TextSpan(
-                                text: ' en ligne',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  item.subtitle,
+                                  style: const TextStyle(
+                                    color: AppColors.secondary,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  softWrap: true,
+                                  maxLines: 2,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        /*Text(
-                          item.subtitle,
-                          style: TextStyle(
-                            color: Colors.orange[400],
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text(
-                          'en ligne',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),*/
-                        const SizedBox(height: 20),
-                        Text(
-                          item.description,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: ElevatedButton(
-                            onPressed: item.onButtonPressed,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.secondary,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 30,
-                                vertical: 15,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    AppConstants.borderRadius),
-                              ),
+                          const SizedBox(height: 8),
+                          Text(
+                            item.description,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 12, // Taille réduite
                             ),
-                            child: Text(
-                              item.buttonText,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            maxLines: 2, // Limite le nombre de lignes
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 12), // Espacement réduit
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: ElevatedButton(
+                              onPressed: item.onButtonPressed,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.secondary,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, // Padding réduit
+                                  vertical: 8, // Padding réduit
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                item.buttonText,
+                                style: const TextStyle(
+                                    fontSize: 12), // Taille réduite
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            // Indicators
+            Positioned(
+              bottom: 8, // Position ajustée
+              right: 8, // Position ajustée
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(
+                  items.length,
+                  (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: _currentPage == index ? 16 : 6, // Taille réduite
+                    height: 6, // Taille réduite
+                    margin: const EdgeInsets.only(left: 4),
+                    decoration: BoxDecoration(
+                      color: _currentPage == index
+                          ? AppColors.secondary
+                          : Colors.white.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ),
-                ],
-              );
-            },
-          ),
-        ),
-        Positioned(
-          bottom: 20,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: DotsIndicator(
-              dotsCount: items.length,
-              position: _currentPage,
-              decorator: DotsDecorator(
-                activeColor: AppColors.secondary,
-                color: Colors.white,
-                size: const Size(8.0, 8.0),
-                activeSize: const Size(20.0, 8.0),
-                activeShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5.0),
                 ),
               ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

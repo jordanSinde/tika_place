@@ -21,7 +21,7 @@ class BusSortSelector extends StatelessWidget {
         ListTile(
           title: Row(
             children: [
-              const Icon(Icons.sort, color: AppColors.primary),
+              const Icon(Icons.sort, color: AppColors.textLight),
               const SizedBox(width: 8),
               Text(
                 'Trier par',
@@ -40,7 +40,7 @@ class BusSortSelector extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.secondary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -49,14 +49,14 @@ class BusSortSelector extends StatelessWidget {
                   Text(
                     selectedOption.label,
                     style: const TextStyle(
-                      color: AppColors.primary,
+                      color: AppColors.secondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(width: 4),
                   const Icon(
                     Icons.arrow_drop_down,
-                    color: AppColors.primary,
+                    color: AppColors.secondary,
                   ),
                 ],
               ),
@@ -99,14 +99,14 @@ class BusSortSelector extends StatelessWidget {
         children: [
           Icon(
             getIconForOption(),
-            color: selectedOption == option ? AppColors.primary : Colors.grey,
+            color: selectedOption == option ? AppColors.secondary : Colors.grey,
             size: 20,
           ),
           const SizedBox(width: 12),
           Text(
             option.label,
             style: TextStyle(
-              color: selectedOption == option ? AppColors.primary : null,
+              color: selectedOption == option ? AppColors.secondary : null,
               fontWeight: selectedOption == option ? FontWeight.bold : null,
             ),
           ),
