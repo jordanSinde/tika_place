@@ -3,14 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import 'package:tika_place/features/home/widgets/bus_booking/mock_data.dart';
-import '../../../../core/config/theme/app_colors.dart';
-import '../../models/bus_mock_data.dart';
+import 'package:tika_place/features/bus_booking/mock_data.dart';
+import '../../core/config/theme/app_colors.dart';
+import '../home/models/bus_mock_data.dart';
 import 'bus_card.dart';
 import 'bus_filter_panel.dart';
 import 'bus_sort_option.dart';
 import 'bus_sort_selector.dart';
+import 'screens/bus_booking_process_screen.dart';
 
 class BusBookingListScreen extends ConsumerStatefulWidget {
   final BusSearchFilters initialFilters;
@@ -264,6 +264,16 @@ class _BusBookingListScreenState extends ConsumerState<BusBookingListScreen> {
   }
 
   void _handleBooking(Bus bus) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => BusBookingProcessScreen(
+          selectedBus: bus,
+        ),
+      ),
+    );
+  }
+
+  /*void _handleBooking(Bus bus) {
     // Afficher une boîte de dialogue de confirmation
     showDialog(
       context: context,
@@ -312,7 +322,7 @@ class _BusBookingListScreenState extends ConsumerState<BusBookingListScreen> {
         ],
       ),
     );
-  }
+  }*/
 
   void _showBookingForm(Bus bus) {
     // Implémenter le formulaire de réservation

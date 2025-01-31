@@ -6,7 +6,7 @@ import '../../../core/config/theme/app_colors.dart';
 // lib/features/home/screens/home_screen.dart
 
 import '../../common/widgets/drawers/custom_drawer.dart';
-import '../widgets/bus_booking/bus_booking_view.dart';
+import '../../bus_booking/bus_booking_view.dart';
 import '../widgets/custom_carroussel.dart';
 import '../widgets/hotel_booking/hotel_booking_view.dart';
 import '../widgets/apartment_booking/apartment_booking_view.dart';

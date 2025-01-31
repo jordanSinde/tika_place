@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/config/theme/app_colors.dart';
-import '../../models/bus_mock_data.dart';
+import '../../core/config/theme/app_colors.dart';
+import '../home/models/bus_mock_data.dart';
 
 class BusFilterPanel extends StatefulWidget {
   final BusSearchFilters initialFilters;

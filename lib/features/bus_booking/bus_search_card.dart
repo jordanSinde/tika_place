@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/config/theme/app_colors.dart';
+import '../../core/config/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 
-import '../../models/bus_mock_data.dart';
+import '../home/models/bus_mock_data.dart';
 
 class BusSearchCard extends StatefulWidget {
   final Function(Map<String, dynamic>) onSearch;

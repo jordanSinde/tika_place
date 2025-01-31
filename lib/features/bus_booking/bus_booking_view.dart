@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/config/theme/app_colors.dart';
-import '../../models/bus_mock_data.dart';
+import '../../core/config/theme/app_colors.dart';
+import '../home/models/bus_mock_data.dart';
 import 'bus_search_card.dart';
 import 'package:go_router/go_router.dart';
 

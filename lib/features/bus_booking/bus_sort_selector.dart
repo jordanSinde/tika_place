@@ -1,7 +1,7 @@
 // lib/features/bus_booking/widgets/bus_sort_selector.dart
 
 import 'package:flutter/material.dart';
-import '../../../../core/config/theme/app_colors.dart';
+import '../../core/config/theme/app_colors.dart';
 import 'bus_sort_option.dart';
 
 class BusSortSelector extends StatelessWidget {

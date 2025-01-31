@@ -4,8 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/manage_sessions_screen.dart';
 import '../../features/auth/screens/opt_verification_screen.dart';
+import '../../features/bus_booking/screens/bus_booking_process_screen.dart';
 import '../../features/home/models/bus_mock_data.dart';
-import '../../features/home/widgets/bus_booking/bus_booking_list_screen.dart';
+import '../../features/bus_booking/bus_booking_list_screen.dart';
 import '../../features/main/screens/main_scaffold.dart';
 import '../../features/onboarding/provider/onboarding_provider.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
@@ -160,6 +161,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             initialFilters: params['filters'] as BusSearchFilters? ??
                 const BusSearchFilters(),
           );
+        },
+      ),
+      GoRoute(
+        path: '/bus-booking',
+        builder: (context, state) {
+          final bus = state.extra as Bus;
+          return BusBookingProcessScreen(selectedBus: bus);
         },
       ),
 

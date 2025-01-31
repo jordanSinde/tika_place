@@ -1,6 +1,6 @@
 // lib/features/bus_booking/data/mock_data.dart
 
-import '../../models/bus_mock_data.dart';
+import '../home/models/bus_mock_data.dart';
 
 final List<String> agencesList = [
   'Finex Voyages',

@@ -82,20 +82,81 @@ class Bus {
   bool isValid() {
     return departureTime.isBefore(arrivalTime);
   }
-  /*factory Bus.fromJson(Map<String, dynamic> json) {
-        final departureTime = DateTime.parse(json['departureTime']);
-        final arrivalTime = DateTime.parse(json['arrivalTime']);
-        
-        if (departureTime.isAfter(arrivalTime)) {
-          throw ArgumentError("Le temps de départ doit être avant le temps d'arrivée");
-        }
 
-        return Bus(
-          // ... autres propriétés ...
-          departureTime: departureTime,
-          arrivalTime: arrivalTime, id: '', company: '',
-        );
-      }*/
+  factory Bus.fromJson(Map<String, dynamic> json) {
+    final departureTime = DateTime.parse(json['departureTime'] as String);
+    final arrivalTime = DateTime.parse(json['arrivalTime'] as String);
+
+    if (departureTime.isAfter(arrivalTime)) {
+      throw ArgumentError(
+          "Le temps de départ doit être avant le temps d'arrivée");
+    }
+
+    return Bus(
+      id: json['id'] as String,
+      company: json['company'] as String,
+      agencyLocation: json['agencyLocation'] as String,
+      registrationNumber: json['registrationNumber'] as String,
+      departureCity: json['departureCity'] as String,
+      arrivalCity: json['arrivalCity'] as String,
+      departureTime: departureTime,
+      arrivalTime: arrivalTime,
+      busClass: BusClass.values[json['busClass'] as int],
+      price: (json['price'] as num).toDouble(),
+      totalSeats: json['totalSeats'] as int,
+      availableSeats: json['availableSeats'] as int,
+      amenities: BusAmenities(
+        hasAirConditioning: json['amenities']['hasAirConditioning'] as bool,
+        hasToilet: json['amenities']['hasToilet'] as bool,
+        hasLunch: json['amenities']['hasLunch'] as bool,
+        hasDrinks: json['amenities']['hasDrinks'] as bool,
+        hasWifi: json['amenities']['hasWifi'] as bool,
+        hasUSBCharging: json['amenities']['hasUSBCharging'] as bool,
+        hasTv: json['amenities']['hasTv'] as bool,
+      ),
+      busNumber: json['busNumber'] as String,
+      rating: (json['rating'] as num).toDouble(),
+      reviews: json['reviews'] as int,
+      isPopularRoute: json['isPopularRoute'] as bool? ?? false,
+      nextAvailableDepartures:
+          (json['nextAvailableDepartures'] as List<dynamic>?)
+                  ?.map((e) => DateTime.parse(e as String))
+                  .toList() ??
+              [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'company': company,
+      'agencyLocation': agencyLocation,
+      'registrationNumber': registrationNumber,
+      'departureCity': departureCity,
+      'arrivalCity': arrivalCity,
+      'departureTime': departureTime.toIso8601String(),
+      'arrivalTime': arrivalTime.toIso8601String(),
+      'busClass': busClass.index,
+      'price': price,
+      'totalSeats': totalSeats,
+      'availableSeats': availableSeats,
+      'amenities': {
+        'hasAirConditioning': amenities.hasAirConditioning,
+        'hasToilet': amenities.hasToilet,
+        'hasLunch': amenities.hasLunch,
+        'hasDrinks': amenities.hasDrinks,
+        'hasWifi': amenities.hasWifi,
+        'hasUSBCharging': amenities.hasUSBCharging,
+        'hasTv': amenities.hasTv,
+      },
+      'busNumber': busNumber,
+      'rating': rating,
+      'reviews': reviews,
+      'isPopularRoute': isPopularRoute,
+      'nextAvailableDepartures':
+          nextAvailableDepartures.map((d) => d.toIso8601String()).toList(),
+    };
+  }
 }
 
 class BusSearchFilters {
