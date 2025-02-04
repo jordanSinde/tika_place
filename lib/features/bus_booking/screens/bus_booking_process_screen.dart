@@ -44,7 +44,7 @@ class _BusBookingProcessScreenState
 
   final List<String> _stepTitles = [
     'Résumé du voyage',
-    'Informations passagers',
+    'Vos Informations',
     'Paiement',
   ];
 

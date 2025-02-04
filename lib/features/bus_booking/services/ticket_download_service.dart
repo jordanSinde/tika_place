@@ -1,15 +1,62 @@
 // lib/features/bus_booking/services/ticket_download_service.dart
 
 import 'dart:io';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
+//import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:intl/intl.dart';
-import 'package:tika_place/features/home/models/bus_mock_data.dart';
+//import 'package:flutter/services.dart' show rootBundle;
+//import 'package:intl/intl.dart';
+//import 'package:tika_place/features/home/models/bus_mock_data.dart';
 
 import '../providers/ticket_model.dart';
 
+class TicketDownloadService {
+  static final TicketDownloadService _instance =
+      TicketDownloadService._internal();
+
+  factory TicketDownloadService() {
+    return _instance;
+  }
+
+  TicketDownloadService._internal();
+
+  Future<String> generateTicketPDF(ExtendedTicket ticket) async {
+    final pdf = pw.Document();
+
+    try {
+      final output = await getApplicationDocumentsDirectory();
+      final file = File('${output.path}/ticket_${ticket.id}.pdf');
+
+      // Générer le PDF
+      pdf.addPage(
+        pw.Page(
+          build: (context) => pw.Column(
+            children: [
+              // ... Contenu du PDF ...
+            ],
+          ),
+        ),
+      );
+
+      // Sauvegarder le fichier
+      await file.writeAsBytes(await pdf.save());
+
+      // Ouvrir le fichier avec le visualiseur par défaut
+      if (Platform.isAndroid || Platform.isIOS) {
+        await OpenFile.open(file.path);
+      }
+
+      return file.path;
+    } catch (e) {
+      throw Exception('Erreur lors de la génération du PDF: $e');
+    }
+  }
+}
+
+final ticketDownloadService = TicketDownloadService();
+
+/*
 class TicketDownloadService {
   static final TicketDownloadService _instance =
       TicketDownloadService._internal();
@@ -242,3 +289,4 @@ class TicketDownloadService {
 }
 
 final ticketDownloadService = TicketDownloadService();
+*/

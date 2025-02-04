@@ -73,6 +73,8 @@ dependencies:
   share_plus: ^10.1.4
   timezone: ^0.10.0
   qr_flutter: ^4.1.0
+  mobile_scanner: ^6.0.5
+  open_file: ^3.5.10
 
 dev_dependencies:
   flutter_test:
@@ -113,6 +115,7 @@ flutter:
     - assets/images/images/
     - assets/images/tour/
     - assets/images/user/
+    - assets/images/paiement/
     - assets/images/vector/
   #   - images/a_dot_ham.jpeg
 

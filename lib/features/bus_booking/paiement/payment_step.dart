@@ -95,7 +95,7 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text('Payer'),
+                      : const Text('Suivant'),
                 ),
               ),
             ],
@@ -191,14 +191,14 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
         _buildPaymentMethodCard(
           method: PaymentMethod.orangeMoney,
           title: 'Orange Money',
-          icon: 'assets/icons/orange_money.png',
+          icon: 'assets/images/paiement/OM.png',
           description: 'Paiement via Orange Money',
         ),
         const SizedBox(height: 12),
         _buildPaymentMethodCard(
           method: PaymentMethod.mtnMoney,
           title: 'MTN Mobile Money',
-          icon: 'assets/icons/mtn_momo.png',
+          icon: 'assets/images/paiement/momo.jpg',
           description: 'Paiement via MTN Mobile Money',
         ),
       ],
@@ -238,8 +238,9 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
                 color: AppColors.background,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.payment, color: AppColors.primary),
+              child: Image.asset(icon),
               // Remplacer par Image.asset(icon) quand les assets seront disponibles
+              //const Icon(Icons.payment, color: AppColors.primary),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -282,13 +283,38 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
   }
 
   Future<void> _processPayment() async {
-    final success = await ref.read(bookingProvider.notifier).processPayment();
+    try {
+      //final success = await ref.read(bookingProvider.notifier).processPayment();
+      //if (!mounted) return;
 
-    if (success && mounted) {
-      // Navigation vers l'écran de succès
+      final bookingState = ref.read(bookingProvider);
+      final bookingReference = bookingState.bookingReference;
+
+      if (bookingReference == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur: Référence de réservation non trouvée'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
+      // Afficher d'abord le formulaire de paiement
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const PaymentSuccessScreen(),
+          builder: (context) => PaymentSuccessScreen(
+            bookingReference: bookingReference,
+            showPaymentForm: true, // Important !
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors du paiement: ${e.toString()}'),
+          backgroundColor: AppColors.error,
         ),
       );
     }
