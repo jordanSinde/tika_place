@@ -234,11 +234,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-
-/*
-'/payment': PaymentScreen,
-'/payment-success': PaymentSuccessScreen,
-'/tickets': TicketsHistoryScreen,
-'/ticket-scanner': TicketScannerScreen,
-'/validation-history': ValidationHistoryScreen
-*/

@@ -39,7 +39,6 @@ class ProfileScreen extends ConsumerWidget {
               ProfileHeader(user: user),
 
               // Contenu principal avec animation de défilement
-              // Contenu principal
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: SliverList(
@@ -56,60 +55,7 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
             ],
-            /*SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      // Carte d'information avec animation
-                      AnimatedSlide(
-                        duration: const Duration(milliseconds: 300),
-                        offset: const Offset(0, -0.05),
-                        child: ProfileInfoCard(user: user),
-                      ),
-          
-                      // Séparateur visuel subtil
-                      _buildSectionDivider(),
-          
-                      // Section des réservations
-                      const AnimatedSwitcher(
-                        duration: Duration(milliseconds: 300),
-                        child: BookingTabs(),
-                      ),
-          
-                      // Séparateur visuel subtil
-                      _buildSectionDivider(),
-          
-                      // Section des contacts avec animation
-                      /*AnimatedSlide(
-                        duration: const Duration(milliseconds: 300),
-                        offset: const Offset(0, 0),
-                        child: ContactsSection(contacts: user.contacts),
-                      ),*/
-          
-                      // Espace en bas pour le défilement
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
-              ),
-            ],*/
           ),
-        ),
-
-        // Bouton d'action flottant pour un accès rapide aux paramètres
-      ),
-    );
-  }
-
-  Widget _buildSectionDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Container(
-        height: 8,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(4),
         ),
       ),
     );
@@ -146,38 +92,3 @@ extension NumberFormat on num {
         (match) => '${match[1]},',
       );
 }
-
-//11111111111111111
-/*class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-    final user = authState.user;
-
-    if (user == null) return const SizedBox.shrink();
-
-    return Scaffold(
-      //backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          ProfileHeader(user: user),
-          SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: const Offset(0, -40),
-              child: Column(
-                children: [
-                  ProfileInfoCard(user: user),
-                  //const SizedBox(height: 8),
-                  const BookingTabs(),
-                  ContactsSection(contacts: user.contacts),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}*/
