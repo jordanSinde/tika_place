@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/theme/app_colors.dart';
+import '../../bus_booking/widgets/reservation_list_widget.dart';
 
 class BookingTabs extends ConsumerStatefulWidget {
   const BookingTabs({super.key});
@@ -144,8 +145,16 @@ class _BookingTabsState extends ConsumerState<BookingTabs>
     );
   }
 
-  Widget _buildTabContent(TabItem tab) {
+  /*Widget _buildTabContent(TabItem tab) {
     // Simuler des réservations vides pour le moment
+    return _buildEmptyState(tab);
+  }*/
+
+  Widget _buildTabContent(TabItem tab) {
+    if (tab.label == 'Bus') {
+      return const ReservationListWidget();
+    }
+    // Pour les autres onglets, garder l'état vide pour le moment
     return _buildEmptyState(tab);
   }
 
@@ -228,3 +237,16 @@ class TabItem {
     required this.activeIcon,
   });
 }
+
+
+/*
+
+Widget _buildTabContent(TabItem tab) {
+    if (tab.label == 'Bus') {
+      return const ReservationListWidget();
+    }
+    // Pour les autres onglets, garder l'état vide pour le moment
+    return _buildEmptyState(tab);
+  }
+
+*/

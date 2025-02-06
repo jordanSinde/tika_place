@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/config/theme/app_colors.dart';
 import '../../common/widgets/buttons/primary_button.dart';
 import '../../common/widgets/inputs/custom_textfield.dart';
@@ -233,7 +234,8 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen> {
 
   Future<void> _processPayment() async {
     try {
-      final success = await ref.read(bookingProvider.notifier).processPayment();
+      final success =
+          await ref.read(bookingProvider.notifier).processPayment(ref);
       if (!mounted) return;
 
       if (success) {
@@ -268,7 +270,7 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen> {
       try {
         // Simuler le traitement du paiement
         //await Future.delayed(const Duration(seconds: 2));
-        await ref.read(bookingProvider.notifier).processPayment();
+        await ref.read(bookingProvider.notifier).processPayment(ref);
         //if (!mounted) return;
 
         if (mounted) {
@@ -338,7 +340,7 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen> {
           onPressed: _isProcessing
               ? null
               : () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  context.go('/home');
                 },
           icon: const Icon(Icons.home),
           label: const Text('Retour à l\'accueil'),
