@@ -6,6 +6,7 @@ import 'core/config/theme/app_theme.dart';
 import 'core/providers/shared_preferences_provider.dart';
 import 'core/router/app_router.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/bus_booking/services/ticket_download_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -13,6 +14,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // Initialiser le service de téléchargement
+  await ticketDownloadService.initialize();
   final prefs = await SharedPreferences.getInstance();
 
   runApp(

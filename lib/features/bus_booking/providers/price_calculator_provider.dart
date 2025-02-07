@@ -50,13 +50,13 @@ class PriceCalculatorNotifier extends StateNotifier<PriceCalculatorState> {
   PriceCalculatorNotifier() : super(PriceCalculatorState(subtotal: 0));
 
   // Constantes pour les taxes et commissions
-  static const double MOBILE_TAX_RATE = 0.025; // 2.5%
-  static const double TRANSPORT_TAX_RATE = 0.01; // 1%
+  static const double mobileTaxeRate = 0.025; // 2.5%
+  static const double transportTaxeRate = 0.01; // 1%
 
   void calculatePrice(double basePrice) {
-    final mobileTax = basePrice * MOBILE_TAX_RATE;
+    final mobileTax = basePrice * mobileTaxeRate;
     final commission = _calculateCommission(basePrice);
-    final transportTax = basePrice * TRANSPORT_TAX_RATE;
+    final transportTax = basePrice * transportTaxeRate;
 
     state = state.copyWith(
       subtotal: basePrice,

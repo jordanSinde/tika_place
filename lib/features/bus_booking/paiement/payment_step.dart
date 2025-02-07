@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/config/theme/app_colors.dart';
 import '../providers/price_calculator_provider.dart';
+import '../providers/ticket_provider.dart';
 import '../widgets/price_summary_widget.dart';
 import '../widgets/promo_code_input.dart';
 import 'payment_success_screen.dart';
@@ -118,6 +119,59 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
 
   Future<void> _handlePayment(String code, double totalAmount) async {
     try {
+      print("Début du processus de paiement");
+      final success =
+          await ref.read(bookingProvider.notifier).processPayment(ref);
+      print("Paiement traité, succès: $success");
+
+      if (!mounted) return;
+
+      if (success) {
+        final bookingState = ref.read(bookingProvider);
+        final bookingReference = bookingState.bookingReference;
+        print("Référence de réservation: $bookingReference");
+
+        if (bookingReference == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erreur: Référence de réservation non trouvée'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          return;
+        }
+
+        // Générer et sauvegarder les tickets ici
+        final ticketsNotifier = ref.read(ticketsProvider.notifier);
+        final ticketsGenerated =
+            await ticketsNotifier.generateTicketsAfterPayment(code);
+        print("Tickets générés et sauvegardés: $ticketsGenerated");
+
+        // Navigation vers l'écran de succès
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => PaymentSuccessScreen(
+              bookingReference: bookingReference,
+            ),
+          ),
+        );
+      } else {
+        // Afficher le dialogue d'erreur
+        _showErrorDialog(
+          'Le paiement a échoué. Vous pourrez réessayer depuis votre historique de réservations.',
+        );
+      }
+    } catch (e) {
+      print("Erreur dans _handlePayment: $e");
+      if (!mounted) return;
+      _showErrorDialog(
+        'Une erreur est survenue. Vous pourrez réessayer depuis votre historique de réservations.',
+      );
+    }
+  }
+
+  /*Future<void> _handlePayment(String code, double totalAmount) async {
+    try {
       final success =
           await ref.read(bookingProvider.notifier).processPayment(ref);
       if (!mounted) return;
@@ -156,7 +210,7 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
         'Une erreur est survenue. Vous pourrez réessayer depuis votre historique de réservations.',
       );
     }
-  }
+  }*/
 
   void _showErrorDialog(String message) {
     showDialog(
