@@ -1,7 +1,6 @@
 // lib/features/bus_booking/screens/booking/steps/payment/mobile_money_payment.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../../../../core/config/theme/app_colors.dart';
 import '../../common/widgets/inputs/custom_textfield.dart';
 import '../providers/booking_provider.dart';
@@ -137,7 +136,7 @@ class _MobileMoneyPaymentState extends State<MobileMoneyPayment> {
               CustomTextField(
                 controller: _phoneController,
                 label: 'Numéro de téléphone',
-                hint: isOrangeMoney ? '6XX XXX XXX' : '65X XXX XXX',
+                hint: isOrangeMoney ? '6XX XXX XXX' : '6XX XXX XXX',
                 keyboardType: TextInputType.phone,
                 prefixIcon: Icons.phone,
                 /*inputFormatters: [
@@ -284,28 +283,5 @@ class _MobileMoneyPaymentState extends State<MobileMoneyPayment> {
   void dispose() {
     _phoneController.dispose();
     super.dispose();
-  }
-}
-
-class _PhoneNumberFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = newValue.text.replaceAll(' ', '');
-
-    if (text.isEmpty) return newValue;
-
-    final buffer = StringBuffer();
-    for (int i = 0; i < text.length; i++) {
-      if (i == 3 || i == 6) buffer.write(' ');
-      buffer.write(text[i]);
-    }
-
-    return TextEditingValue(
-      text: buffer.toString(),
-      selection: TextSelection.collapsed(offset: buffer.length),
-    );
   }
 }

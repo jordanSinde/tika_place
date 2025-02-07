@@ -6,7 +6,8 @@ import 'package:tika_place/core/config/theme/app_colors.dart';
 
 class CarouselItem {
   final String title;
-  final String subtitle;
+  final String subtitle1;
+  final String subtitle2;
   final String buttonText;
   final String description;
   final String imagePath;
@@ -14,7 +15,8 @@ class CarouselItem {
 
   CarouselItem({
     required this.title,
-    required this.subtitle,
+    required this.subtitle1,
+    required this.subtitle2,
     required this.buttonText,
     required this.description,
     required this.imagePath,
@@ -36,7 +38,8 @@ class _CustomCarouselState extends State<CustomCarousel> {
   final List<CarouselItem> items = [
     CarouselItem(
       title: 'Réservez',
-      subtitle: ' des chambres d\'hôtels',
+      subtitle1: ' des chambres',
+      subtitle2: ' d\'hôtels',
       buttonText: 'Voir les offres',
       description: 'Trouvez votre chambre idéale au Cameroun.',
       imagePath: 'assets/images/hotel/hotel-detail-1.png',
@@ -44,16 +47,17 @@ class _CustomCarouselState extends State<CustomCarousel> {
     ),
     CarouselItem(
       title: 'Réservez',
-      subtitle: ' un ticket de bus express',
+      subtitle1: ' un ticket de bus',
+      subtitle2: ' express',
       buttonText: 'Voir les trajets',
       description: 'Voyagez sereinement à travers le pays.',
-      imagePath:
-          'assets/images/hotel/hotel-detail-1.png', //'assets/images/onboarding_carroussel/bus_travel2-min.jpg',
+      imagePath: 'assets/images/hotel/hotel-detail-1.png',
       onButtonPressed: () {},
     ),
     CarouselItem(
       title: 'Location',
-      subtitle: ' appartements courte/longue durée',
+      subtitle1: ' appartements',
+      subtitle2: ' courte/longue durée',
       buttonText: 'Voir les biens',
       description: 'L\'appartement parfait pour votre séjour.',
       imagePath: 'assets/images/images/achievement-image.png',
@@ -154,12 +158,22 @@ class _CustomCarouselState extends State<CustomCarousel> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              //const SizedBox(width: 4),
+                              Text(
+                                item.subtitle1,
+                                style: const TextStyle(
+                                  color: AppColors.secondary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                //softWrap: true,
+                                //maxLines: 2,
+                              ),
                               Flexible(
                                 child: Text(
-                                  item.subtitle,
+                                  item.subtitle1,
                                   style: const TextStyle(
-                                    color: AppColors.secondary,
+                                    color: Colors.white,
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
