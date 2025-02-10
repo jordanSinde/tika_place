@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 
@@ -16,6 +17,7 @@ class TicketDownloadService {
   late pw.Font _regularFont;
   late pw.Font _boldFont;
   bool _initialized = false;
+  static const String folderName = 'TIKA';
 
   factory TicketDownloadService() {
     return _instance;
@@ -23,7 +25,7 @@ class TicketDownloadService {
 
   TicketDownloadService._internal();
 
-  // Méthode publique d'initialisation
+  // [Les autres méthodes restent identiques jusqu'à generateTicketPDF]
   Future<void> initialize() async {
     if (_initialized) return;
 
@@ -36,25 +38,67 @@ class TicketDownloadService {
       _regularFont = pw.Font.ttf(regularData);
       _boldFont = pw.Font.ttf(boldData);
 
+      // Créer le dossier TIKA s'il n'existe pas
+      await _createTikaDirectory();
+
       _initialized = true;
     } catch (e) {
       print(
           'Erreur lors de l\'initialisation du service de téléchargement: $e');
-      // Vous pouvez gérer l'erreur comme vous le souhaitez
     }
   }
 
-  // Vérifie si un ticket a déjà été téléchargé
+  Future<bool> _checkAndRequestPermissions() async {
+    if (Platform.isAndroid) {
+      final storage = await Permission.storage.status;
+      final mediaLibrary = await Permission.mediaLibrary.status;
+
+      if (storage != PermissionStatus.granted ||
+          mediaLibrary != PermissionStatus.granted) {
+        await Permission.storage.request();
+        await Permission.mediaLibrary.request();
+
+        final storageAfter = await Permission.storage.status;
+        final mediaLibraryAfter = await Permission.mediaLibrary.status;
+
+        return storageAfter == PermissionStatus.granted &&
+            mediaLibraryAfter == PermissionStatus.granted;
+      }
+      return true;
+    }
+    return true;
+  }
+
+  Future<String> _getTikaPath() async {
+    if (Platform.isAndroid) {
+      // Utiliser le dossier Download public
+      return '/storage/emulated/0/Download/$folderName';
+    } else {
+      // Pour iOS, utiliser un dossier visible dans Files app
+      final directory = await getApplicationDocumentsDirectory();
+      return '${directory.path}/$folderName';
+    }
+  }
+
+  Future<void> _createTikaDirectory() async {
+    final tikaPath = await _getTikaPath();
+    final directory = Directory(tikaPath);
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+  }
+
   Future<bool> isTicketDownloaded(String ticketId) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/tickets/ticket_$ticketId.pdf');
+    final tikaPath = await _getTikaPath();
+    final dateStr = DateFormat('yyyyMMdd').format(DateTime.now());
+    final file = File('$tikaPath/Billet_$ticketId\_$dateStr.pdf');
     return file.exists();
   }
 
-  // Retourne le chemin du fichier PDF s'il existe
   Future<String?> getExistingTicketPath(String ticketId) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/tickets/ticket_$ticketId.pdf');
+    final tikaPath = await _getTikaPath();
+    final dateStr = DateFormat('yyyyMMdd').format(DateTime.now());
+    final file = File('$tikaPath/Billet_$ticketId\_$dateStr.pdf');
     if (await file.exists()) {
       return file.path;
     }
@@ -63,6 +107,12 @@ class TicketDownloadService {
 
   Future<String> generateTicketPDF(ExtendedTicket ticket) async {
     await initialize();
+
+    final hasPermission = await _checkAndRequestPermissions();
+    if (!hasPermission) {
+      throw Exception('Permission de stockage refusée');
+    }
+
     final pdf = pw.Document();
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
 
@@ -81,7 +131,7 @@ class TicketDownloadService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                // En-tête avec logo (si disponible)
+                // En-tête avec logo
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
@@ -126,7 +176,7 @@ class TicketDownloadService {
                     _buildInfoRow('Téléphone', ticket.phoneNumber),
                     if (ticket.cniNumber != null)
                       _buildInfoRow('CNI', ticket.cniNumber!),
-                    _buildInfoRow('Siège', ticket.seatNumber),
+                    _buildInfoRow('Siège', ticket.formattedSeatNumber),
                   ],
                 ),
                 pw.SizedBox(height: 20),
@@ -182,16 +232,23 @@ class TicketDownloadService {
         ),
       );
 
-      // Créer le dossier tickets s'il n'existe pas
-      final directory = await getApplicationDocumentsDirectory();
-      final ticketsDir = Directory('${directory.path}/tickets');
-      if (!await ticketsDir.exists()) {
-        await ticketsDir.create(recursive: true);
-      }
+      // Sauvegarder dans le dossier TIKA
+      final tikaPath = await _getTikaPath();
+      final dateStr = DateFormat('yyyyMMdd').format(DateTime.now());
+      final fileName = 'Billet_${ticket.id}_$dateStr.pdf';
+      final file = File('$tikaPath/$fileName');
 
-      // Sauvegarder le fichier
-      final file = File('${ticketsDir.path}/ticket_${ticket.id}.pdf');
       await file.writeAsBytes(await pdf.save());
+
+      // Notifier le système sur Android
+      if (Platform.isAndroid) {
+        try {
+          const channel = MethodChannel('com.tikaplace/file_utils');
+          await channel.invokeMethod('scanFile', {'path': file.path});
+        } catch (e) {
+          print('Erreur lors de la notification du système: $e');
+        }
+      }
 
       return file.path;
     } catch (e) {
@@ -199,48 +256,7 @@ class TicketDownloadService {
     }
   }
 
-  Future<List<String>> generateMultipleTicketsPDF(
-      List<ExtendedTicket> tickets) async {
-    final paths = <String>[];
-
-    for (final ticket in tickets) {
-      try {
-        final path = await generateTicketPDF(ticket);
-        paths.add(path);
-      } catch (e) {
-        print(
-            'Erreur lors de la génération du PDF pour le ticket ${ticket.id}: $e');
-      }
-    }
-
-    return paths;
-  }
-
-  // Nettoyer les anciens PDFs
-  Future<void> cleanOldTickets() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final ticketsDir = Directory('${directory.path}/tickets');
-
-      if (await ticketsDir.exists()) {
-        final files = await ticketsDir.list().toList();
-        final now = DateTime.now();
-
-        for (var entity in files) {
-          if (entity is File) {
-            final stat = await entity.stat();
-            // Supprimer les fichiers de plus de 30 jours
-            if (now.difference(stat.changed).inDays > 30) {
-              await entity.delete();
-            }
-          }
-        }
-      }
-    } catch (e) {
-      print('Erreur lors du nettoyage des anciens tickets: $e');
-    }
-  }
-
+  // Méthodes helpers pour la génération du PDF
   pw.Widget _buildSection(String title, List<pw.Widget> content) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(10),
@@ -297,11 +313,9 @@ class TicketDownloadService {
   }
 
   pw.Widget _buildQRCode(ExtendedTicket ticket) {
-    // Créer un code barre simple avec les informations essentielles
     return pw.BarcodeWidget(
       barcode: pw.Barcode.qrCode(),
-      data:
-          'ID:${ticket.id}|REF:${ticket.bookingReference}|SEAT:${ticket.seatNumber}',
+      data: ticket.qrCode,
       width: 100,
       height: 100,
     );
@@ -313,64 +327,50 @@ class TicketDownloadService {
         return 'Orange Money';
       case PaymentMethod.mtnMoney:
         return 'MTN Mobile Money';
-      default:
-        return method.toString();
     }
   }
-}
 
-final ticketDownloadService = TicketDownloadService();
+  Future<List<String>> generateMultipleTicketsPDF(
+      List<ExtendedTicket> tickets) async {
+    final paths = <String>[];
 
-/*
-import 'dart:io';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/widgets.dart' as pw;
-
-import '../providers/ticket_model.dart';
-
-class TicketDownloadService {
-  static final TicketDownloadService _instance =
-      TicketDownloadService._internal();
-
-  factory TicketDownloadService() {
-    return _instance;
-  }
-
-  TicketDownloadService._internal();
-
-  Future<String> generateTicketPDF(ExtendedTicket ticket) async {
-    final pdf = pw.Document();
-
-    try {
-      final output = await getApplicationDocumentsDirectory();
-      final file = File('${output.path}/ticket_${ticket.id}.pdf');
-
-      // Générer le PDF
-      pdf.addPage(
-        pw.Page(
-          build: (context) => pw.Column(
-            children: [
-              // ... Contenu du PDF ...
-            ],
-          ),
-        ),
-      );
-
-      // Sauvegarder le fichier
-      await file.writeAsBytes(await pdf.save());
-
-      // Ouvrir le fichier avec le visualiseur par défaut
-      if (Platform.isAndroid || Platform.isIOS) {
-        await OpenFile.open(file.path);
+    for (final ticket in tickets) {
+      try {
+        final path = await generateTicketPDF(ticket);
+        paths.add(path);
+      } catch (e) {
+        print(
+            'Erreur lors de la génération du PDF pour le ticket ${ticket.id}: $e');
       }
+    }
 
-      return file.path;
+    return paths;
+  }
+
+  // Nettoyer les anciens PDFs
+  Future<void> cleanOldTickets() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final ticketsDir = Directory('${directory.path}/tickets');
+
+      if (await ticketsDir.exists()) {
+        final files = await ticketsDir.list().toList();
+        final now = DateTime.now();
+
+        for (var entity in files) {
+          if (entity is File) {
+            final stat = await entity.stat();
+            // Supprimer les fichiers de plus de 30 jours
+            if (now.difference(stat.changed).inDays > 30) {
+              await entity.delete();
+            }
+          }
+        }
+      }
     } catch (e) {
-      throw Exception('Erreur lors de la génération du PDF: $e');
+      print('Erreur lors du nettoyage des anciens tickets: $e');
     }
   }
 }
 
 final ticketDownloadService = TicketDownloadService();
-*/

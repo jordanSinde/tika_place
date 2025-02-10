@@ -110,7 +110,7 @@ class BookingStepIndicator extends StatelessWidget {
 
   Widget _buildConnector(int index) {
     return Container(
-      width: 40,
+      width: 100,
       height: 2,
       color: index < currentStep
           ? AppColors.success

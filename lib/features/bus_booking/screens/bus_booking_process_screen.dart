@@ -43,9 +43,9 @@ class _BusBookingProcessScreenState
   }
 
   final List<String> _stepTitles = [
-    'Résumé du voyage',
+    'Votre Sélection',
     'Vos Informations',
-    'Paiement',
+    'Dernière Etape',
   ];
 
   void _onNextStep() {

@@ -147,41 +147,30 @@ class _CustomCarouselState extends State<CustomCarousel> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.title,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          RichText(
+                            text: TextSpan(
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                               ),
-                              //const SizedBox(width: 4),
-                              Text(
-                                item.subtitle1,
-                                style: const TextStyle(
-                                  color: AppColors.secondary,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              children: [
+                                TextSpan(
+                                  text: item.title,
+                                  style: const TextStyle(color: Colors.white),
                                 ),
-                                //softWrap: true,
-                                //maxLines: 2,
-                              ),
-                              Flexible(
-                                child: Text(
-                                  item.subtitle1,
+                                TextSpan(
+                                  text: item.subtitle1,
                                   style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  softWrap: true,
-                                  maxLines: 2,
+                                      color: AppColors.secondary),
                                 ),
-                              ),
-                            ],
+                                TextSpan(
+                                  text: item.subtitle2,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                            softWrap: true,
+                            maxLines: 2,
                           ),
                           const SizedBox(height: 8),
                           Text(

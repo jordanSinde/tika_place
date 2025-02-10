@@ -134,7 +134,7 @@ class _BusSearchCardState extends State<BusSearchCard> {
         children: [
           // City Selection
           _buildDropdown(
-            label: 'Departure City',
+            label: 'Ville de Départ',
             value: _departureCity.isEmpty ? null : _departureCity,
             items: _cities,
             onChanged: (value) {
@@ -146,7 +146,7 @@ class _BusSearchCardState extends State<BusSearchCard> {
           ),
           const SizedBox(height: 16),
           _buildDropdown(
-            label: 'Arrival City',
+            label: 'Ville D\'arrivée',
             value: _arrivalCity.isEmpty ? null : _arrivalCity,
             items: _cities,
             onChanged: (value) {
@@ -172,7 +172,7 @@ class _BusSearchCardState extends State<BusSearchCard> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildSelectionField(
-                  label: 'Time',
+                  label: 'Heure',
                   value: _selectedTime.format(context),
                   onTap: _selectTime,
                   icon: Icons.access_time,
@@ -236,7 +236,7 @@ class _BusSearchCardState extends State<BusSearchCard> {
             child: DropdownButton<String>(
               value: value,
               hint: Text(
-                'Select $label',
+                'Selectionnez $label',
                 style: TextStyle(
                   color: AppColors.textLight.withOpacity(0.5),
                 ),

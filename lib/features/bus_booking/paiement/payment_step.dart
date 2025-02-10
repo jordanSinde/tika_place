@@ -170,48 +170,6 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
     }
   }
 
-  /*Future<void> _handlePayment(String code, double totalAmount) async {
-    try {
-      final success =
-          await ref.read(bookingProvider.notifier).processPayment(ref);
-      if (!mounted) return;
-
-      if (success) {
-        final bookingState = ref.read(bookingProvider);
-        final bookingReference = bookingState.bookingReference;
-
-        if (bookingReference == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Erreur: Référence de réservation non trouvée'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-          return;
-        }
-
-        // Navigation vers l'écran de succès
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => PaymentSuccessScreen(
-              bookingReference: bookingReference,
-            ),
-          ),
-        );
-      } else {
-        // Afficher le dialogue d'erreur
-        _showErrorDialog(
-          'Le paiement a échoué. Vous pourrez réessayer depuis votre historique de réservations.',
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showErrorDialog(
-        'Une erreur est survenue. Vous pourrez réessayer depuis votre historique de réservations.',
-      );
-    }
-  }*/
-
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
