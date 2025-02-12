@@ -8,7 +8,6 @@ import '../../auth/providers/auth_provider.dart';
 import '../providers/ticket_model.dart';
 import '../providers/ticket_provider.dart';
 import 'ticket_viewer.dart';
-/*
 
 class TicketsHistoryScreen extends ConsumerStatefulWidget {
   const TicketsHistoryScreen({super.key});
@@ -214,4 +213,3 @@ class _TicketsHistoryScreenState extends ConsumerState<TicketsHistoryScreen>
     );
   }
 }
-*/

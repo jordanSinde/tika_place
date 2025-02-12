@@ -145,11 +145,6 @@ class _BookingTabsState extends ConsumerState<BookingTabs>
     );
   }
 
-  /*Widget _buildTabContent(TabItem tab) {
-    // Simuler des réservations vides pour le moment
-    return _buildEmptyState(tab);
-  }*/
-
   Widget _buildTabContent(TabItem tab) {
     if (tab.label == 'Bus') {
       return const ReservationListWidget();
@@ -237,16 +232,3 @@ class TabItem {
     required this.activeIcon,
   });
 }
-
-
-/*
-
-Widget _buildTabContent(TabItem tab) {
-    if (tab.label == 'Bus') {
-      return const ReservationListWidget();
-    }
-    // Pour les autres onglets, garder l'état vide pour le moment
-    return _buildEmptyState(tab);
-  }
-
-*/

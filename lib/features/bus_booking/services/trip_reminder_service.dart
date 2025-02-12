@@ -18,7 +18,7 @@ class TripReminderService {
   // Initialiser les rappels pour un ticket
   Future<void> scheduleReminders(ExtendedTicket ticket) async {
     // Calculer les moments de notification
-    final departureTime = ticket.bus.departureTime;
+    //final departureTime = ticket.bus.departureTime;
 
     // Rappel 24h avant
     await _scheduleDayBeforeReminder(ticket);

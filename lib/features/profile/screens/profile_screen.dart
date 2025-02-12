@@ -49,7 +49,8 @@ class ProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
                     const BookingTabs(),
                     const SizedBox(height: 16),
-                    ContactsSection(contacts: user.contacts),
+                    //contacts: user.contacts
+                    ContactsSection(savedPassengers: user.savedPassengers),
                     const SizedBox(height: 32),
                   ]),
                 ),
@@ -64,7 +65,7 @@ class ProfileScreen extends ConsumerWidget {
 
 // Exemple de provider pour les statistiques de l'utilisateur
 final userStatsProvider = Provider<UserStats>((ref) {
-  final user = ref.watch(authProvider).user;
+  //final user = ref.watch(authProvider).user;
   // Logique pour calculer les statistiques
   return const UserStats(
     totalBookings: 12,

@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import '../../auth/models/user.dart';
 import '../../home/models/bus_mock_data.dart';
 import '../providers/booking_provider.dart';
 import '../providers/ticket_model.dart';

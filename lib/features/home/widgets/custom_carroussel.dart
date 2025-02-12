@@ -150,7 +150,7 @@ class _CustomCarouselState extends State<CustomCarousel> {
                           RichText(
                             text: TextSpan(
                               style: const TextStyle(
-                                fontSize: 20,
+                                fontSize: 21,
                                 fontWeight: FontWeight.bold,
                               ),
                               children: [
@@ -169,8 +169,6 @@ class _CustomCarouselState extends State<CustomCarousel> {
                                 ),
                               ],
                             ),
-                            softWrap: true,
-                            maxLines: 2,
                           ),
                           const SizedBox(height: 8),
                           Text(

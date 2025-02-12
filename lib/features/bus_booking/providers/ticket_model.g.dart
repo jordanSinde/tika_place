@@ -59,5 +59,6 @@ const _$BookingStatusEnumMap = {
   BookingStatus.confirmed: 'confirmed',
   BookingStatus.paid: 'paid',
   BookingStatus.cancelled: 'cancelled',
+  BookingStatus.expired: 'expired',
   BookingStatus.failed: 'failed',
 };

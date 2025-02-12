@@ -3,8 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/config/theme/app_colors.dart';
+import '../../auth/models/user.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../../common/widgets/inputs/custom_textfield.dart';
+import '../../profile/widgets/passenger_form_dialog.dart';
 import '../providers/booking_provider.dart';
 
 class PassengerInfoStep extends ConsumerStatefulWidget {
@@ -88,89 +89,27 @@ class _PassengerInfoStepState extends ConsumerState<PassengerInfoStep> {
                 }),
 
                 // Formulaire d'ajout de passager
-                if (_isAddingPassenger) ...[
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Nouveau passager',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            CustomTextField(
-                              controller: _firstNameController,
-                              label: 'Prénom',
-                              validator: (value) {
-                                if (value?.isEmpty ?? true) {
-                                  return 'Veuillez entrer le prénom';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            CustomTextField(
-                              controller: _lastNameController,
-                              label: 'Nom',
-                              validator: (value) {
-                                if (value?.isEmpty ?? true) {
-                                  return 'Veuillez entrer le nom';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            CustomTextField(
-                              controller: _phoneController,
-                              label: 'Téléphone',
-                              keyboardType: TextInputType.phone,
-                            ),
-                            const SizedBox(height: 16),
-                            CustomTextField(
-                              controller: _cniController,
-                              label: 'Numéro CNI',
-                              keyboardType: TextInputType.number,
-                            ),
-                            const SizedBox(height: 24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _isAddingPassenger = false;
-                                    });
-                                  },
-                                  child: const Text('Annuler'),
-                                ),
-                                const SizedBox(width: 8),
-                                SizedBox(
-                                  width: 120,
-                                  child: ElevatedButton(
-                                    onPressed: _submitPassenger,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-                                    ),
-                                    child: const Text('Ajouter'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                if (_isAddingPassenger)
+                  PassengerFormDialog(
+                    isDialog:
+                        false, // Important : on l'utilise comme formulaire intégré
+                    onSubmit: (passenger) {
+                      print("Nouveau passager: ${passenger.toString()}");
+                      ref
+                          .read(bookingProvider.notifier)
+                          .addPassenger(passenger);
+                      print(
+                          "État après ajout: ${ref.read(bookingProvider).passengers.length}");
+                      setState(() {
+                        _isAddingPassenger = false;
+                      });
+                    },
+                    onCancel: () {
+                      setState(() {
+                        _isAddingPassenger = false;
+                      });
+                    },
                   ),
-                ],
-
                 // Bouton d'ajout de passager
                 if (!_isAddingPassenger) ...[
                   const SizedBox(height: 16),

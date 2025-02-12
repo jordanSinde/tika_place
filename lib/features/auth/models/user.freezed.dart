@@ -36,8 +36,8 @@ mixin _$UserModel {
   DateTime? get lastLoginAt => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt =>
-      throw _privateConstructorUsedError; // Nouvelle propriété uniquement pour les contacts
-  List<Contact> get contacts => throw _privateConstructorUsedError;
+      throw _privateConstructorUsedError; // Utilisation de Passenger au lieu de Contact
+  List<Passenger> get savedPassengers => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -67,7 +67,7 @@ abstract class $UserModelCopyWith<$Res> {
       DateTime? lastLoginAt,
       DateTime createdAt,
       DateTime? updatedAt,
-      List<Contact> contacts});
+      List<Passenger> savedPassengers});
 }
 
 /// @nodoc
@@ -99,7 +99,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? lastLoginAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = freezed,
-    Object? contacts = null,
+    Object? savedPassengers = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -166,10 +166,10 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      contacts: null == contacts
-          ? _value.contacts
-          : contacts // ignore: cast_nullable_to_non_nullable
-              as List<Contact>,
+      savedPassengers: null == savedPassengers
+          ? _value.savedPassengers
+          : savedPassengers // ignore: cast_nullable_to_non_nullable
+              as List<Passenger>,
     ) as $Val);
   }
 }
@@ -199,7 +199,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
       DateTime? lastLoginAt,
       DateTime createdAt,
       DateTime? updatedAt,
-      List<Contact> contacts});
+      List<Passenger> savedPassengers});
 }
 
 /// @nodoc
@@ -229,7 +229,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? lastLoginAt = freezed,
     Object? createdAt = null,
     Object? updatedAt = freezed,
-    Object? contacts = null,
+    Object? savedPassengers = null,
   }) {
     return _then(_$UserModelImpl(
       id: null == id
@@ -296,10 +296,10 @@ class __$$UserModelImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      contacts: null == contacts
-          ? _value._contacts
-          : contacts // ignore: cast_nullable_to_non_nullable
-              as List<Contact>,
+      savedPassengers: null == savedPassengers
+          ? _value._savedPassengers
+          : savedPassengers // ignore: cast_nullable_to_non_nullable
+              as List<Passenger>,
     ));
   }
 }
@@ -324,8 +324,8 @@ class _$UserModelImpl implements _UserModel {
       this.lastLoginAt,
       required this.createdAt,
       this.updatedAt,
-      final List<Contact> contacts = const []})
-      : _contacts = contacts;
+      final List<Passenger> savedPassengers = const []})
+      : _savedPassengers = savedPassengers;
 
   factory _$UserModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserModelImplFromJson(json);
@@ -363,20 +363,20 @@ class _$UserModelImpl implements _UserModel {
   final DateTime createdAt;
   @override
   final DateTime? updatedAt;
-// Nouvelle propriété uniquement pour les contacts
-  final List<Contact> _contacts;
-// Nouvelle propriété uniquement pour les contacts
+// Utilisation de Passenger au lieu de Contact
+  final List<Passenger> _savedPassengers;
+// Utilisation de Passenger au lieu de Contact
   @override
   @JsonKey()
-  List<Contact> get contacts {
-    if (_contacts is EqualUnmodifiableListView) return _contacts;
+  List<Passenger> get savedPassengers {
+    if (_savedPassengers is EqualUnmodifiableListView) return _savedPassengers;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_contacts);
+    return EqualUnmodifiableListView(_savedPassengers);
   }
 
   @override
   String toString() {
-    return 'UserModel(id: $id, email: $email, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber, hashedPassword: $hashedPassword, profilePicture: $profilePicture, cniNumber: $cniNumber, provider: $provider, isEmailVerified: $isEmailVerified, country: $country, language: $language, hasCompletedProfile: $hasCompletedProfile, lastLoginAt: $lastLoginAt, createdAt: $createdAt, updatedAt: $updatedAt, contacts: $contacts)';
+    return 'UserModel(id: $id, email: $email, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber, hashedPassword: $hashedPassword, profilePicture: $profilePicture, cniNumber: $cniNumber, provider: $provider, isEmailVerified: $isEmailVerified, country: $country, language: $language, hasCompletedProfile: $hasCompletedProfile, lastLoginAt: $lastLoginAt, createdAt: $createdAt, updatedAt: $updatedAt, savedPassengers: $savedPassengers)';
   }
 
   @override
@@ -413,7 +413,8 @@ class _$UserModelImpl implements _UserModel {
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
-            const DeepCollectionEquality().equals(other._contacts, _contacts));
+            const DeepCollectionEquality()
+                .equals(other._savedPassengers, _savedPassengers));
   }
 
   @JsonKey(ignore: true)
@@ -436,7 +437,7 @@ class _$UserModelImpl implements _UserModel {
       lastLoginAt,
       createdAt,
       updatedAt,
-      const DeepCollectionEquality().hash(_contacts));
+      const DeepCollectionEquality().hash(_savedPassengers));
 
   @JsonKey(ignore: true)
   @override
@@ -470,7 +471,7 @@ abstract class _UserModel implements UserModel {
       final DateTime? lastLoginAt,
       required final DateTime createdAt,
       final DateTime? updatedAt,
-      final List<Contact> contacts}) = _$UserModelImpl;
+      final List<Passenger> savedPassengers}) = _$UserModelImpl;
 
   factory _UserModel.fromJson(Map<String, dynamic> json) =
       _$UserModelImpl.fromJson;
@@ -507,231 +508,10 @@ abstract class _UserModel implements UserModel {
   DateTime get createdAt;
   @override
   DateTime? get updatedAt;
-  @override // Nouvelle propriété uniquement pour les contacts
-  List<Contact> get contacts;
+  @override // Utilisation de Passenger au lieu de Contact
+  List<Passenger> get savedPassengers;
   @override
   @JsonKey(ignore: true)
   _$$UserModelImplCopyWith<_$UserModelImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-Contact _$ContactFromJson(Map<String, dynamic> json) {
-  return _Contact.fromJson(json);
-}
-
-/// @nodoc
-mixin _$Contact {
-  String get id => throw _privateConstructorUsedError;
-  String get firstName => throw _privateConstructorUsedError;
-  String? get lastName => throw _privateConstructorUsedError;
-  String get phoneNumber => throw _privateConstructorUsedError;
-  String? get relationship => throw _privateConstructorUsedError;
-
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $ContactCopyWith<Contact> get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $ContactCopyWith<$Res> {
-  factory $ContactCopyWith(Contact value, $Res Function(Contact) then) =
-      _$ContactCopyWithImpl<$Res, Contact>;
-  @useResult
-  $Res call(
-      {String id,
-      String firstName,
-      String? lastName,
-      String phoneNumber,
-      String? relationship});
-}
-
-/// @nodoc
-class _$ContactCopyWithImpl<$Res, $Val extends Contact>
-    implements $ContactCopyWith<$Res> {
-  _$ContactCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? firstName = null,
-    Object? lastName = freezed,
-    Object? phoneNumber = null,
-    Object? relationship = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      firstName: null == firstName
-          ? _value.firstName
-          : firstName // ignore: cast_nullable_to_non_nullable
-              as String,
-      lastName: freezed == lastName
-          ? _value.lastName
-          : lastName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      phoneNumber: null == phoneNumber
-          ? _value.phoneNumber
-          : phoneNumber // ignore: cast_nullable_to_non_nullable
-              as String,
-      relationship: freezed == relationship
-          ? _value.relationship
-          : relationship // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$ContactImplCopyWith<$Res> implements $ContactCopyWith<$Res> {
-  factory _$$ContactImplCopyWith(
-          _$ContactImpl value, $Res Function(_$ContactImpl) then) =
-      __$$ContactImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String id,
-      String firstName,
-      String? lastName,
-      String phoneNumber,
-      String? relationship});
-}
-
-/// @nodoc
-class __$$ContactImplCopyWithImpl<$Res>
-    extends _$ContactCopyWithImpl<$Res, _$ContactImpl>
-    implements _$$ContactImplCopyWith<$Res> {
-  __$$ContactImplCopyWithImpl(
-      _$ContactImpl _value, $Res Function(_$ContactImpl) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? firstName = null,
-    Object? lastName = freezed,
-    Object? phoneNumber = null,
-    Object? relationship = freezed,
-  }) {
-    return _then(_$ContactImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      firstName: null == firstName
-          ? _value.firstName
-          : firstName // ignore: cast_nullable_to_non_nullable
-              as String,
-      lastName: freezed == lastName
-          ? _value.lastName
-          : lastName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      phoneNumber: null == phoneNumber
-          ? _value.phoneNumber
-          : phoneNumber // ignore: cast_nullable_to_non_nullable
-              as String,
-      relationship: freezed == relationship
-          ? _value.relationship
-          : relationship // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$ContactImpl implements _Contact {
-  const _$ContactImpl(
-      {required this.id,
-      required this.firstName,
-      this.lastName,
-      required this.phoneNumber,
-      this.relationship});
-
-  factory _$ContactImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ContactImplFromJson(json);
-
-  @override
-  final String id;
-  @override
-  final String firstName;
-  @override
-  final String? lastName;
-  @override
-  final String phoneNumber;
-  @override
-  final String? relationship;
-
-  @override
-  String toString() {
-    return 'Contact(id: $id, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber, relationship: $relationship)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ContactImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.firstName, firstName) ||
-                other.firstName == firstName) &&
-            (identical(other.lastName, lastName) ||
-                other.lastName == lastName) &&
-            (identical(other.phoneNumber, phoneNumber) ||
-                other.phoneNumber == phoneNumber) &&
-            (identical(other.relationship, relationship) ||
-                other.relationship == relationship));
-  }
-
-  @JsonKey(ignore: true)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType, id, firstName, lastName, phoneNumber, relationship);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ContactImplCopyWith<_$ContactImpl> get copyWith =>
-      __$$ContactImplCopyWithImpl<_$ContactImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ContactImplToJson(
-      this,
-    );
-  }
-}
-
-abstract class _Contact implements Contact {
-  const factory _Contact(
-      {required final String id,
-      required final String firstName,
-      final String? lastName,
-      required final String phoneNumber,
-      final String? relationship}) = _$ContactImpl;
-
-  factory _Contact.fromJson(Map<String, dynamic> json) = _$ContactImpl.fromJson;
-
-  @override
-  String get id;
-  @override
-  String get firstName;
-  @override
-  String? get lastName;
-  @override
-  String get phoneNumber;
-  @override
-  String? get relationship;
-  @override
-  @JsonKey(ignore: true)
-  _$$ContactImplCopyWith<_$ContactImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

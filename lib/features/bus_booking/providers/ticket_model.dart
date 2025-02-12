@@ -85,24 +85,4 @@ extension TicketUtils on ExtendedTicket {
   String get formattedSeatNumber {
     return 'Siège $seatNumber';
   }
-
-  // Générer les données pour le QR code
-  Map<String, dynamic> get qrCodeData {
-    return {
-      'ticketId': id,
-      'bookingRef': bookingReference,
-      'passenger': passengerName,
-      'seat': seatNumber,
-      'departure': {
-        'city': bus.departureCity,
-        'time': bus.departureTime.toIso8601String(),
-      },
-      'arrival': {
-        'city': bus.arrivalCity,
-        'time': bus.arrivalTime.toIso8601String(),
-      },
-      'company': bus.company,
-      'busNumber': bus.registrationNumber,
-    };
-  }
 }

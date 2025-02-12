@@ -11,38 +11,6 @@ enum BookingStatus { pending, confirmed, paid, cancelled, expired, failed }
 
 enum PaymentMethod { orangeMoney, mtnMoney }
 
-class Passenger {
-  final String firstName;
-  final String lastName;
-  final String? phoneNumber;
-  final int? cniNumber;
-  final bool isMainPassenger;
-
-  Passenger({
-    required this.firstName,
-    required this.lastName,
-    this.phoneNumber,
-    this.cniNumber,
-    this.isMainPassenger = false,
-  });
-
-  Passenger copyWith({
-    String? firstName,
-    String? lastName,
-    String? phoneNumber,
-    int? cniNumber,
-    bool? isMainPassenger,
-  }) {
-    return Passenger(
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
-      cniNumber: cniNumber ?? this.cniNumber,
-      isMainPassenger: isMainPassenger ?? this.isMainPassenger,
-    );
-  }
-}
-
 class BookingState {
   final Bus? selectedBus;
   final List<Passenger> passengers;

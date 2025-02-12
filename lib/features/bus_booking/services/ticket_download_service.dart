@@ -136,7 +136,7 @@ class TicketDownloadService {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      'BILLET DE VOYAGE',
+                      'BILLET TIKA PLACE',
                       style: pw.TextStyle(
                         font: _boldFont,
                         fontSize: 24,

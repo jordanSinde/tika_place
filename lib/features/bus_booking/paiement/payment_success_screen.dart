@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/config/theme/app_colors.dart';
 import '../../common/widgets/buttons/primary_button.dart';
+import '../providers/booking_provider.dart';
 import '../providers/ticket_model.dart';
 import '../providers/ticket_provider.dart';
 import '../services/ticket_download_service.dart';
@@ -40,6 +41,8 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen> {
     print("Début de _processBooking");
     setState(() => _isLoadingTickets = true);
     try {
+      print(
+          "Passagers dans booking: ${ref.read(bookingProvider).passengers.length}");
       print("BookingReference: ${widget.bookingReference}");
 
       // Récupérer l'état directement du provider

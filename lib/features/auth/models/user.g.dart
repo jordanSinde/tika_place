@@ -28,8 +28,8 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
-      contacts: (json['contacts'] as List<dynamic>?)
-              ?.map((e) => Contact.fromJson(e as Map<String, dynamic>))
+      savedPassengers: (json['savedPassengers'] as List<dynamic>?)
+              ?.map((e) => Passenger.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
     );
@@ -52,7 +52,7 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'lastLoginAt': instance.lastLoginAt?.toIso8601String(),
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
-      'contacts': instance.contacts,
+      'savedPassengers': instance.savedPassengers,
     };
 
 const _$AuthProviderEnumMap = {
@@ -61,21 +61,3 @@ const _$AuthProviderEnumMap = {
   AuthProvider.facebook: 'facebook',
   AuthProvider.phone: 'phone',
 };
-
-_$ContactImpl _$$ContactImplFromJson(Map<String, dynamic> json) =>
-    _$ContactImpl(
-      id: json['id'] as String,
-      firstName: json['firstName'] as String,
-      lastName: json['lastName'] as String?,
-      phoneNumber: json['phoneNumber'] as String,
-      relationship: json['relationship'] as String?,
-    );
-
-Map<String, dynamic> _$$ContactImplToJson(_$ContactImpl instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'firstName': instance.firstName,
-      'lastName': instance.lastName,
-      'phoneNumber': instance.phoneNumber,
-      'relationship': instance.relationship,
-    };
