@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/config/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 
-import '../home/models/bus_mock_data.dart';
+import '../home/models/bus_and_utility_models.dart';
 
 class BusSearchCard extends StatefulWidget {
   final Function(Map<String, dynamic>) onSearch;

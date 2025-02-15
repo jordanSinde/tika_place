@@ -7,7 +7,7 @@ import '../../../../core/config/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/ticket_model.dart';
 import '../providers/ticket_provider.dart';
-import 'ticket_viewer.dart';
+import '../widgets/ticket_viewer.dart';
 
 class TicketsHistoryScreen extends ConsumerStatefulWidget {
   const TicketsHistoryScreen({super.key});
@@ -25,13 +25,13 @@ class _TicketsHistoryScreenState extends ConsumerState<TicketsHistoryScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadTickets();
+  }
 
-    // Charger les tickets de l'utilisateur
+  Future<void> _loadTickets() async {
     final userId = ref.read(authProvider).user?.id;
     if (userId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(ticketsProvider.notifier).loadUserTickets(userId);
-      });
+      await ref.read(ticketsProvider.notifier).loadUserTickets(userId);
     }
   }
 
@@ -61,13 +61,37 @@ class _TicketsHistoryScreenState extends ConsumerState<TicketsHistoryScreen>
       ),
       body: ticketsState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildUpcomingTickets(ticketsState),
-                _buildTicketsHistory(ticketsState),
-              ],
-            ),
+          : ticketsState.error != null
+              ? _buildErrorState(ticketsState.error!)
+              : TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildUpcomingTickets(ticketsState),
+                    _buildTicketsHistory(ticketsState),
+                  ],
+                ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+          const SizedBox(height: 16),
+          Text(
+            error,
+            style: const TextStyle(color: AppColors.error),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadTickets,
+            child: const Text('Réessayer'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -110,11 +134,11 @@ class _TicketsHistoryScreenState extends ConsumerState<TicketsHistoryScreen>
     }
 
     // Grouper les tickets par mois
-    final groupedTickets = <String, List<dynamic>>{};
+    final groupedTickets = <String, List<ExtendedTicket>>{};
     for (final ticket in ticketHistory) {
       final monthYear =
           DateFormat('MMMM yyyy', 'fr_FR').format(ticket.bus.departureTime);
-      groupedTickets[monthYear] = [...groupedTickets[monthYear] ?? [], ticket];
+      groupedTickets.putIfAbsent(monthYear, () => []).add(ticket);
     }
 
     return ListView.builder(
@@ -181,8 +205,7 @@ class _TicketsHistoryScreenState extends ConsumerState<TicketsHistoryScreen>
           if (_tabController.index == 0)
             ElevatedButton.icon(
               onPressed: () {
-                // Navigator.pushNamed(context, '/bus-search');
-                // À implémenter : navigation vers la recherche de bus
+                Navigator.pushNamed(context, '/bus-search');
               },
               icon: const Icon(Icons.search),
               label: const Text('Rechercher un voyage'),
@@ -196,20 +219,16 @@ class _TicketsHistoryScreenState extends ConsumerState<TicketsHistoryScreen>
   }
 
   Future<void> _handleDownload(ExtendedTicket ticket) async {
-    // À implémenter : logique de téléchargement du ticket
+    // TODO: Implémenter la logique de téléchargement
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Téléchargement du ticket...'),
-      ),
+      const SnackBar(content: Text('Téléchargement du ticket...')),
     );
   }
 
   Future<void> _handleShare(ExtendedTicket ticket) async {
-    // À implémenter : logique de partage du ticket
+    // TODO: Implémenter la logique de partage
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Partage du ticket...'),
-      ),
+      const SnackBar(content: Text('Partage du ticket...')),
     );
   }
 }

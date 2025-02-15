@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_provider.dart';
-import '../../home/models/bus_mock_data.dart';
+import '../../home/models/bus_and_utility_models.dart';
 import '../paiement/payment_step.dart';
 import '../providers/booking_provider.dart';
+import '../providers/price_calculator_provider.dart';
 import '../widgets/booking_step_indicator.dart';
 import '../widgets/passenger_info_step.dart';
 import '../widgets/trip_summary_step.dart';
@@ -29,7 +30,28 @@ class _BusBookingProcessScreenState
   int _currentStep = 0;
   final int _totalSteps = 3;
 
+// Dans BusBookingProcessScreen
   @override
+  void initState() {
+    super.initState();
+    Future(() {
+      final user = ref.read(authProvider).user;
+      if (user != null) {
+        // Initialiser le booking avec le bus sélectionné et l'utilisateur
+        ref
+            .read(bookingProvider.notifier)
+            .initializeBooking(widget.selectedBus, user);
+
+        // Calculer le prix initial basé sur le prix du bus
+        if (widget.selectedBus.price > 0) {
+          ref
+              .read(priceCalculatorProvider.notifier)
+              .calculatePrice(widget.selectedBus.price);
+        }
+      }
+    });
+  }
+  /*@override
   void initState() {
     super.initState();
     Future(() {
@@ -40,7 +62,7 @@ class _BusBookingProcessScreenState
             .initializeBooking(widget.selectedBus, user);
       }
     });
-  }
+  }*/
 
   final List<String> _stepTitles = [
     'Votre Sélection',

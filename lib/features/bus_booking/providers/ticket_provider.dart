@@ -1,11 +1,12 @@
 // lib/features/bus_booking/providers/ticket_provider.dart
 
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/booking_provider.dart';
 import '../providers/ticket_model.dart';
-import '../services/ticket_service.dart';
 import '../services/ticket_local_persistence_service.dart';
-import '../paiement/services/mobile_money_service.dart';
+import '../services/ticket_service.dart';
 
 class TicketsState {
   final List<ExtendedTicket> tickets;
@@ -13,7 +14,7 @@ class TicketsState {
   final String? error;
   final Map<String, List<ExtendedTicket>> ticketsByBooking;
 
-  TicketsState({
+  const TicketsState({
     this.tickets = const [],
     this.isLoading = false,
     this.error,
@@ -38,9 +39,41 @@ class TicketsState {
 class TicketsNotifier extends StateNotifier<TicketsState> {
   final BookingState bookingState;
 
-  TicketsNotifier(this.bookingState) : super(TicketsState()) {
-    // Charger les tickets locaux au démarrage
+  TicketsNotifier(this.bookingState) : super(const TicketsState()) {
     _loadLocalTickets();
+  }
+
+  Future<void> loadUserTickets(String userId) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      print("Chargement des tickets pour l'utilisateur: $userId");
+      final tickets = await ticketLocalPersistenceService.getAllTickets();
+      final ticketsByBooking = <String, List<ExtendedTicket>>{};
+
+      // Organiser les tickets par référence de réservation
+      for (final ticket in tickets) {
+        final ref = ticket.bookingReference;
+        if (ticketsByBooking.containsKey(ref)) {
+          ticketsByBooking[ref]!.add(ticket);
+        } else {
+          ticketsByBooking[ref] = [ticket];
+        }
+      }
+
+      state = state.copyWith(
+        tickets: tickets,
+        ticketsByBooking: ticketsByBooking,
+        isLoading: false,
+      );
+      print("Tickets chargés avec succès: ${tickets.length}");
+    } catch (e) {
+      print("Erreur lors du chargement des tickets: $e");
+      state = state.copyWith(
+        error: 'Erreur lors du chargement des tickets: $e',
+        isLoading: false,
+      );
+    }
   }
 
   Future<void> _loadLocalTickets() async {
@@ -73,15 +106,6 @@ class TicketsNotifier extends StateNotifier<TicketsState> {
 
     try {
       print("Début generateTicketsAfterPayment");
-      // Vérifier le statut de la transaction
-      final transactionStatus = await mobileMoneyService.checkTransactionStatus(
-        transactionReference,
-      );
-
-      if (!transactionStatus.isSuccess) {
-        throw Exception('La transaction n\'a pas pu être vérifiée');
-      }
-
       // Générer les tickets pour chaque passager
       final newTickets = await ticketService.generateGroupTickets(
         bus: bookingState.selectedBus!,
@@ -122,19 +146,17 @@ class TicketsNotifier extends StateNotifier<TicketsState> {
   Future<List<ExtendedTicket>> getTicketsForBooking(
       String bookingReference) async {
     try {
-      // D'abord chercher dans l'état
       if (state.ticketsByBooking.containsKey(bookingReference)) {
         return state.ticketsByBooking[bookingReference]!;
       }
 
-      // Sinon chercher dans le stockage local
       final tickets = await ticketLocalPersistenceService
           .getTicketsByBookingReference(bookingReference);
 
-      // Mettre à jour l'état
       if (tickets.isNotEmpty) {
-        final updatedTicketsByBooking =
-            Map<String, List<ExtendedTicket>>.from(state.ticketsByBooking);
+        final updatedTicketsByBooking = Map<String, List<ExtendedTicket>>.from(
+          state.ticketsByBooking,
+        );
         updatedTicketsByBooking[bookingReference] = tickets;
 
         state = state.copyWith(
@@ -146,56 +168,30 @@ class TicketsNotifier extends StateNotifier<TicketsState> {
       return tickets;
     } catch (e) {
       state = state.copyWith(
-          error: 'Erreur lors de la récupération des tickets: $e');
+        error: 'Erreur lors de la récupération des tickets: $e',
+      );
       return [];
     }
   }
 
   // Obtenir les tickets à venir
-  Future<List<ExtendedTicket>> getUpcomingTickets() async {
-    try {
-      final allTickets = await ticketLocalPersistenceService.getAllTickets();
-      final now = DateTime.now();
-
-      return allTickets
-          .where((ticket) =>
-              ticket.bus.departureTime.isAfter(now) &&
-              ticket.status == BookingStatus.paid)
-          .toList();
-    } catch (e) {
-      state = state.copyWith(
-          error: 'Erreur lors de la récupération des tickets à venir: $e');
-      return [];
-    }
+  List<ExtendedTicket> getUpcomingTickets() {
+    final now = DateTime.now();
+    return state.tickets
+        .where((ticket) =>
+            ticket.bus.departureTime.isAfter(now) &&
+            ticket.status == BookingStatus.paid)
+        .toList();
   }
 
   // Obtenir l'historique des tickets
-  Future<List<ExtendedTicket>> getTicketHistory() async {
-    try {
-      final allTickets = await ticketLocalPersistenceService.getAllTickets();
-      final now = DateTime.now();
-
-      return allTickets
-          .where((ticket) =>
-              ticket.bus.departureTime.isBefore(now) ||
-              ticket.status == BookingStatus.cancelled)
-          .toList();
-    } catch (e) {
-      state = state.copyWith(
-          error: 'Erreur lors de la récupération de l\'historique: $e');
-      return [];
-    }
-  }
-
-  // Mettre à jour le statut d'un ticket
-  Future<void> updateTicketStatus(String ticketId, BookingStatus status) async {
-    try {
-      await ticketLocalPersistenceService.updateTicketStatus(ticketId, status);
-      await _loadLocalTickets(); // Recharger les tickets pour mettre à jour l'état
-    } catch (e) {
-      state =
-          state.copyWith(error: 'Erreur lors de la mise à jour du statut: $e');
-    }
+  List<ExtendedTicket> getTicketHistory() {
+    final now = DateTime.now();
+    return state.tickets
+        .where((ticket) =>
+            ticket.bus.departureTime.isBefore(now) ||
+            ticket.status == BookingStatus.cancelled)
+        .toList();
   }
 }
 

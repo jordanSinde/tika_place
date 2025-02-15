@@ -1,6 +1,6 @@
 // lib/features/bus_booking/models/bus_sort_options.dart
 
-import '../home/models/bus_mock_data.dart';
+import '../home/models/bus_and_utility_models.dart';
 
 enum BusSortOption {
   departureTimeAsc('Départ (plus tôt)'),

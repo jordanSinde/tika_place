@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/config/theme/app_colors.dart';
-import '../../auth/models/user.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../profile/widgets/passenger_form_dialog.dart';
 import '../providers/booking_provider.dart';
@@ -23,12 +22,8 @@ class PassengerInfoStep extends ConsumerStatefulWidget {
 }
 
 class _PassengerInfoStepState extends ConsumerState<PassengerInfoStep> {
-  final _formKey = GlobalKey<FormState>();
   bool _isAddingPassenger = false;
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _cniController = TextEditingController();
+  final bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -91,15 +86,11 @@ class _PassengerInfoStepState extends ConsumerState<PassengerInfoStep> {
                 // Formulaire d'ajout de passager
                 if (_isAddingPassenger)
                   PassengerFormDialog(
-                    isDialog:
-                        false, // Important : on l'utilise comme formulaire intégré
+                    isDialog: false,
                     onSubmit: (passenger) {
-                      print("Nouveau passager: ${passenger.toString()}");
                       ref
                           .read(bookingProvider.notifier)
                           .addPassenger(passenger);
-                      print(
-                          "État après ajout: ${ref.read(bookingProvider).passengers.length}");
                       setState(() {
                         _isAddingPassenger = false;
                       });
@@ -110,6 +101,7 @@ class _PassengerInfoStepState extends ConsumerState<PassengerInfoStep> {
                       });
                     },
                   ),
+
                 // Bouton d'ajout de passager
                 if (!_isAddingPassenger) ...[
                   const SizedBox(height: 16),
@@ -131,68 +123,50 @@ class _PassengerInfoStepState extends ConsumerState<PassengerInfoStep> {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: widget.onPrevious,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: AppColors.primary),
-                  ),
-                  child: const Text('Retour'),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed:
-                      bookingState.passengers.isNotEmpty ? widget.onNext : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text('Continuer'),
-                ),
-              ),
-            ],
-          ),
-        ),
+        _buildBottomButtons(bookingState),
       ],
     );
   }
 
-  void _submitPassenger() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final newPassenger = Passenger(
-        firstName: _firstNameController.text,
-        lastName: _lastNameController.text,
-        phoneNumber: _phoneController.text,
-        cniNumber: int.tryParse(_cniController.text),
-      );
-
-      ref.read(bookingProvider.notifier).addPassenger(newPassenger);
-
-      // Réinitialiser le formulaire
-      _firstNameController.clear();
-      _lastNameController.clear();
-      _phoneController.clear();
-      _cniController.clear();
-
-      setState(() {
-        _isAddingPassenger = false;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _phoneController.dispose();
-    _cniController.dispose();
-    super.dispose();
+  Widget _buildBottomButtons(BookingState bookingState) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: _isProcessing ? null : widget.onPrevious,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: const BorderSide(color: AppColors.primary),
+              ),
+              child: const Text('Retour'),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: _isProcessing || bookingState.passengers.isEmpty
+                  ? null
+                  : widget.onNext,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: _isProcessing
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Continuer'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

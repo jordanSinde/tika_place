@@ -1,8 +1,13 @@
 // lib/features/profile/widgets/booking_tabs.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tika_place/features/bus_booking/models/booking_model.dart';
 
 import '../../../core/config/theme/app_colors.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../bus_booking/paiement/payment_step.dart';
+import '../../bus_booking/providers/booking_provider.dart';
+import '../../bus_booking/providers/reservation_provider.dart';
 import '../../bus_booking/widgets/reservation_list_widget.dart';
 
 class BookingTabs extends ConsumerStatefulWidget {
@@ -147,9 +152,68 @@ class _BookingTabsState extends ConsumerState<BookingTabs>
 
   Widget _buildTabContent(TabItem tab) {
     if (tab.label == 'Bus') {
-      return const ReservationListWidget();
+      return Consumer(
+        builder: (context, ref, child) {
+          final reservationState = ref.watch(reservationProvider);
+
+          if (reservationState.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (reservationState.error != null) {
+            return Center(
+              child: Text('Erreur: ${reservationState.error}'),
+            );
+          }
+
+          return ReservationListWidget(
+            reservations: reservationState.reservations,
+            onRetryPayment: () async {
+              final reservation = reservationState.currentReservation;
+              if (reservation == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Erreur: Réservation non trouvée'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+
+              // Vérifier si la réservation est toujours valide
+              if (reservation.isExpired) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'Cette réservation a expiré. Veuillez effectuer une nouvelle réservation.'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+
+              // Initialiser les données pour le paiement
+              ref.read(bookingProvider.notifier).initializeBooking(
+                    reservation.bus,
+                    ref.read(authProvider).user!,
+                  );
+
+              // Naviguer vers l'écran de paiement
+              if (context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PaymentStep(
+                      onPrevious: () => Navigator.pop(context),
+                    ),
+                  ),
+                );
+              }
+            },
+          );
+        },
+      );
     }
-    // Pour les autres onglets, garder l'état vide pour le moment
     return _buildEmptyState(tab);
   }
 

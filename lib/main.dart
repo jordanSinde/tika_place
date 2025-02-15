@@ -14,6 +14,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // à faire uniquement pendant le developpement
+  //await reservationPersistenceService.deleteDatabase();
   // Initialiser le service de téléchargement
   await ticketDownloadService.initialize();
   final prefs = await SharedPreferences.getInstance();

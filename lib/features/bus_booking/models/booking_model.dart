@@ -1,7 +1,7 @@
 // lib/features/bus_booking/models/booking_model.dart
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../home/models/bus_mock_data.dart';
+import '../../home/models/bus_and_utility_models.dart';
 import '../providers/booking_provider.dart';
 import 'promo_code.dart';
 

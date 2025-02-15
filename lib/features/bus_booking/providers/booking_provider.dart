@@ -1,11 +1,11 @@
 // lib/features/bus_booking/providers/booking_provider.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tika_place/features/bus_booking/models/promo_code.dart';
 import '../../../features/auth/models/user.dart';
-import '../../home/models/bus_mock_data.dart';
-import '../../notifications/services/notification_service.dart';
+import '../../home/models/bus_and_utility_models.dart';
 import 'price_calculator_provider.dart';
+import 'reservation_provider.dart';
+import 'reservation_state_notifier.dart';
 
 enum BookingStatus { pending, confirmed, paid, cancelled, expired, failed }
 
@@ -72,6 +72,167 @@ class BookingState {
   }
 }
 
+class BookingNotifier extends StateNotifier<BookingState> {
+  final Ref ref;
+
+  BookingNotifier(this.ref) : super(const BookingState());
+
+  Future<void> initializeBooking(Bus bus, UserModel user) async {
+    state = state.copyWith(isLoading: true);
+
+    try {
+      // Vérifier s'il n'y a pas déjà une réservation en cours
+      final hasDuplicate = await ref
+          .read(centralReservationProvider.notifier)
+          .checkDuplicateReservation(user.id, bus.id);
+
+      if (hasDuplicate) {
+        throw Exception('Une réservation est déjà en cours pour ce voyage');
+      }
+
+      // Vérifier la disponibilité
+      final isAvailable = await ref
+          .read(centralReservationProvider.notifier)
+          ._checkSeatAvailability(bus.id, 1);
+
+      if (!isAvailable) {
+        throw Exception('Places non disponibles');
+      }
+
+      // Créer le passager principal
+      final mainPassenger = Passenger(
+        firstName: user.firstName,
+        lastName: user.lastName ?? '',
+        phoneNumber: user.phoneNumber,
+        cniNumber: user.cniNumber,
+        isMainPassenger: true,
+      );
+
+      // Initialiser l'état
+      state = state.copyWith(
+        selectedBus: bus,
+        passengers: [mainPassenger],
+        totalAmount: bus.price,
+        status: BookingStatus.pending,
+        isLoading: false,
+      );
+
+      // Calculer le prix initial
+      ref.read(priceCalculatorProvider.notifier).calculatePrice(bus.price);
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString(),
+        isLoading: false,
+      );
+    }
+  }
+
+  Future<void> addPassenger(Passenger passenger) async {
+    if (state.isReservationExpired) {
+      state = state.copyWith(
+        error: 'La réservation a expiré. Veuillez recommencer.',
+        status: BookingStatus.expired,
+      );
+      return;
+    }
+
+    try {
+      // Vérifier la disponibilité pour le nouveau passager
+      final isAvailable = await ref
+          .read(centralReservationProvider.notifier)
+          ._checkSeatAvailability(
+            state.selectedBus!.id,
+            state.passengers.length + 1,
+          );
+
+      if (!isAvailable) {
+        throw Exception('Plus de places disponibles');
+      }
+
+      final updatedPassengers = [...state.passengers, passenger];
+      final newTotalAmount =
+          state.selectedBus!.price * updatedPassengers.length;
+
+      state = state.copyWith(
+        passengers: updatedPassengers,
+        totalAmount: newTotalAmount,
+      );
+
+      // Recalculer le prix
+      ref.read(priceCalculatorProvider.notifier).calculatePrice(newTotalAmount);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<bool> processPayment(WidgetRef ref) async {
+    if (state.isReservationExpired) {
+      state = state.copyWith(
+        error: 'La réservation a expiré. Veuillez recommencer.',
+        status: BookingStatus.expired,
+      );
+      return false;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final priceState = ref.read(priceCalculatorProvider);
+      final finalAmount = priceState.total;
+
+      // Vérifier la disponibilité
+      final isAvailable = await ref
+          .read(centralReservationProvider.notifier)
+          ._checkSeatAvailability(
+            state.selectedBus!.id,
+            state.passengers.length,
+          );
+
+      if (!isAvailable) {
+        throw Exception('Places non disponibles');
+      }
+
+      // Créer la réservation
+      final reservation =
+          await ref.read(reservationProvider.notifier).createReservation(
+                bus: state.selectedBus!,
+                passengers: state.passengers,
+                totalAmount: finalAmount,
+                promoCode: priceState.appliedPromoCode,
+                discountAmount: priceState.discount,
+              );
+
+      if (reservation == null) {
+        throw Exception('Erreur lors de la création de la réservation');
+      }
+
+      state = state.copyWith(
+        bookingReference: reservation.id,
+        status: BookingStatus.pending,
+        isLoading: false,
+      );
+
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString(),
+        status: BookingStatus.failed,
+        isLoading: false,
+      );
+      return false;
+    }
+  }
+
+  // ... autres méthodes existantes ...
+}
+
+final bookingProvider =
+    StateNotifierProvider<BookingNotifier, BookingState>((ref) {
+  return BookingNotifier(ref);
+});
+
+
+/*
 class BookingNotifier extends StateNotifier<BookingState> {
   BookingNotifier() : super(const BookingState());
 
@@ -295,9 +456,5 @@ class BookingNotifier extends StateNotifier<BookingState> {
   void reset() {
     state = const BookingState();
   }
-}
+}*/
 
-final bookingProvider =
-    StateNotifierProvider<BookingNotifier, BookingState>((ref) {
-  return BookingNotifier();
-});

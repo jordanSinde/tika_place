@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../core/config/theme/app_colors.dart';
-import '../home/models/bus_mock_data.dart';
+import '../home/models/bus_and_utility_models.dart';
 
 class BusAmenitiesRow extends StatelessWidget {
   final BusAmenities amenities;

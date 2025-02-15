@@ -5,7 +5,7 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/manage_sessions_screen.dart';
 import '../../features/auth/screens/opt_verification_screen.dart';
 import '../../features/bus_booking/screens/bus_booking_process_screen.dart';
-import '../../features/home/models/bus_mock_data.dart';
+import '../../features/home/models/bus_and_utility_models.dart';
 import '../../features/bus_booking/bus_booking_list_screen.dart';
 import '../../features/main/screens/main_scaffold.dart';
 import '../../features/onboarding/provider/onboarding_provider.dart';

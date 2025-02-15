@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tika_place/features/bus_booking/mock_data.dart';
 import '../../core/config/theme/app_colors.dart';
-import '../home/models/bus_mock_data.dart';
+import '../home/models/bus_and_utility_models.dart';
 import 'bus_card.dart';
 import 'bus_filter_panel.dart';
 import 'bus_sort_option.dart';
