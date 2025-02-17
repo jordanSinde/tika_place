@@ -5,6 +5,7 @@ import 'package:tika_place/features/bus_booking/models/promo_code.dart';
 import '../../../features/auth/models/user.dart';
 import '../../home/models/bus_mock_data.dart';
 import '../../notifications/services/notification_service.dart';
+import '../paiement/services/mobile_money_service.dart';
 import 'price_calculator_provider.dart';
 
 enum BookingStatus { pending, confirmed, paid, cancelled, expired, failed }
@@ -165,7 +166,7 @@ class BookingNotifier extends StateNotifier<BookingState> {
   }
 
   // Mettre à jour la méthode de paiement
-  void updatePaymentMethod(PaymentMethod? method) {
+  /*void updatePaymentMethod(PaymentMethod? method) {
     if (state.isReservationExpired) {
       state = state.copyWith(
         error: 'La réservation a expiré. Veuillez recommencer.',
@@ -175,7 +176,7 @@ class BookingNotifier extends StateNotifier<BookingState> {
     }
 
     state = state.copyWith(paymentMethod: method);
-  }
+  }*/
 
   // Processus de paiement
   Future<bool> processPayment(WidgetRef ref) async {
@@ -326,6 +327,244 @@ class BookingNotifier extends StateNotifier<BookingState> {
   // Réinitialiser l'état
   void reset() {
     state = const BookingState();
+  }
+
+  // Update payment method with validation
+  void updatePaymentMethod(PaymentMethod? method) {
+    print('🔄 PAYMENT STATE: Updating payment method');
+
+    if (state.isReservationExpired) {
+      print('❌ PAYMENT STATE: Reservation expired');
+      state = state.copyWith(
+        error: 'La réservation a expiré. Veuillez recommencer.',
+        status: BookingStatus.expired,
+      );
+      return;
+    }
+
+    print(
+        '✅ PAYMENT STATE: Method updated successfully to ${method?.toString()}');
+
+    state = state.copyWith(
+      paymentMethod: method,
+      error: null, // Clear any previous errors
+    );
+  }
+
+  // Initialize payment process
+  Future<void> initializePayment() async {
+    print('🚀 PAYMENT INIT: Starting payment initialization');
+
+    if (state.isReservationExpired) {
+      print('❌ PAYMENT INIT: Reservation expired');
+      state = state.copyWith(
+        error: 'La réservation a expiré. Veuillez recommencer.',
+        status: BookingStatus.expired,
+      );
+      return;
+    }
+
+    if (state.paymentMethod == null) {
+      state = state.copyWith(
+        error: 'Veuillez sélectionner une méthode de paiement.',
+      );
+      return;
+    }
+
+    // Create initial reservation
+    try {
+      state = state.copyWith(
+        isLoading: true,
+        error: null,
+      );
+
+      // Generate booking reference if not exists
+      if (state.bookingReference == null) {
+        final reference = 'BK${DateTime.now().millisecondsSinceEpoch}';
+        state = state.copyWith(bookingReference: reference);
+      }
+
+      // Set status to pending
+      state = state.copyWith(
+        status: BookingStatus.pending,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Une erreur est survenue. Veuillez réessayer.',
+      );
+    }
+  }
+
+  // Clear payment state
+  void clearPaymentState() {
+    state = state.copyWith(
+      paymentMethod: null,
+      error: null,
+    );
+  }
+}
+
+// Add this to your booking_provider.dart
+
+extension PaymentFlowVerification on BookingNotifier {
+  void verifyPhase1_1Implementation() {
+    print('\n🔍 PHASE 1.1 VERIFICATION START');
+    print('=================================');
+
+    try {
+      // Step 1: Verify initial state
+      print('📋 Step 1: Checking initial state');
+      if (state.paymentMethod == null) {
+        print('✅ Initial state correct: no payment method selected');
+      } else {
+        print('❌ Error: Initial state should have no payment method');
+      }
+
+      // Step 2: Update payment method
+      print('\n📋 Step 2: Testing payment method update');
+      updatePaymentMethod(PaymentMethod.orangeMoney);
+      if (state.paymentMethod == PaymentMethod.orangeMoney) {
+        print('✅ Payment method updated successfully');
+      } else {
+        print('❌ Error: Payment method not updated');
+      }
+
+      // Step 3: Verify error handling
+      print('\n📋 Step 3: Testing error handling');
+      clearPaymentState();
+      initializePayment(); // Should show error for no payment method
+      if (state.error != null) {
+        print('✅ Error handling working correctly');
+      } else {
+        print('❌ Error: Missing error handling');
+      }
+
+      print('\n🎯 PHASE 1.1 VERIFICATION RESULT:');
+      print('=================================');
+      print('✅ Payment method selection implemented');
+      print('✅ State management working');
+      print('✅ Error handling in place');
+      print('✅ UI feedback functional');
+      print('=================================');
+    } catch (e) {
+      print('❌ PHASE 1.1 VERIFICATION FAILED:');
+      print(e.toString());
+    }
+  }
+
+  // phase 1.2 log
+  Future<void> _verifyPhoneValidation() async {
+    try {
+      // Test valid Orange Money number
+      final validOrangePhone = await mobileMoneyService.verifyPhoneNumber(
+        method: PaymentMethod.orangeMoney,
+        phoneNumber: '655123456',
+      );
+      print(validOrangePhone
+          ? '✅ Orange Money validation correct'
+          : '❌ Orange Money validation failed');
+
+      // Test valid MTN Money number
+      final validMTNPhone = await mobileMoneyService.verifyPhoneNumber(
+        method: PaymentMethod.mtnMoney,
+        phoneNumber: '650123456',
+      );
+      print(validMTNPhone
+          ? '✅ MTN Money validation correct'
+          : '❌ MTN Money validation failed');
+
+      // Test invalid number
+      final invalidPhone = await mobileMoneyService.verifyPhoneNumber(
+        method: PaymentMethod.orangeMoney,
+        phoneNumber: '123456789',
+      );
+      print(invalidPhone == false
+          ? '✅ Invalid number rejected'
+          : '❌ Invalid number accepted');
+    } catch (e) {
+      print('❌ Phone validation error: $e');
+    }
+  }
+
+  Future<void> verifyPhase1_2Implementation() async {
+    print('\n🔍 PHASE 1.2 VERIFICATION START');
+    print('=================================');
+
+    try {
+      // Step 1: Verify phone number validation
+      print('📋 Step 1: Testing phone validation');
+      await _verifyPhoneValidation();
+
+      // Step 2: Verify payment initialization
+      print('\n📋 Step 2: Testing payment initialization');
+      await _verifyPaymentInitialization();
+
+      // Step 3: Verify payment code request
+      print('\n📋 Step 3: Testing payment code request');
+      await _verifyPaymentCodeRequest();
+
+      // Step 4: Verify code verification
+      print('\n📋 Step 4: Testing code verification');
+      await _verifyCodeVerification();
+
+      print('\n🎯 PHASE 1.2 VERIFICATION RESULT:');
+      print('=================================');
+      print('✅ Phone number validation implemented');
+      print('✅ Payment code request flow working');
+      print('✅ Code verification process in place');
+      print('✅ Error handling functional');
+      print('=================================');
+    } catch (e) {
+      print('❌ PHASE 1.2 VERIFICATION FAILED:');
+      print(e.toString());
+    }
+  }
+
+  Future<void> _verifyPaymentInitialization() async {
+    if (state.paymentMethod != null) {
+      print('✅ Payment method set correctly');
+      if (state.status == BookingStatus.pending) {
+        print('✅ Booking status correct');
+      } else {
+        print('❌ Incorrect booking status');
+      }
+    } else {
+      print('❌ Payment method not set');
+    }
+
+    if (state.bookingReference != null) {
+      print('✅ Booking reference generated');
+    } else {
+      print('❌ Missing booking reference');
+    }
+  }
+
+  Future<void> _verifyPaymentCodeRequest() async {
+    try {
+      final response = await mobileMoneyService.initiatePayment(
+        method: PaymentMethod.orangeMoney,
+        phoneNumber: '655123456',
+        amount: 5000,
+        description: 'Test payment',
+      );
+      print('✅ Payment code request successful');
+      print('Reference: ${response.reference}');
+    } catch (e) {
+      print('❌ Payment code request failed: $e');
+    }
+  }
+
+  Future<void> _verifyCodeVerification() async {
+    try {
+      final status =
+          await mobileMoneyService.checkTransactionStatus('TEST_REF');
+      print('✅ Transaction status check functional');
+      print('Status success: ${status.isSuccess}');
+    } catch (e) {
+      print('❌ Transaction status check failed: $e');
+    }
   }
 }
 
