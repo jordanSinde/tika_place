@@ -10,7 +10,21 @@ enum PaymentErrorType {
   unknown
 }
 
-class PaymentError implements Exception {
+class PaymentError {
+  final PaymentErrorType type;
+  final String message;
+  final String? technicalDetails;
+  final bool canRetry;
+
+  const PaymentError({
+    required this.type,
+    required this.message,
+    this.technicalDetails,
+    this.canRetry = true,
+  });
+}
+
+/*class PaymentError implements Exception {
   final PaymentErrorType type;
   final String message;
   final String? technicalDetails;
@@ -96,4 +110,4 @@ class PaymentError implements Exception {
       'canRetry': canRetry,
     };
   }
-}
+}*/

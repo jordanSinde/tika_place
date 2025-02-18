@@ -157,12 +157,37 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
       final reservation =
           await reservationService.createReservationFromBooking(bookingState);
 
-      // Add to state
-      state = state.copyWith(
-        reservations: [...state.reservations, reservation],
-      );
+      // Debug current state
+      print(
+          '📊 RESERVATION PROVIDER: Current reservations count: ${state.reservations.length}');
+      if (state.reservations.isNotEmpty) {
+        print(
+            '📊 RESERVATION PROVIDER: First reservation ID: ${state.reservations.first.id}');
+      }
 
-      // Create timer for expiration
+      // Check if reservation with same ID already exists
+      final existingIndex =
+          state.reservations.indexWhere((r) => r.id == reservation.id);
+      if (existingIndex >= 0) {
+        print(
+            '⚠️ RESERVATION PROVIDER: Reservation with ID ${reservation.id} already exists');
+        // Update existing reservation
+        final updatedReservations = [...state.reservations];
+        updatedReservations[existingIndex] = reservation;
+        state = state.copyWith(reservations: updatedReservations);
+      } else {
+        // Add new reservation
+        final updatedReservations = [...state.reservations, reservation];
+        state = state.copyWith(reservations: updatedReservations);
+      }
+
+      // Debug updated state
+      print(
+          '📊 RESERVATION PROVIDER: Updated reservations count: ${state.reservations.length}');
+      print(
+          '📊 RESERVATION PROVIDER: All reservation IDs: ${state.reservations.map((r) => r.id).join(", ")}');
+
+      // Create expiration timer
       final expirationTimers = Map<String, Timer>.from(state.expirationTimers);
       expirationTimers[reservation.id] = _createExpirationTimer(reservation);
       state = state.copyWith(expirationTimers: expirationTimers);
@@ -236,32 +261,127 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
     _updateReservation(updatedReservation);
   }
 
+  // In reservation_provider.dart
+
   Future<void> confirmReservation(String reservationId) async {
-    final reservation = state.reservations.firstWhere(
-      (r) => r.id == reservationId,
-    );
+    print('🔍 RESERVATION PROVIDER: Confirming reservation: $reservationId');
+    print(
+        '📊 RESERVATION PROVIDER: Current reservations count: ${state.reservations.length}');
+    print(
+        '📊 RESERVATION PROVIDER: Available IDs: ${state.reservations.map((r) => r.id).join(", ")}');
 
-    final updatedReservation = reservation.copyWith(
-      status: BookingStatus.confirmed,
-    );
+    try {
+      // Find reservation with matching ID
+      final reservationIndex = state.reservations
+          .indexWhere((reservation) => reservation.id == reservationId);
 
-    _updateReservation(updatedReservation);
+      if (reservationIndex == -1) {
+        print('❌ RESERVATION PROVIDER: Reservation not found: $reservationId');
 
-    // Arrêter le timer s'il existe
-    final timer = state.expirationTimers[reservationId];
-    timer?.cancel();
+        // Try finding by partial match (if ID was modified)
+        final partialMatches = state.reservations
+            .where((r) =>
+                r.id.contains(reservationId) || reservationId.contains(r.id))
+            .toList();
 
-    // Mettre à jour les timers
-    final expirationTimers = Map<String, Timer>.from(state.expirationTimers);
-    expirationTimers.remove(reservationId);
-    state = state.copyWith(expirationTimers: expirationTimers);
+        if (partialMatches.isNotEmpty) {
+          print(
+              '🔍 RESERVATION PROVIDER: Found similar reservations: ${partialMatches.map((r) => r.id).join(", ")}');
+          // Use the first partial match
+          final reservation = partialMatches.first;
+          print(
+              '✅ RESERVATION PROVIDER: Using similar reservation: ${reservation.id}');
 
-    // Envoyer une notification de confirmation
-    await notificationService.showBookingConfirmationNotification(
-      title: 'Réservation confirmée !',
-      body:
-          'Votre réservation pour ${reservation.bus.departureCity} → ${reservation.bus.arrivalCity} a été confirmée.',
-    );
+          // Update reservation
+          final updatedReservation = reservation.copyWith(
+            status: BookingStatus.confirmed,
+          );
+
+          // Update state
+          final updatedIndex = state.reservations.indexOf(reservation);
+          final updatedReservations = [...state.reservations];
+          updatedReservations[updatedIndex] = updatedReservation;
+
+          state = state.copyWith(
+            reservations: updatedReservations,
+          );
+
+          // Cancel expiration timer if it exists
+          final timer = state.expirationTimers[reservation.id];
+          timer?.cancel();
+
+          // Update timers
+          final expirationTimers =
+              Map<String, Timer>.from(state.expirationTimers);
+          expirationTimers.remove(reservation.id);
+          state = state.copyWith(expirationTimers: expirationTimers);
+
+          print('✅ RESERVATION PROVIDER: Reservation confirmed successfully');
+
+          // Send notification for the matched reservation
+          try {
+            await notificationService.showBookingConfirmationNotification(
+              title: 'Réservation confirmée !',
+              body:
+                  'Votre réservation pour ${reservation.bus.departureCity} → ${reservation.bus.arrivalCity} a été confirmée.',
+              payload: reservation.id,
+            );
+          } catch (e) {
+            print('⚠️ RESERVATION PROVIDER: Failed to send notification: $e');
+          }
+
+          return;
+        }
+
+        // If still not found, create a new reservation
+        print(
+            '🔄 RESERVATION PROVIDER: Reservation not found. Creating new entry for ID: $reservationId');
+        throw Exception('Reservation not found');
+      }
+
+      // Get the reservation from the found index
+      final reservation = state.reservations[reservationIndex];
+
+      // Update reservation
+      final updatedReservation = reservation.copyWith(
+        status: BookingStatus.confirmed,
+      );
+
+      // Create new reservations list with updated item
+      final updatedReservations = [...state.reservations];
+      updatedReservations[reservationIndex] = updatedReservation;
+
+      // Update state
+      state = state.copyWith(
+        reservations: updatedReservations,
+      );
+
+      // Cancel expiration timer if it exists
+      final timer = state.expirationTimers[reservationId];
+      timer?.cancel();
+
+      // Update timers
+      final expirationTimers = Map<String, Timer>.from(state.expirationTimers);
+      expirationTimers.remove(reservationId);
+      state = state.copyWith(expirationTimers: expirationTimers);
+
+      print('✅ RESERVATION PROVIDER: Reservation confirmed successfully');
+
+      // Send notification
+      try {
+        await notificationService.showBookingConfirmationNotification(
+          title: 'Réservation confirmée !',
+          body:
+              'Votre réservation pour ${reservation.bus.departureCity} → ${reservation.bus.arrivalCity} a été confirmée.',
+          payload: reservationId,
+        );
+      } catch (e) {
+        print('⚠️ RESERVATION PROVIDER: Failed to send notification: $e');
+      }
+    } catch (e) {
+      print('❌ RESERVATION PROVIDER: Failed to confirm reservation: $e');
+      throw e;
+    }
   }
 
   List<TicketReservation> getActiveReservations() {

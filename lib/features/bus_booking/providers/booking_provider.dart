@@ -1,5 +1,7 @@
 // lib/features/bus_booking/providers/booking_provider.dart
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tika_place/features/bus_booking/models/promo_code.dart';
 import '../../../features/auth/models/user.dart';
@@ -180,6 +182,8 @@ class BookingNotifier extends StateNotifier<BookingState> {
 
   // Processus de paiement
   // Update the processPayment method to add null safety
+  // In booking_provider.dart - modify the processPayment method
+
   Future<bool> processPayment(WidgetRef ref) async {
     print('💳 BOOKING PROVIDER: Starting payment process');
 
@@ -195,68 +199,75 @@ class BookingNotifier extends StateNotifier<BookingState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // Récupérer le montant total calculé avec les taxes et réductions
+      // Get total amount with taxes and discounts
       final priceState = ref.read(priceCalculatorProvider);
       final finalAmount = priceState.total;
       print('💰 BOOKING PROVIDER: Payment amount: $finalAmount FCFA');
 
-      // Vérifier la disponibilité des places
+      // Check seat availability
       final seatsAvailable = await checkSeatsAvailability();
       if (!seatsAvailable) {
         print('❌ BOOKING PROVIDER: No seats available');
         return false;
       }
 
-      // Ensure reservation record exists
-      if (state.bookingReference == null) {
+      // Create reservation record if not exists
+      String? bookingRef = state.bookingReference;
+      if (bookingRef == null) {
         print(
             '🏗️ BOOKING PROVIDER: Creating reservation record before payment');
-        await _createReservationRecord(ref); // Pass ref here
+        await _createReservationRecord(ref);
+        bookingRef = state.bookingReference;
       }
 
-      // Record payment attempt in reservation history
-      final bookingRef = state.bookingReference;
-      if (bookingRef != null) {
-        // Add null check
-        try {
-          final paymentMethod = state.paymentMethod;
-          if (paymentMethod != null) {
-            // Add null check
-            final paymentAttempt = PaymentAttempt(
-              timestamp: DateTime.now(),
-              paymentMethod: paymentMethod.toString(),
-              status: 'processing',
-            );
+      // Verify reservation exists in provider
+      ref.read(reservationProvider.notifier);
+      final allReservations = ref.read(reservationProvider).reservations;
+      print(
+          '🔍 BOOKING PROVIDER: Verifying reservation exists, count: ${allReservations.length}');
 
-            print('📝 BOOKING PROVIDER: Recording payment attempt');
-            await ref
-                .read(reservationProvider.notifier)
-                .addPaymentAttempt(bookingRef, paymentAttempt);
-          } else {
-            print('⚠️ BOOKING PROVIDER: Payment method is null');
-          }
+      final matchingReservations =
+          allReservations.where((r) => r.id == bookingRef).toList();
+      if (matchingReservations.isEmpty && bookingRef != null) {
+        // If reservation doesn't exist in provider state but we have the reference,
+        // recreate it to ensure it's in the state
+        print(
+            '⚠️ BOOKING PROVIDER: Reservation not found in provider, recreating it');
+        await _recreateReservationRecord(ref, bookingRef);
+      }
+
+      // Now bookingRef should not be null
+      final String currentBookingRef = state.bookingReference!;
+
+      // Record payment attempt
+      if (state.paymentMethod != null) {
+        try {
+          final paymentAttempt = PaymentAttempt(
+            timestamp: DateTime.now(),
+            paymentMethod: state.paymentMethod.toString(),
+            status: 'processing',
+          );
+
+          print('📝 BOOKING PROVIDER: Recording payment attempt');
+          await ref
+              .read(reservationProvider.notifier)
+              .addPaymentAttempt(currentBookingRef, paymentAttempt);
         } catch (e) {
           print('⚠️ BOOKING PROVIDER: Failed to record payment attempt: $e');
-          // Continue with payment even if recording attempt fails
+          // Continue with payment process
         }
-      } else {
-        print('⚠️ BOOKING PROVIDER: Booking reference is null');
       }
 
-      // Simuler un délai de traitement
+      // Simulate payment processing
       await Future.delayed(const Duration(seconds: 2));
 
-      // Simuler une réussite avec 80% de chance
+      // Simulate success with 80% chance
       final isSuccess = DateTime.now().millisecond % 5 != 0;
 
       if (isSuccess) {
         print('✅ BOOKING PROVIDER: Payment successful');
 
-        // Generate a reference if not exists
-        final reference = state.bookingReference ??
-            'BK${DateTime.now().millisecondsSinceEpoch}';
-
-        // Enregistrer l'utilisation du code promo
+        // Apply promo code if any
         final promoCode = ref.read(priceCalculatorProvider).appliedPromoCode;
         if (promoCode != null) {
           state = state.copyWith(
@@ -266,10 +277,10 @@ class BookingNotifier extends StateNotifier<BookingState> {
           );
         }
 
-        // Mettre à jour l'état avec le succès
+        // Update state with success
         state = state.copyWith(
           status: BookingStatus.paid,
-          bookingReference: reference,
+          bookingReference: currentBookingRef,
           totalAmount: finalAmount,
           isLoading: false,
         );
@@ -278,28 +289,42 @@ class BookingNotifier extends StateNotifier<BookingState> {
         try {
           print(
               '🔄 BOOKING PROVIDER: Updating reservation status to confirmed');
+          print('📊 BOOKING PROVIDER: Using reference: $currentBookingRef');
+          print(
+              '📊 BOOKING PROVIDER: State bookingReference: ${state.bookingReference}');
+
+          // Verify reservation count before updating
+          final beforeCount = ref.read(reservationProvider).reservations.length;
+          print(
+              '📊 BOOKING PROVIDER: Reservation count before update: $beforeCount');
+
           await ref
               .read(reservationProvider.notifier)
-              .confirmReservation(reference);
+              .confirmReservation(currentBookingRef);
           print('✅ BOOKING PROVIDER: Reservation status updated successfully');
         } catch (e) {
-          print('⚠️ BOOKING PROVIDER: Failed to update reservation status: $e');
-          // Continue even if status update fails
+          print('! BOOKING PROVIDER: Failed to update reservation status: $e');
+          // Payment is still considered successful
         }
 
-        // Enregistrer les passagers pour utilisation future
+        // Save passengers for future use
         await savePassengersForFutureUse();
 
-        // Envoyer une notification de confirmation
+        // Send confirmation notification
         try {
+          final String departureCity =
+              state.selectedBus?.departureCity ?? "destination";
+          final String arrivalCity =
+              state.selectedBus?.arrivalCity ?? "unknown";
+
           await notificationService.showBookingConfirmationNotification(
             title: 'Réservation confirmée !',
             body:
-                'Votre réservation pour ${state.selectedBus?.departureCity} → ${state.selectedBus?.arrivalCity} a été confirmée.',
-            payload: reference,
+                'Votre réservation pour $departureCity → $arrivalCity a été confirmée.',
+            payload: currentBookingRef,
           );
         } catch (e) {
-          print('⚠️ BOOKING PROVIDER: Failed to show notification: $e');
+          print('⚠️ BOOKING PROVIDER: Failed to send notification: $e');
         }
 
         return true;
@@ -311,23 +336,21 @@ class BookingNotifier extends StateNotifier<BookingState> {
           isLoading: false,
         );
 
-        // Update payment attempt in reservation if possible
-        if (bookingRef != null && state.paymentMethod != null) {
-          try {
-            final paymentAttempt = PaymentAttempt(
-              timestamp: DateTime.now(),
-              paymentMethod: state.paymentMethod.toString(),
-              status: 'failed',
-              errorMessage: 'La transaction a échoué',
-            );
+        // Record failed payment attempt
+        try {
+          final paymentAttempt = PaymentAttempt(
+            timestamp: DateTime.now(),
+            paymentMethod: state.paymentMethod?.toString() ?? "unknown",
+            status: 'failed',
+            errorMessage: 'La transaction a échoué',
+          );
 
-            print('📝 BOOKING PROVIDER: Recording failed payment attempt');
-            await ref
-                .read(reservationProvider.notifier)
-                .addPaymentAttempt(bookingRef, paymentAttempt);
-          } catch (e) {
-            print('⚠️ BOOKING PROVIDER: Failed to update payment attempt: $e');
-          }
+          print('📝 BOOKING PROVIDER: Recording failed payment attempt');
+          await ref
+              .read(reservationProvider.notifier)
+              .addPaymentAttempt(currentBookingRef, paymentAttempt);
+        } catch (e) {
+          print('⚠️ BOOKING PROVIDER: Failed to update payment attempt: $e');
         }
 
         return false;
@@ -340,6 +363,32 @@ class BookingNotifier extends StateNotifier<BookingState> {
         isLoading: false,
       );
       return false;
+    }
+  }
+
+// Add a helper method to recreate reservation
+  Future<void> _recreateReservationRecord(
+      WidgetRef ref, String bookingReference) async {
+    try {
+      print(
+          '🔄 BOOKING PROVIDER: Recreating reservation record: $bookingReference');
+      if (state.selectedBus == null || state.passengers.isEmpty) {
+        print('❌ BOOKING PROVIDER: Cannot recreate reservation - missing data');
+        return;
+      }
+
+      // Manually set booking reference to match the existing one
+      state = state.copyWith(bookingReference: bookingReference);
+
+      // Create the reservation with the matching ID
+      final reservation = await ref
+          .read(reservationProvider.notifier)
+          .createReservationFromBooking(state);
+
+      print('✅ BOOKING PROVIDER: Reservation recreated successfully');
+      print('📋 Recreated reservation ID: ${reservation.id}');
+    } catch (e) {
+      print('❌ BOOKING PROVIDER: Failed to recreate reservation: $e');
     }
   }
 
@@ -436,7 +485,6 @@ class BookingNotifier extends StateNotifier<BookingState> {
     );
   }
 
-  //SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 // Initialize payment process
   Future<void> initializePayment(WidgetRef ref) async {
     print('🚀 PAYMENT INIT: Starting payment initialization');
@@ -496,13 +544,13 @@ class BookingNotifier extends StateNotifier<BookingState> {
         return;
       }
 
-      // Add the current user ID if available
+      // Add current user ID if available
       final userId = ref.read(authProvider).user?.id;
       if (userId != null && state.userId == null) {
         state = state.copyWith(userId: userId);
       }
 
-      // Create reservation via provider
+      // Use the normal method to create the reservation
       final reservation = await ref
           .read(reservationProvider.notifier)
           .createReservationFromBooking(state);
@@ -510,6 +558,18 @@ class BookingNotifier extends StateNotifier<BookingState> {
       print('✅ BOOKING PROVIDER: Reservation record created');
       print('📋 Reservation ID: ${reservation.id}');
       print('📋 Status: ${reservation.status}');
+
+      // Update booking state with reservation reference
+      state = state.copyWith(bookingReference: reservation.id);
+
+      // Debug reservation state
+      final reservations = ref.read(reservationProvider).reservations;
+      print(
+          '📊 BOOKING PROVIDER: Reservation count in provider: ${reservations.length}');
+      if (reservations.isNotEmpty) {
+        print(
+            '📊 BOOKING PROVIDER: Provider reservation IDs: ${reservations.map((r) => r.id).join(", ")}');
+      }
     } catch (e) {
       print('❌ BOOKING PROVIDER: Failed to create reservation record: $e');
     }

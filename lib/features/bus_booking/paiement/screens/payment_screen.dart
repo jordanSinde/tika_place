@@ -1,5 +1,5 @@
 //lib/features/bus_booking/screens/booking/payment_screen.dart
-
+/*
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/config/theme/app_colors.dart';
@@ -413,7 +413,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       child: Text(title),
     );
   }
-}
+}*/
+
+
+
 /*
 class PaymentScreen extends ConsumerStatefulWidget {
   final double amount;

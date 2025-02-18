@@ -16,7 +16,8 @@ class ReservationService {
 
   // Create a new reservation from booking state
   Future<TicketReservation> createReservationFromBooking(
-      BookingState bookingState) async {
+      BookingState bookingState,
+      {Function(TicketReservation)? onCreated}) async {
     print('🏗️ RESERVATION SERVICE: Creating reservation from booking');
 
     if (bookingState.selectedBus == null || bookingState.passengers.isEmpty) {
@@ -75,6 +76,11 @@ class ReservationService {
     print('📋 Reservation ID: ${reservation.id}');
     print('📋 Status: ${reservation.status}');
     print('📋 Expires at: ${reservation.expiresAt}');
+
+    // Call the callback if provided
+    if (onCreated != null) {
+      onCreated(reservation);
+    }
 
     return reservation;
   }

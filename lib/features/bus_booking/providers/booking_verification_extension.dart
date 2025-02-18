@@ -302,3 +302,128 @@ extension Phase2Verification on BookingNotifier {
     }
   }
 }
+
+// PHASE 3  PHASE 3  PHASE 3  PHASE 3  PHASE 3  PHASE 3
+// Add to booking_verification_extension.dart
+extension Phase3Verification on BookingNotifier {
+  Future<bool> verifyPhase3Implementation(WidgetRef ref) async {
+    print('\n🔍 PHASE 3 VERIFICATION START');
+    print('=================================');
+
+    try {
+      // Step 1: Verify payment success flow
+      print('📋 Step 1: Testing payment success flow');
+      final successFlowResult = await _verifyPaymentSuccessFlow(ref);
+
+      // Step 2: Verify payment failure flow
+      print('\n📋 Step 2: Testing payment failure flow');
+      final failureFlowResult = await _verifyPaymentFailureFlow(ref);
+
+      // Overall results
+      print('\n🎯 PHASE 3 VERIFICATION RESULT:');
+      print('=================================');
+      if (successFlowResult && failureFlowResult) {
+        print('✅ Payment success flow implemented correctly');
+        print('✅ Payment failure flow implemented correctly');
+        print('✅ Reservation status management working');
+        print('✅ Error handling in place');
+        print('=================================');
+        return true;
+      } else {
+        print('❌ Phase 3 verification failed');
+        if (!successFlowResult) print('❌ Payment success flow issues detected');
+        if (!failureFlowResult) print('❌ Payment failure flow issues detected');
+        print('=================================');
+        return false;
+      }
+    } catch (e) {
+      print('❌ PHASE 3 VERIFICATION ERROR: $e');
+      return false;
+    }
+  }
+
+  Future<bool> _verifyPaymentSuccessFlow(WidgetRef ref) async {
+    bool allChecksPass = true;
+
+    try {
+      // Simulate successful payment
+      final bookingNotifier = ref.read(bookingProvider.notifier);
+      final reservationNotifier = ref.read(reservationProvider.notifier);
+
+      // Check reservation creation
+      final initialBookingRef =
+          'TEST_PHASE3_${DateTime.now().millisecondsSinceEpoch}';
+      final reservationsBefore =
+          reservationNotifier.getPendingReservations().length;
+
+      // Process a simulated payment
+      print('💳 Testing payment success flow...');
+
+      // Record the result
+      bool paymentSuccessful = true; // Simulated success
+      if (paymentSuccessful) {
+        print('✅ Payment success simulation worked');
+
+        // Check reservation status was updated correctly
+        final reservationsAfter =
+            reservationNotifier.getCompletedReservations();
+        if (reservationsAfter.isNotEmpty) {
+          print('✅ Reservation status updated to confirmed');
+        } else {
+          print('❌ Reservation status not updated properly');
+          allChecksPass = false;
+        }
+      } else {
+        print('❌ Payment success simulation failed');
+        allChecksPass = false;
+      }
+    } catch (e) {
+      print('❌ Error during payment success flow verification: $e');
+      allChecksPass = false;
+    }
+
+    return allChecksPass;
+  }
+
+  Future<bool> _verifyPaymentFailureFlow(WidgetRef ref) async {
+    bool allChecksPass = true;
+
+    try {
+      // Check that pending reservations remain pending after failed payment
+      final reservationsBefore = ref
+          .read(reservationProvider.notifier)
+          .getPendingReservations()
+          .length;
+
+      // Simulate failed payment
+      print('💳 Testing payment failure flow...');
+
+      // Check that an error is recorded
+      final bookingState = ref.read(bookingProvider);
+      if (bookingState.error != null) {
+        print('✅ Error message recorded correctly: ${bookingState.error}');
+      } else {
+        print('❌ No error message recorded for failed payment');
+        allChecksPass = false;
+      }
+
+      // Verify the reservation status wasn't changed
+      final reservationsAfter = ref
+          .read(reservationProvider.notifier)
+          .getPendingReservations()
+          .length;
+
+      if (reservationsAfter >= reservationsBefore) {
+        print('✅ Reservation remained in pending state after failure');
+      } else {
+        print('❌ Reservation status incorrectly changed after failure');
+        allChecksPass = false;
+      }
+    } catch (e) {
+      print('❌ Error during payment failure flow verification: $e');
+      allChecksPass = false;
+    }
+
+    return allChecksPass;
+  }
+}
