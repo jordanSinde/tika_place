@@ -7,6 +7,7 @@ import '../../notifications/services/notification_service.dart';
 import '../models/booking_model.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/promo_code.dart';
+import '../services/reservation_service.dart';
 import 'booking_provider.dart';
 
 class ReservationState {
@@ -104,17 +105,6 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
     );
   }
 
-  void _updateReservation(TicketReservation updatedReservation) {
-    final updatedReservations = state.reservations.map((reservation) {
-      if (reservation.id == updatedReservation.id) {
-        return updatedReservation;
-      }
-      return reservation;
-    }).toList();
-
-    state = state.copyWith(reservations: updatedReservations);
-  }
-
   Future<TicketReservation> createReservation({
     required Bus bus,
     required List<PassengerInfo> passengers,
@@ -122,6 +112,8 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
     PromoCode? promoCode,
     double? discountAmount,
   }) async {
+    print('🚀 RESERVATION PROVIDER: Creating reservation');
+
     // Créer une nouvelle réservation
     final reservation = TicketReservation(
       id: 'RES${DateTime.now().millisecondsSinceEpoch}',
@@ -146,7 +138,52 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
     expirationTimers[reservation.id] = _createExpirationTimer(reservation);
     state = state.copyWith(expirationTimers: expirationTimers);
 
+    print('✅ RESERVATION PROVIDER: Reservation created');
+    print('📋 Reservation ID: ${reservation.id}');
+    print('📋 Passengers: ${reservation.passengers.length}');
+    print('📋 Status: ${reservation.status}');
+    print(
+        '📋 Expires in: ${reservation.timeUntilExpiration.inMinutes} minutes');
+
     return reservation;
+  }
+
+  // Create reservation from booking state
+  Future<TicketReservation> createReservationFromBooking(
+      BookingState bookingState) async {
+    print('🚀 RESERVATION PROVIDER: Creating reservation from booking');
+
+    try {
+      final reservation =
+          await reservationService.createReservationFromBooking(bookingState);
+
+      // Add to state
+      state = state.copyWith(
+        reservations: [...state.reservations, reservation],
+      );
+
+      // Create timer for expiration
+      final expirationTimers = Map<String, Timer>.from(state.expirationTimers);
+      expirationTimers[reservation.id] = _createExpirationTimer(reservation);
+      state = state.copyWith(expirationTimers: expirationTimers);
+
+      print('✅ RESERVATION PROVIDER: Reservation added to state');
+      return reservation;
+    } catch (e) {
+      print('❌ RESERVATION PROVIDER: Failed to create reservation: $e');
+      rethrow;
+    }
+  }
+
+  void _updateReservation(TicketReservation updatedReservation) {
+    final updatedReservations = state.reservations.map((reservation) {
+      if (reservation.id == updatedReservation.id) {
+        return updatedReservation;
+      }
+      return reservation;
+    }).toList();
+
+    state = state.copyWith(reservations: updatedReservations);
   }
 
   Future<void> cancelReservation(String reservationId, {String? reason}) async {

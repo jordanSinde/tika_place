@@ -3,10 +3,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tika_place/features/bus_booking/models/promo_code.dart';
 import '../../../features/auth/models/user.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../home/models/bus_mock_data.dart';
 import '../../notifications/services/notification_service.dart';
-import '../paiement/services/mobile_money_service.dart';
+import '../models/booking_model.dart';
 import 'price_calculator_provider.dart';
+import 'reservation_provider.dart';
 
 enum BookingStatus { pending, confirmed, paid, cancelled, expired, failed }
 
@@ -56,6 +58,7 @@ class BookingState {
   final double? appliedDiscount;
   final String? appliedPromoCode;
   final DateTime? reservationTimeout;
+  final String? userId;
 
   const BookingState({
     this.selectedBus,
@@ -69,6 +72,7 @@ class BookingState {
     this.appliedDiscount,
     this.appliedPromoCode,
     this.reservationTimeout,
+    this.userId,
   });
 
   BookingState copyWith({
@@ -83,6 +87,7 @@ class BookingState {
     double? appliedDiscount,
     String? appliedPromoCode,
     DateTime? reservationTimeout,
+    String? userId,
   }) {
     return BookingState(
       selectedBus: selectedBus ?? this.selectedBus,
@@ -96,6 +101,7 @@ class BookingState {
       appliedDiscount: appliedDiscount ?? this.appliedDiscount,
       appliedPromoCode: appliedPromoCode ?? this.appliedPromoCode,
       reservationTimeout: reservationTimeout ?? this.reservationTimeout,
+      userId: userId ?? this.userId,
     );
   }
 
@@ -111,8 +117,9 @@ class BookingNotifier extends StateNotifier<BookingState> {
   // Timer pour la réservation
   static const reservationTimeoutDuration = Duration(minutes: 5);
 
-  // Initialiser une nouvelle réservation
+// Initialiser une nouvelle réservation
   void initializeBooking(Bus bus, UserModel user) {
+    print('🚀 BOOKING PROVIDER: Initializing new booking');
     final mainPassenger = Passenger(
       firstName: user.firstName,
       lastName: user.lastName ?? '',
@@ -127,7 +134,13 @@ class BookingNotifier extends StateNotifier<BookingState> {
       totalAmount: bus.price,
       status: BookingStatus.pending,
       reservationTimeout: DateTime.now().add(reservationTimeoutDuration),
+      userId: user.id,
     );
+
+    print('✅ BOOKING PROVIDER: Booking initialized');
+    print('📋 User: ${user.firstName} ${user.lastName}');
+    print('📋 Bus: ${bus.departureCity} → ${bus.arrivalCity}');
+    print('📋 Price: ${bus.price} FCFA');
   }
 
   // Ajouter un passager
@@ -165,22 +178,13 @@ class BookingNotifier extends StateNotifier<BookingState> {
     );
   }
 
-  // Mettre à jour la méthode de paiement
-  /*void updatePaymentMethod(PaymentMethod? method) {
-    if (state.isReservationExpired) {
-      state = state.copyWith(
-        error: 'La réservation a expiré. Veuillez recommencer.',
-        status: BookingStatus.cancelled,
-      );
-      return;
-    }
-
-    state = state.copyWith(paymentMethod: method);
-  }*/
-
   // Processus de paiement
+  // Update the processPayment method to add null safety
   Future<bool> processPayment(WidgetRef ref) async {
+    print('💳 BOOKING PROVIDER: Starting payment process');
+
     if (state.isReservationExpired) {
+      print('❌ BOOKING PROVIDER: Reservation expired');
       state = state.copyWith(
         error: 'La réservation a expiré. Veuillez recommencer.',
         status: BookingStatus.cancelled,
@@ -194,11 +198,49 @@ class BookingNotifier extends StateNotifier<BookingState> {
       // Récupérer le montant total calculé avec les taxes et réductions
       final priceState = ref.read(priceCalculatorProvider);
       final finalAmount = priceState.total;
+      print('💰 BOOKING PROVIDER: Payment amount: $finalAmount FCFA');
 
       // Vérifier la disponibilité des places
       final seatsAvailable = await checkSeatsAvailability();
       if (!seatsAvailable) {
+        print('❌ BOOKING PROVIDER: No seats available');
         return false;
+      }
+
+      // Ensure reservation record exists
+      if (state.bookingReference == null) {
+        print(
+            '🏗️ BOOKING PROVIDER: Creating reservation record before payment');
+        await _createReservationRecord(ref); // Pass ref here
+      }
+
+      // Record payment attempt in reservation history
+      final bookingRef = state.bookingReference;
+      if (bookingRef != null) {
+        // Add null check
+        try {
+          final paymentMethod = state.paymentMethod;
+          if (paymentMethod != null) {
+            // Add null check
+            final paymentAttempt = PaymentAttempt(
+              timestamp: DateTime.now(),
+              paymentMethod: paymentMethod.toString(),
+              status: 'processing',
+            );
+
+            print('📝 BOOKING PROVIDER: Recording payment attempt');
+            await ref
+                .read(reservationProvider.notifier)
+                .addPaymentAttempt(bookingRef, paymentAttempt);
+          } else {
+            print('⚠️ BOOKING PROVIDER: Payment method is null');
+          }
+        } catch (e) {
+          print('⚠️ BOOKING PROVIDER: Failed to record payment attempt: $e');
+          // Continue with payment even if recording attempt fails
+        }
+      } else {
+        print('⚠️ BOOKING PROVIDER: Booking reference is null');
       }
 
       // Simuler un délai de traitement
@@ -208,7 +250,11 @@ class BookingNotifier extends StateNotifier<BookingState> {
       final isSuccess = DateTime.now().millisecond % 5 != 0;
 
       if (isSuccess) {
-        final reference = 'BK${DateTime.now().millisecondsSinceEpoch}';
+        print('✅ BOOKING PROVIDER: Payment successful');
+
+        // Generate a reference if not exists
+        final reference = state.bookingReference ??
+            'BK${DateTime.now().millisecondsSinceEpoch}';
 
         // Enregistrer l'utilisation du code promo
         final promoCode = ref.read(priceCalculatorProvider).appliedPromoCode;
@@ -228,27 +274,66 @@ class BookingNotifier extends StateNotifier<BookingState> {
           isLoading: false,
         );
 
+        // Update reservation status
+        try {
+          print(
+              '🔄 BOOKING PROVIDER: Updating reservation status to confirmed');
+          await ref
+              .read(reservationProvider.notifier)
+              .confirmReservation(reference);
+          print('✅ BOOKING PROVIDER: Reservation status updated successfully');
+        } catch (e) {
+          print('⚠️ BOOKING PROVIDER: Failed to update reservation status: $e');
+          // Continue even if status update fails
+        }
+
         // Enregistrer les passagers pour utilisation future
         await savePassengersForFutureUse();
 
         // Envoyer une notification de confirmation
-        await notificationService.showBookingConfirmationNotification(
-          title: 'Réservation confirmée !',
-          body:
-              'Votre réservation pour ${state.selectedBus!.departureCity} → ${state.selectedBus!.arrivalCity} a été confirmée.',
-          payload: reference,
-        );
+        try {
+          await notificationService.showBookingConfirmationNotification(
+            title: 'Réservation confirmée !',
+            body:
+                'Votre réservation pour ${state.selectedBus?.departureCity} → ${state.selectedBus?.arrivalCity} a été confirmée.',
+            payload: reference,
+          );
+        } catch (e) {
+          print('⚠️ BOOKING PROVIDER: Failed to show notification: $e');
+        }
 
         return true;
       } else {
+        print('❌ BOOKING PROVIDER: Payment failed');
         state = state.copyWith(
           status: BookingStatus.failed,
           error: 'La transaction a échoué. Veuillez réessayer.',
           isLoading: false,
         );
+
+        // Update payment attempt in reservation if possible
+        if (bookingRef != null && state.paymentMethod != null) {
+          try {
+            final paymentAttempt = PaymentAttempt(
+              timestamp: DateTime.now(),
+              paymentMethod: state.paymentMethod.toString(),
+              status: 'failed',
+              errorMessage: 'La transaction a échoué',
+            );
+
+            print('📝 BOOKING PROVIDER: Recording failed payment attempt');
+            await ref
+                .read(reservationProvider.notifier)
+                .addPaymentAttempt(bookingRef, paymentAttempt);
+          } catch (e) {
+            print('⚠️ BOOKING PROVIDER: Failed to update payment attempt: $e');
+          }
+        }
+
         return false;
       }
     } catch (e) {
+      print('❌ BOOKING PROVIDER: Error during payment: $e');
       state = state.copyWith(
         status: BookingStatus.failed,
         error: 'Une erreur est survenue. Veuillez réessayer.',
@@ -351,8 +436,9 @@ class BookingNotifier extends StateNotifier<BookingState> {
     );
   }
 
-  // Initialize payment process
-  Future<void> initializePayment() async {
+  //SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+// Initialize payment process
+  Future<void> initializePayment(WidgetRef ref) async {
     print('🚀 PAYMENT INIT: Starting payment initialization');
 
     if (state.isReservationExpired) {
@@ -389,11 +475,43 @@ class BookingNotifier extends StateNotifier<BookingState> {
         status: BookingStatus.pending,
         isLoading: false,
       );
+
+      // Create reservation record
+      await _createReservationRecord(ref);
     } catch (e) {
+      print('❌ PAYMENT INIT: Error during initialization: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Une erreur est survenue. Veuillez réessayer.',
       );
+    }
+  }
+
+  // Create reservation record
+  Future<void> _createReservationRecord(WidgetRef ref) async {
+    print('🏗️ BOOKING PROVIDER: Creating reservation record');
+    try {
+      if (state.selectedBus == null || state.passengers.isEmpty) {
+        print('❌ BOOKING PROVIDER: Missing required data for reservation');
+        return;
+      }
+
+      // Add the current user ID if available
+      final userId = ref.read(authProvider).user?.id;
+      if (userId != null && state.userId == null) {
+        state = state.copyWith(userId: userId);
+      }
+
+      // Create reservation via provider
+      final reservation = await ref
+          .read(reservationProvider.notifier)
+          .createReservationFromBooking(state);
+
+      print('✅ BOOKING PROVIDER: Reservation record created');
+      print('📋 Reservation ID: ${reservation.id}');
+      print('📋 Status: ${reservation.status}');
+    } catch (e) {
+      print('❌ BOOKING PROVIDER: Failed to create reservation record: $e');
     }
   }
 
@@ -404,167 +522,13 @@ class BookingNotifier extends StateNotifier<BookingState> {
       error: null,
     );
   }
-}
 
-// Add this to your booking_provider.dart
-
-extension PaymentFlowVerification on BookingNotifier {
-  void verifyPhase1_1Implementation() {
-    print('\n🔍 PHASE 1.1 VERIFICATION START');
-    print('=================================');
-
-    try {
-      // Step 1: Verify initial state
-      print('📋 Step 1: Checking initial state');
-      if (state.paymentMethod == null) {
-        print('✅ Initial state correct: no payment method selected');
-      } else {
-        print('❌ Error: Initial state should have no payment method');
-      }
-
-      // Step 2: Update payment method
-      print('\n📋 Step 2: Testing payment method update');
-      updatePaymentMethod(PaymentMethod.orangeMoney);
-      if (state.paymentMethod == PaymentMethod.orangeMoney) {
-        print('✅ Payment method updated successfully');
-      } else {
-        print('❌ Error: Payment method not updated');
-      }
-
-      // Step 3: Verify error handling
-      print('\n📋 Step 3: Testing error handling');
-      clearPaymentState();
-      initializePayment(); // Should show error for no payment method
-      if (state.error != null) {
-        print('✅ Error handling working correctly');
-      } else {
-        print('❌ Error: Missing error handling');
-      }
-
-      print('\n🎯 PHASE 1.1 VERIFICATION RESULT:');
-      print('=================================');
-      print('✅ Payment method selection implemented');
-      print('✅ State management working');
-      print('✅ Error handling in place');
-      print('✅ UI feedback functional');
-      print('=================================');
-    } catch (e) {
-      print('❌ PHASE 1.1 VERIFICATION FAILED:');
-      print(e.toString());
-    }
-  }
-
-  // phase 1.2 log
-  Future<void> _verifyPhoneValidation() async {
-    try {
-      // Test valid Orange Money number
-      final validOrangePhone = await mobileMoneyService.verifyPhoneNumber(
-        method: PaymentMethod.orangeMoney,
-        phoneNumber: '655123456',
-      );
-      print(validOrangePhone
-          ? '✅ Orange Money validation correct'
-          : '❌ Orange Money validation failed');
-
-      // Test valid MTN Money number
-      final validMTNPhone = await mobileMoneyService.verifyPhoneNumber(
-        method: PaymentMethod.mtnMoney,
-        phoneNumber: '650123456',
-      );
-      print(validMTNPhone
-          ? '✅ MTN Money validation correct'
-          : '❌ MTN Money validation failed');
-
-      // Test invalid number
-      final invalidPhone = await mobileMoneyService.verifyPhoneNumber(
-        method: PaymentMethod.orangeMoney,
-        phoneNumber: '123456789',
-      );
-      print(invalidPhone == false
-          ? '✅ Invalid number rejected'
-          : '❌ Invalid number accepted');
-    } catch (e) {
-      print('❌ Phone validation error: $e');
-    }
-  }
-
-  Future<void> verifyPhase1_2Implementation() async {
-    print('\n🔍 PHASE 1.2 VERIFICATION START');
-    print('=================================');
-
-    try {
-      // Step 1: Verify phone number validation
-      print('📋 Step 1: Testing phone validation');
-      await _verifyPhoneValidation();
-
-      // Step 2: Verify payment initialization
-      print('\n📋 Step 2: Testing payment initialization');
-      await _verifyPaymentInitialization();
-
-      // Step 3: Verify payment code request
-      print('\n📋 Step 3: Testing payment code request');
-      await _verifyPaymentCodeRequest();
-
-      // Step 4: Verify code verification
-      print('\n📋 Step 4: Testing code verification');
-      await _verifyCodeVerification();
-
-      print('\n🎯 PHASE 1.2 VERIFICATION RESULT:');
-      print('=================================');
-      print('✅ Phone number validation implemented');
-      print('✅ Payment code request flow working');
-      print('✅ Code verification process in place');
-      print('✅ Error handling functional');
-      print('=================================');
-    } catch (e) {
-      print('❌ PHASE 1.2 VERIFICATION FAILED:');
-      print(e.toString());
-    }
-  }
-
-  Future<void> _verifyPaymentInitialization() async {
-    if (state.paymentMethod != null) {
-      print('✅ Payment method set correctly');
-      if (state.status == BookingStatus.pending) {
-        print('✅ Booking status correct');
-      } else {
-        print('❌ Incorrect booking status');
-      }
-    } else {
-      print('❌ Payment method not set');
-    }
-
-    if (state.bookingReference != null) {
-      print('✅ Booking reference generated');
-    } else {
-      print('❌ Missing booking reference');
-    }
-  }
-
-  Future<void> _verifyPaymentCodeRequest() async {
-    try {
-      final response = await mobileMoneyService.initiatePayment(
-        method: PaymentMethod.orangeMoney,
-        phoneNumber: '655123456',
-        amount: 5000,
-        description: 'Test payment',
-      );
-      print('✅ Payment code request successful');
-      print('Reference: ${response.reference}');
-    } catch (e) {
-      print('❌ Payment code request failed: $e');
-    }
-  }
-
-  Future<void> _verifyCodeVerification() async {
-    try {
-      final status =
-          await mobileMoneyService.checkTransactionStatus('TEST_REF');
-      print('✅ Transaction status check functional');
-      print('Status success: ${status.isSuccess}');
-    } catch (e) {
-      print('❌ Transaction status check failed: $e');
-    }
+  // Add updateBookingReference method
+  void updateBookingReference(String reference) {
+    state = state.copyWith(
+      bookingReference: reference,
+    );
+    print('🔄 BOOKING: Updated reference to $reference');
   }
 }
 

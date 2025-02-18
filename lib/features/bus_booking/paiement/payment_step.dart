@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tika_place/features/bus_booking/providers/booking_verification_extension.dart';
 import '../../../../../core/config/theme/app_colors.dart';
 import '../providers/price_calculator_provider.dart';
 import '../widgets/price_summary_widget.dart';
@@ -120,7 +121,7 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
                   print('\nStarting Payment Flow Verification...');
                   ref
                       .read(bookingProvider.notifier)
-                      .verifyPhase1_1Implementation();
+                      .verifyPhase1_1Implementation(ref);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.purple,
