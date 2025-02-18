@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/config/theme/app_colors.dart';
 import '../providers/price_calculator_provider.dart';
+import '../services/reservation_service.dart';
 import '../widgets/price_summary_widget.dart';
 import '../widgets/promo_code_input.dart';
 import '../providers/booking_provider.dart';
@@ -234,13 +235,15 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
     return InkWell(
       onTap: _isProcessingPayment
           ? null
-          : () {
+          : () async {
               print(
                   '💳 PAYMENT FLOW: Payment method selected - ${method.toString()}');
               setState(() {
                 _selectedMethod = method;
               });
               ref.read(bookingProvider.notifier).updatePaymentMethod(method);
+              // Create reservation when selecting payment method
+              await _handlePaymentInitiation();
               print('💳 PAYMENT FLOW: UI Updated with selected method');
             },
       child: Container(
@@ -381,6 +384,30 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
         ref.read(bookingProvider.notifier).updatePaymentMethod(null);
       },
     );
+  }
+
+  Future<void> _handlePaymentInitiation() async {
+    setState(() => _isProcessingPayment = true);
+
+    try {
+      print('🚀 PAYMENT: Initiating payment process');
+
+      // Create reservation first
+      final reservation = await reservationService.createReservation(ref);
+
+      // Update booking reference
+      ref.read(bookingProvider.notifier).updateBookingReference(reservation.id);
+
+      print('✅ PAYMENT: Reservation created, proceeding to payment');
+    } catch (e) {
+      print('❌ PAYMENT: Initiation failed - $e');
+      _showErrorDialog(
+        'Une erreur est survenue lors de l\'initialisation du paiement. '
+        'Veuillez réessayer.',
+      );
+    } finally {
+      setState(() => _isProcessingPayment = false);
+    }
   }
 
   Widget _buildSummaryRow(String label, String value) {

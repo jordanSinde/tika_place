@@ -404,6 +404,14 @@ class BookingNotifier extends StateNotifier<BookingState> {
       error: null,
     );
   }
+
+  // Add updateBookingReference method
+  void updateBookingReference(String reference) {
+    state = state.copyWith(
+      bookingReference: reference,
+    );
+    print('🔄 BOOKING: Updated reference to $reference');
+  }
 }
 
 // Add this to your booking_provider.dart

@@ -251,6 +251,30 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
         .toList();
   }
 
+  Future<void> updateReservationStatus(
+      String reservationId, BookingStatus newStatus) async {
+    final updatedReservations = state.reservations.map((reservation) {
+      if (reservation.id == reservationId) {
+        return reservation.copyWith(status: newStatus);
+      }
+      return reservation;
+    }).toList();
+
+    state = state.copyWith(
+      reservations: updatedReservations,
+    );
+
+    print('✅ RESERVATION: Status updated for $reservationId to $newStatus');
+  }
+
+  // Add createReservation method if not exists
+  Future<void> createReservation(TicketReservation reservation) async {
+    state = state.copyWith(
+      reservations: [...state.reservations, reservation],
+    );
+    print('✅ RESERVATION: Added to history: ${reservation.id}');
+  }
+
   @override
   void dispose() {
     // Annuler tous les timers
