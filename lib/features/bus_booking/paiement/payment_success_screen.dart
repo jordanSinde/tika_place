@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/config/theme/app_colors.dart';
 import '../../common/widgets/buttons/primary_button.dart';
+import '../providers/booking_provider.dart';
+import '../providers/reservation_provider.dart';
 import '../providers/ticket_model.dart';
 import '../providers/ticket_provider.dart';
 import '../services/ticket_download_service.dart';
@@ -36,7 +38,103 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen> {
     Future.microtask(() => _processBooking());
   }
 
+  // In payment_success_screen.dart - update the _processBooking method
+
   Future<void> _processBooking() async {
+    print("🚀 SUCCESS SCREEN: Starting booking processing");
+    setState(() => _isLoadingTickets = true);
+    try {
+      print("📋 SUCCESS SCREEN: Booking reference: ${widget.bookingReference}");
+
+      // First check if tickets exist in provider state
+      final ticketsState = ref.read(ticketsProvider);
+      print(
+          "📊 SUCCESS SCREEN: ${ticketsState.tickets.length} tickets in provider state");
+
+      if (ticketsState.ticketsByBooking.containsKey(widget.bookingReference)) {
+        _tickets = ticketsState.ticketsByBooking[widget.bookingReference]!;
+        print(
+            "✅ SUCCESS SCREEN: Found ${_tickets.length} tickets in provider state");
+      } else {
+        // Try to retrieve tickets from local storage
+        print("🔍 SUCCESS SCREEN: Retrieving tickets from storage");
+        _tickets = await ref
+            .read(ticketsProvider.notifier)
+            .getTicketsForBooking(widget.bookingReference);
+      }
+
+      print("📊 SUCCESS SCREEN: Retrieved ${_tickets.length} tickets");
+
+      if (_tickets.isEmpty) {
+        print(
+            "⚠️ SUCCESS SCREEN: No tickets found for reference ${widget.bookingReference}");
+        // Print reservation details to debug
+        final reservationState = ref.read(reservationProvider);
+        final matchingReservations = reservationState.reservations
+            .where((r) => r.id == widget.bookingReference)
+            .toList();
+
+        if (matchingReservations.isNotEmpty) {
+          print(
+              "📋 SUCCESS SCREEN: Found matching reservation with status: ${matchingReservations[0].status}");
+        } else {
+          print("⚠️ SUCCESS SCREEN: No matching reservation found");
+        }
+
+        // Try one more time to generate tickets if needed
+        if (matchingReservations.isNotEmpty &&
+            matchingReservations[0].status == BookingStatus.confirmed) {
+          print("🔄 SUCCESS SCREEN: Attempting to generate tickets on-demand");
+          final success = await ref
+              .read(ticketsProvider.notifier)
+              .generateTicketsAfterPayment(widget.bookingReference);
+
+          if (success) {
+            _tickets = await ref
+                .read(ticketsProvider.notifier)
+                .getTicketsForBooking(widget.bookingReference);
+            print(
+                "✅ SUCCESS SCREEN: Generated ${_tickets.length} tickets on-demand");
+          } else {
+            print("❌ SUCCESS SCREEN: Failed to generate tickets on-demand");
+          }
+        }
+
+        // Check directly in database as last resort
+        print("🔍 SUCCESS SCREEN: Checking directly in database");
+        final dbTickets = await ticketLocalPersistenceService
+            .getTicketsByBookingReference(widget.bookingReference);
+        print(
+            "📊 SUCCESS SCREEN: Found ${dbTickets.length} tickets in database");
+
+        if (dbTickets.isNotEmpty) {
+          _tickets = dbTickets;
+        }
+      }
+
+      // Schedule reminders for each ticket
+      for (final ticket in _tickets) {
+        await tripReminderService.scheduleReminders(ticket);
+      }
+    } catch (e, stackTrace) {
+      print("❌ SUCCESS SCREEN: Error in _processBooking: $e");
+      print("📋 SUCCESS SCREEN: Stack trace: $stackTrace");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingTickets = false);
+      }
+    }
+  }
+
+  /*Future<void> _processBooking() async {
     print("Début de _processBooking");
     setState(() => _isLoadingTickets = true);
     try {
@@ -82,7 +180,7 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen> {
         setState(() => _isLoadingTickets = false);
       }
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {

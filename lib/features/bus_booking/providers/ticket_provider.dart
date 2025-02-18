@@ -72,6 +72,72 @@ class TicketsNotifier extends StateNotifier<TicketsState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      print("🎫 TICKET PROVIDER: Beginning ticket generation process");
+      // Vérifier le statut de la transaction
+      final transactionStatus = await mobileMoneyService.checkTransactionStatus(
+        transactionReference,
+      );
+
+      if (!transactionStatus.isSuccess) {
+        print("❌ TICKET PROVIDER: Transaction verification failed");
+        throw Exception('La transaction n\'a pas pu être vérifiée');
+      }
+
+      // Get booking information from provider
+      //final bookingState = bookingState;
+      if (bookingState.selectedBus == null || bookingState.passengers.isEmpty) {
+        print("❌ TICKET PROVIDER: Missing booking data for tickets");
+        throw Exception(
+            'Données de réservation insuffisantes pour générer les tickets');
+      }
+
+      // Générer les tickets pour chaque passager
+      print(
+          "🎫 TICKET PROVIDER: Generating tickets for ${bookingState.passengers.length} passengers");
+      final newTickets = await ticketService.generateGroupTickets(
+        bus: bookingState.selectedBus!,
+        passengers: bookingState.passengers,
+        bookingReference: bookingState.bookingReference!,
+        paymentMethod: bookingState.paymentMethod!,
+      );
+      print("✅ TICKET PROVIDER: Generated ${newTickets.length} tickets");
+
+      // Sauvegarder les tickets localement
+      await ticketLocalPersistenceService.saveTickets(newTickets);
+      print("💾 TICKET PROVIDER: Tickets saved locally");
+
+      // Verify tickets were saved
+      final savedTickets = await ticketLocalPersistenceService
+          .getTicketsByBookingReference(bookingState.bookingReference!);
+      print("📊 TICKET PROVIDER: Found ${savedTickets.length} saved tickets");
+
+      // Mettre à jour l'état
+      final updatedTicketsByBooking = Map<String, List<ExtendedTicket>>.from(
+        state.ticketsByBooking,
+      );
+      updatedTicketsByBooking[bookingState.bookingReference!] = newTickets;
+
+      state = state.copyWith(
+        tickets: [...state.tickets, ...newTickets],
+        ticketsByBooking: updatedTicketsByBooking,
+        isLoading: false,
+      );
+
+      return true;
+    } catch (e) {
+      print("❌ TICKET PROVIDER: Error in generateTicketsAfterPayment: $e");
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Erreur lors de la génération des tickets: $e',
+      );
+      return false;
+    }
+  }
+
+  /*Future<bool> generateTicketsAfterPayment(String transactionReference) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
       print("Début generateTicketsAfterPayment");
       // Vérifier le statut de la transaction
       final transactionStatus = await mobileMoneyService.checkTransactionStatus(
@@ -116,7 +182,7 @@ class TicketsNotifier extends StateNotifier<TicketsState> {
       );
       return false;
     }
-  }
+  }*/
 
   // Obtenir les tickets pour une réservation spécifique
   Future<List<ExtendedTicket>> getTicketsForBooking(

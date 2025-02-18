@@ -94,8 +94,96 @@ class TicketLocalPersistenceService {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+  // In ticket_local_persistence_service.dart
 
   Future<void> saveTickets(List<ExtendedTicket> tickets) async {
+    print("💾 PERSISTENCE: Beginning to save ${tickets.length} tickets");
+    final db = await database;
+    final batch = db.batch();
+
+    try {
+      for (var ticket in tickets) {
+        print("💾 PERSISTENCE: Saving ticket ${ticket.id}");
+        final ticketJson = ticket.toJson();
+        final ticketData = jsonEncode(ticketJson);
+
+        batch.insert(
+          'tickets',
+          {
+            'id': ticket.id,
+            'bookingReference': ticket.bookingReference,
+            'ticketData': ticketData,
+            'createdAt': DateTime.now().millisecondsSinceEpoch,
+            'status': ticket.status.toString(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+
+      final results = await batch.commit();
+      print("✅ PERSISTENCE: ${results.length} tickets committed to database");
+
+      // Verify tickets were saved
+      final savedCount = Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM tickets'));
+      print("📊 PERSISTENCE: Total tickets in database: $savedCount");
+    } catch (e) {
+      print("❌ PERSISTENCE: Error saving tickets: $e");
+      // Print stack trace for debugging
+      print(StackTrace.current);
+      rethrow;
+    }
+  }
+
+  Future<List<ExtendedTicket>> getTicketsByBookingReference(
+      String bookingReference) async {
+    print(
+        "🔍 PERSISTENCE: Searching for tickets with reference: $bookingReference");
+    final db = await database;
+
+    try {
+      // First check if the table exists
+      final tables = await db
+          .query('sqlite_master', where: 'name = ?', whereArgs: ['tickets']);
+
+      if (tables.isEmpty) {
+        print("⚠️ PERSISTENCE: Tickets table does not exist");
+        return [];
+      }
+
+      final List<Map<String, dynamic>> maps = await db.query(
+        'tickets',
+        where: 'bookingReference = ?',
+        whereArgs: [bookingReference],
+      );
+
+      print(
+          "🔍 PERSISTENCE: Found ${maps.length} tickets for reference $bookingReference");
+
+      if (maps.isEmpty) return [];
+
+      List<ExtendedTicket> tickets = [];
+      for (var map in maps) {
+        try {
+          final ticketData = map['ticketData'];
+          final ticketJson = jsonDecode(ticketData);
+          final ticket = ExtendedTicket.fromJson(ticketJson);
+          tickets.add(ticket);
+        } catch (e) {
+          print("⚠️ PERSISTENCE: Error parsing ticket: $e");
+        }
+      }
+
+      print("✅ PERSISTENCE: Successfully parsed ${tickets.length} tickets");
+      return tickets;
+    } catch (e) {
+      print("❌ PERSISTENCE: Error retrieving tickets: $e");
+      print(StackTrace.current);
+      return [];
+    }
+  }
+
+  /*Future<void> saveTickets(List<ExtendedTicket> tickets) async {
     print("Début saveTickets");
     final db = await database;
     final batch = db.batch();
@@ -122,7 +210,7 @@ class TicketLocalPersistenceService {
       print("Erreur lors de la sauvegarde des tickets: $e");
       rethrow;
     }
-  }
+  }*/
 
   Future<ExtendedTicket?> getTicketById(String ticketId) async {
     final db = await database;
@@ -139,7 +227,7 @@ class TicketLocalPersistenceService {
     );
   }
 
-  Future<List<ExtendedTicket>> getTicketsByBookingReference(
+  /*Future<List<ExtendedTicket>> getTicketsByBookingReference(
       String bookingReference) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -153,7 +241,7 @@ class TicketLocalPersistenceService {
         jsonDecode(map['ticketData']),
       );
     }).toList();
-  }
+  }*/
 
   Future<List<ExtendedTicket>> getAllTickets() async {
     final db = await database;

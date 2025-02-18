@@ -2,7 +2,9 @@
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/timezone.dart';
 import '../providers/ticket_model.dart';
+import 'package:timezone/data/latest.dart';
 
 class TripReminderService {
   static final TripReminderService _instance = TripReminderService._internal();
@@ -13,21 +15,32 @@ class TripReminderService {
     return _instance;
   }
 
-  TripReminderService._internal();
+  // Add timezone initialization in the constructor
+  TripReminderService._internal() {
+    // Initialize timezone
+    initializeTimeZones();
+    setLocalLocation(
+        getLocation('Africa/Douala')); // Or another appropriate timezone
+  }
 
   // Initialiser les rappels pour un ticket
   Future<void> scheduleReminders(ExtendedTicket ticket) async {
-    // Calculer les moments de notification
-    final departureTime = ticket.bus.departureTime;
+    try {
+      // Calculate the reminder times
+      final departureTime = ticket.bus.departureTime;
 
-    // Rappel 24h avant
-    await _scheduleDayBeforeReminder(ticket);
+      // Schedule the reminders
+      await _scheduleDayBeforeReminder(ticket);
+      await _scheduleSameDayReminder(ticket);
+      await _scheduleLastCallReminder(ticket);
 
-    // Rappel le jour même
-    await _scheduleSameDayReminder(ticket);
-
-    // Rappel 2h avant
-    await _scheduleLastCallReminder(ticket);
+      print(
+          "✅ REMINDERS: Successfully scheduled reminders for ticket ${ticket.id}");
+    } catch (e, stackTrace) {
+      print("⚠️ REMINDERS: Error scheduling reminders: $e");
+      print("⚠️ REMINDERS: $stackTrace");
+      // Continue without throwing - don't block the UI for notification errors
+    }
   }
 
   // Annuler tous les rappels pour un ticket
@@ -169,18 +182,6 @@ N'oubliez pas vos documents et présentez-vous 30 minutes avant le départ.''',
 
   // Vérifier les permissions de notification
   Future<bool> checkNotificationPermissions() async {
-    /*try {
-    final NotificationSettings settings = await _notifications.resolvePlatformSpecificImplementation()?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        ) ?? const NotificationSettings();
-    
-    return settings.authorizationStatus == AuthorizationStatus.authorized;
-  } catch (e) {
-    print('Erreur lors de la vérification des permissions: $e');
-    return false;
-  }*/
     return false;
   }
 }
