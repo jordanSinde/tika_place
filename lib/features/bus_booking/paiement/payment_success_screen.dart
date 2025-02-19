@@ -134,54 +134,6 @@ class _PaymentSuccessScreenState extends ConsumerState<PaymentSuccessScreen> {
     }
   }
 
-  /*Future<void> _processBooking() async {
-    print("Début de _processBooking");
-    setState(() => _isLoadingTickets = true);
-    try {
-      print("BookingReference: ${widget.bookingReference}");
-
-      // Récupérer l'état directement du provider
-      final ticketsState = ref.read(ticketsProvider);
-      print(
-          "État actuel du TicketsProvider: ${ticketsState.tickets.length} tickets");
-
-      // Récupérer les tickets depuis le stockage local
-      _tickets = await ref
-          .read(ticketsProvider.notifier)
-          .getTicketsForBooking(widget.bookingReference);
-      print("Tickets récupérés: ${_tickets.length}");
-
-      if (_tickets.isEmpty) {
-        print(
-            "Aucun ticket trouvé pour la référence ${widget.bookingReference}");
-        // Vérifier dans la base de données SQLite directement
-        final dbTickets = await ticketLocalPersistenceService
-            .getTicketsByBookingReference(widget.bookingReference);
-        print("Tickets dans la base SQLite: ${dbTickets.length}");
-      }
-
-      // Programmer les rappels pour chaque ticket
-      for (final ticket in _tickets) {
-        await tripReminderService.scheduleReminders(ticket);
-      }
-    } catch (e, stackTrace) {
-      print("Erreur dans _processBooking: $e");
-      print("StackTrace: $stackTrace");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingTickets = false);
-      }
-    }
-  }*/
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

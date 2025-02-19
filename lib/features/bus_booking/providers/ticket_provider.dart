@@ -134,56 +134,6 @@ class TicketsNotifier extends StateNotifier<TicketsState> {
     }
   }
 
-  /*Future<bool> generateTicketsAfterPayment(String transactionReference) async {
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      print("Début generateTicketsAfterPayment");
-      // Vérifier le statut de la transaction
-      final transactionStatus = await mobileMoneyService.checkTransactionStatus(
-        transactionReference,
-      );
-
-      if (!transactionStatus.isSuccess) {
-        throw Exception('La transaction n\'a pas pu être vérifiée');
-      }
-
-      // Générer les tickets pour chaque passager
-      final newTickets = await ticketService.generateGroupTickets(
-        bus: bookingState.selectedBus!,
-        passengers: bookingState.passengers,
-        bookingReference: bookingState.bookingReference!,
-        paymentMethod: bookingState.paymentMethod!,
-      );
-      print("Tickets générés: ${newTickets.length}");
-
-      // Sauvegarder les tickets localement
-      await ticketLocalPersistenceService.saveTickets(newTickets);
-      print("Tickets sauvegardés localement");
-
-      // Mettre à jour l'état
-      final updatedTicketsByBooking = Map<String, List<ExtendedTicket>>.from(
-        state.ticketsByBooking,
-      );
-      updatedTicketsByBooking[bookingState.bookingReference!] = newTickets;
-
-      state = state.copyWith(
-        tickets: [...state.tickets, ...newTickets],
-        ticketsByBooking: updatedTicketsByBooking,
-        isLoading: false,
-      );
-
-      return true;
-    } catch (e) {
-      print("Erreur dans generateTicketsAfterPayment: $e");
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Erreur lors de la génération des tickets: $e',
-      );
-      return false;
-    }
-  }*/
-
   // Obtenir les tickets pour une réservation spécifique
   Future<List<ExtendedTicket>> getTicketsForBooking(
       String bookingReference) async {

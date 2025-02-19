@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/providers/auth_provider.dart';
-import '../../features/auth/screens/manage_sessions_screen.dart';
 import '../../features/auth/screens/opt_verification_screen.dart';
 import '../../features/bus_booking/screens/bus_booking_process_screen.dart';
+import '../../features/bus_booking/screens/reservation_details_screen.dart';
 import '../../features/home/models/bus_mock_data.dart';
 import '../../features/bus_booking/bus_booking_list_screen.dart';
 import '../../features/main/screens/main_scaffold.dart';
@@ -170,8 +170,29 @@ final routerProvider = Provider<GoRouter>((ref) {
           return BusBookingProcessScreen(selectedBus: bus);
         },
       ),
+      //DEBUT status des reservations dans le Profile
+      GoRoute(
+        path: '/reservations',
+        builder: (context, state) => const ReservationDetailsScreen(),
+      ),
+      GoRoute(
+        path: '/reservations/bus',
+        builder: (context, state) =>
+            const ReservationDetailsScreen(type: 'bus'),
+      ),
+      GoRoute(
+        path: '/reservations/hotels',
+        builder: (context, state) =>
+            const ReservationDetailsScreen(type: 'hotels'),
+      ),
+      GoRoute(
+        path: '/reservations/apartments',
+        builder: (context, state) =>
+            const ReservationDetailsScreen(type: 'apartments'),
+      ),
 
-      // Hotel Routes
+      //FIN status des reservations dans le Profile
+      /*// Hotel Routes
       GoRoute(
         path: '/hotels/list',
         builder: (context, state) => const Center(
@@ -198,7 +219,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           state,
           const ManageSessionsScreen(),
         ),
-      ),
+      ),*/
     ],
     errorBuilder: (context, state) => Material(
       child: Scaffold(

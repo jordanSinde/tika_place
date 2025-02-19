@@ -8,12 +8,15 @@ import 'core/router/app_router.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/bus_booking/services/ticket_download_service.dart';
 import 'firebase_options.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // Initialize date formatting for French locale
+  await initializeDateFormatting('fr_FR', null);
   // Initialiser le service de téléchargement
   await ticketDownloadService.initialize();
   final prefs = await SharedPreferences.getInstance();

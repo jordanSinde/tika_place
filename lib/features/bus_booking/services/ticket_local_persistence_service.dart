@@ -61,25 +61,6 @@ class TicketLocalPersistenceService {
     }
   }
 
-  /*Future<Database> _initDB() async {
-    String path = await getDatabasesPath();
-    return await openDatabase(
-      join(path, 'tickets.db'),
-      onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE tickets(
-            id TEXT PRIMARY KEY,
-            bookingReference TEXT NOT NULL,
-            ticketData TEXT NOT NULL,
-            createdAt INTEGER NOT NULL,
-            status TEXT NOT NULL
-          )
-        ''');
-      },
-      version: 1,
-    );
-  }*/
-
   Future<void> saveTicket(ExtendedTicket ticket) async {
     final db = await database;
     await db.insert(
@@ -183,35 +164,6 @@ class TicketLocalPersistenceService {
     }
   }
 
-  /*Future<void> saveTickets(List<ExtendedTicket> tickets) async {
-    print("Début saveTickets");
-    final db = await database;
-    final batch = db.batch();
-
-    try {
-      for (var ticket in tickets) {
-        print("Sauvegarde du ticket ${ticket.id}");
-        batch.insert(
-          'tickets',
-          {
-            'id': ticket.id,
-            'bookingReference': ticket.bookingReference,
-            'ticketData': jsonEncode(ticket.toJson()),
-            'createdAt': DateTime.now().millisecondsSinceEpoch,
-            'status': ticket.status.toString(),
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-
-      await batch.commit();
-      print("Tickets sauvegardés avec succès");
-    } catch (e) {
-      print("Erreur lors de la sauvegarde des tickets: $e");
-      rethrow;
-    }
-  }*/
-
   Future<ExtendedTicket?> getTicketById(String ticketId) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -226,22 +178,6 @@ class TicketLocalPersistenceService {
       jsonDecode(maps.first['ticketData']),
     );
   }
-
-  /*Future<List<ExtendedTicket>> getTicketsByBookingReference(
-      String bookingReference) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'tickets',
-      where: 'bookingReference = ?',
-      whereArgs: [bookingReference],
-    );
-
-    return maps.map((map) {
-      return ExtendedTicket.fromJson(
-        jsonDecode(map['ticketData']),
-      );
-    }).toList();
-  }*/
 
   Future<List<ExtendedTicket>> getAllTickets() async {
     final db = await database;

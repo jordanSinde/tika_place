@@ -113,10 +113,10 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
           const SizedBox(height: 32),
 
           // Verification buttons (only in debug mode)
-          if (true) // Replace with !kReleaseMode when ready for production
-            _buildVerificationButtons(),
-
-          Column(
+          if (true)
+            // _buildVerificationButtons(),
+//code de vérification des Phases 1 2 3 4
+            /*Column(
             children: [
               ElevatedButton(
                 onPressed: () {
@@ -144,9 +144,9 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
                 child: const Text('Verify Phase 1.2 Implementation'),
               ),
             ],
-          ),
+          ),*/
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
           // Back button
           OutlinedButton(
