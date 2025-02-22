@@ -566,6 +566,29 @@ class BookingNotifier extends StateNotifier<BookingState> {
           .read(reservationProvider.notifier)
           .createReservationFromBooking(state);
 
+      // In _createReservationRecord or similar function
+      if (reservation.status == BookingStatus.failed ||
+          reservation.status == BookingStatus.pending) {
+        final updatedReservation = reservation.copyWith(
+          totalAmount: reservation.totalAmount ?? 0,
+          passengers: reservation.passengers.isEmpty
+              ? [
+                  const PassengerInfo(
+                      firstName: "Unknown",
+                      lastName: "User",
+                      phoneNumber: null,
+                      cniNumber: null,
+                      isMainPassenger: false)
+                ]
+              : reservation.passengers,
+        );
+
+        // Use the correct method from your ReservationNotifier
+        ref
+            .read(reservationProvider.notifier)
+            .updateExistingReservation(updatedReservation);
+      }
+
       print('✅ BOOKING PROVIDER: Reservation record created');
       print('📋 Reservation ID: ${reservation.id}');
       print('📋 Status: ${reservation.status}');
@@ -600,6 +623,12 @@ class BookingNotifier extends StateNotifier<BookingState> {
       bookingReference: reference,
     );
     print('🔄 BOOKING: Updated reference to $reference');
+  }
+
+  // Add this method to BookingNotifier class to force fail in paiement
+  void forcePaymentFailure(String errorMessage) {
+    state = state.copyWith(
+        status: BookingStatus.failed, error: errorMessage, isLoading: false);
   }
 }
 

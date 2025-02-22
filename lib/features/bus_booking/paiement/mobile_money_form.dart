@@ -1,5 +1,6 @@
 // lib/features/bus_booking/widgets/mobile_money_form.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -125,6 +126,48 @@ class _MobileMoneyFormState extends ConsumerState<MobileMoneyForm> {
     });
 
     try {
+      // DIRECT SOLUTION: Force failure based on code
+      final code = _codeController.text.trim();
+
+      if (code == "123456") {
+        // Success case - proceed normally
+        print(
+            '✅ PAYMENT FORM: Submitting code for verification - SUCCESS CASE');
+        await widget.onCodeSubmitted(code);
+      } else if (code == "111111") {
+        // Force failure case
+        print('🔴 PAYMENT FORM: Forcing payment failure');
+        // Still call onCodeSubmitted, but force failure in booking_provider
+        await widget.onCodeSubmitted("FORCE_FAIL");
+      } else {
+        // Default to normal flow
+        await widget.onCodeSubmitted(code);
+      }
+    } catch (e) {
+      print('❌ PAYMENT FORM: Code verification failed: $e');
+      setState(() {
+        _codeError = 'Code invalide. Veuillez réessayer.';
+      });
+    } finally {
+      setState(() {
+        _isVerifyingCode = false;
+      });
+    }
+  }
+
+  /*Future<void> _verifyCode() async {
+    print('🔐 PAYMENT FORM: Verifying payment code');
+    if (!_formKey.currentState!.validate()) {
+      print('❌ PAYMENT FORM: Form validation failed');
+      return;
+    }
+
+    setState(() {
+      _isVerifyingCode = true;
+      _codeError = null;
+    });
+
+    try {
       print('✅ PAYMENT FORM: Submitting code for verification');
       await widget.onCodeSubmitted(_codeController.text);
     } catch (e) {
@@ -137,7 +180,7 @@ class _MobileMoneyFormState extends ConsumerState<MobileMoneyForm> {
         _isVerifyingCode = false;
       });
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -262,8 +305,12 @@ class _MobileMoneyFormState extends ConsumerState<MobileMoneyForm> {
             labelText: 'Code de paiement',
             prefixIcon: const Icon(Icons.lock),
             errorText: _codeError,
+            helperText: kDebugMode
+                ? 'Test codes: FAIL12345, TIMEOUT12345, PENDING12345'
+                : null,
           ),
-          keyboardType: TextInputType.number,
+          // Remove keyboardType restriction to allow test codes
+          // keyboardType: TextInputType.number,
           obscureText: true,
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -293,4 +340,45 @@ class _MobileMoneyFormState extends ConsumerState<MobileMoneyForm> {
       ],
     );
   }
+  /*Widget _buildCodeVerificationSection(Color providerColor) {
+    return Column(
+      children: [
+        const SizedBox(height: 24),
+        TextFormField(
+          controller: _codeController,
+          decoration: InputDecoration(
+            labelText: 'Code de paiement',
+            prefixIcon: const Icon(Icons.lock),
+            errorText: _codeError,
+          ),
+          //keyboardType: TextInputType.number,
+          obscureText: true,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez entrer le code reçu';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: _isVerifyingCode ? null : _verifyCode,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: providerColor,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+          child: _isVerifyingCode
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Text('Valider le paiement'),
+        ),
+      ],
+    );
+  }*/
 }

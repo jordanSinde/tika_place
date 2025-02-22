@@ -408,6 +408,18 @@ class ReservationNotifier extends StateNotifier<ReservationState> {
         .toList();
   }
 
+// Add this to ReservationNotifier class in reservation_provider.dart
+  void updateExistingReservation(TicketReservation updatedReservation) {
+    final updatedReservations = state.reservations.map((reservation) {
+      if (reservation.id == updatedReservation.id) {
+        return updatedReservation;
+      }
+      return reservation;
+    }).toList();
+
+    state = state.copyWith(reservations: updatedReservations);
+  }
+
   @override
   void dispose() {
     // Annuler tous les timers

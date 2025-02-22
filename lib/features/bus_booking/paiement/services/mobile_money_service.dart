@@ -32,6 +32,42 @@ class MobileMoneyService {
     required double amount,
     required String description,
   }) async {
+    // Simulate API call delay
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Generate reference with special prefixes for test numbers
+    String reference;
+
+    if (phoneNumber == '655123456') {
+      reference = 'FAIL_${DateTime.now().millisecondsSinceEpoch}';
+    } else if (phoneNumber == '651234567') {
+      reference = 'TIMEOUT_${DateTime.now().millisecondsSinceEpoch}';
+    } else if (phoneNumber == '654321789') {
+      reference = 'PENDING_${DateTime.now().millisecondsSinceEpoch}';
+    } else if (phoneNumber == '650000000') {
+      reference = 'NETWORK_${DateTime.now().millisecondsSinceEpoch}';
+    } else {
+      reference = 'TX${DateTime.now().millisecondsSinceEpoch}';
+    }
+
+    // Simuler une réponse d'API
+    return TransactionStatus(
+      reference: reference,
+      isSuccess: true,
+      message: 'Transaction initiée avec succès',
+      data: {
+        'paymentUrl': 'https://payment.example.com/confirm',
+        'expiresIn': 300, // 5 minutes
+      },
+    );
+  }
+
+  /*<TransactionStatus> initiatePayment({
+    required PaymentMethod method,
+    required String phoneNumber,
+    required double amount,
+    required String description,
+  }) async {
     // Simuler l'appel à l'API de paiement
     await Future.delayed(const Duration(seconds: 2));
 
@@ -45,9 +81,52 @@ class MobileMoneyService {
         'expiresIn': 300, // 5 minutes
       },
     );
-  }
+  }*/
 
   Future<TransactionStatus> checkTransactionStatus(String reference) async {
+    // Simulate the verification delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Check if the reference contains special test codes
+    // These will allow you to test specific failure scenarios
+    if (reference.toLowerCase().contains('fail')) {
+      return TransactionStatus(
+        reference: reference,
+        isSuccess: false,
+        message: 'Échec de la transaction: fonds insuffisants',
+      );
+    } else if (reference.toLowerCase().contains('timeout')) {
+      return TransactionStatus(
+        reference: reference,
+        isSuccess: false,
+        message: 'Délai d\'attente dépassé: aucune réponse du fournisseur',
+      );
+    } else if (reference.toLowerCase().contains('pending')) {
+      return TransactionStatus(
+        reference: reference,
+        isSuccess: false,
+        message: 'Transaction en attente: confirmation requise',
+      );
+    } else if (reference.toLowerCase().contains('network')) {
+      return TransactionStatus(
+        reference: reference,
+        isSuccess: false,
+        message: 'Erreur réseau: vérifiez votre connexion',
+      );
+    }
+
+    // Default behavior (80% success rate)
+    final isSuccess = DateTime.now().millisecond % 5 != 0;
+    return TransactionStatus(
+      reference: reference,
+      isSuccess: isSuccess,
+      message: isSuccess
+          ? 'Transaction effectuée avec succès'
+          : 'Échec de la transaction pour une raison inconnue',
+    );
+  }
+
+  /*Future<TransactionStatus> checkTransactionStatus(String reference) async {
     // Simuler la vérification du statut
     await Future.delayed(const Duration(seconds: 1));
 
@@ -61,7 +140,7 @@ class MobileMoneyService {
           ? 'Transaction effectuée avec succès'
           : 'En attente de confirmation',
     );
-  }
+  }*/
 
   Stream<TransactionStatus> monitorTransaction(String reference) async* {
     int attempts = 0;

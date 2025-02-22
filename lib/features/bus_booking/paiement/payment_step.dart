@@ -331,7 +331,26 @@ class _PaymentStepState extends ConsumerState<PaymentStep> {
 
           // First, ensure reservation is created
           await ref.read(bookingProvider.notifier).initializePayment(ref);
+// DIRECT SOLUTION: Check for forced failure code
+          if (code == "FORCE_FAIL") {
+            // Simulate a failed payment
+            await Future.delayed(const Duration(seconds: 1));
 
+            // Force payment failure through the proper method
+            ref
+                .read(bookingProvider.notifier)
+                .forcePaymentFailure('Échec du paiement: fonds insuffisants');
+
+            // Show error dialog
+            if (mounted) {
+              _showErrorWithType(PaymentErrorType.insufficientFunds,
+                  'Le paiement a échoué: fonds insuffisants');
+            }
+            setState(() => _isProcessingPayment = false);
+            return;
+          }
+
+//END FORCE_FAIL
           // Now process payment
           final success =
               await ref.read(bookingProvider.notifier).processPayment(ref);
