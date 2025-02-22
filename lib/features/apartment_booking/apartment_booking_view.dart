@@ -1,10 +1,256 @@
 // lib/features/home/widgets/apartment_booking/apartment_booking_view.dart
 
+// lib/features/apartment_booking/screens/apartment_booking_view.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/config/theme/app_colors.dart';
+import 'data/mock_data.dart';
+import 'models/apartment_filters.dart';
+import 'widgets/apartment_card.dart';
+
+class ApartmentBookingView extends ConsumerStatefulWidget {
+  const ApartmentBookingView({super.key});
+
+  @override
+  ConsumerState<ApartmentBookingView> createState() =>
+      _ApartmentBookingViewState();
+}
+
+class _ApartmentBookingViewState extends ConsumerState<ApartmentBookingView> {
+  List<Apartment> _featuredApartments = [];
+  final List<String> _cities = cities;
+
+  @override
+  void initState() {
+    super.initState();
+    // Charger quelques appartements pour la présentation
+    _featuredApartments = generateApartments(count: 5);
+  }
+
+  void _handleSearch(ApartmentSearchFilters filters) {
+    context.go('/apartments/list', extra: {'filters': filters});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // En-tête de recherche
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: AppColors.primary.withOpacity(0.1),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Trouvez votre appartement idéal',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Formulaire de recherche rapide
+                _buildQuickSearchForm(),
+              ],
+            ),
+          ),
+
+          // Section des appartements en vedette
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Appartements en vedette',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          _handleSearch(const ApartmentSearchFilters()),
+                      child: const Text('Voir tout'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 340,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _featuredApartments.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        width: 280,
+                        margin: const EdgeInsets.only(right: 16),
+                        child: ApartmentCard(
+                          apartment: _featuredApartments[index],
+                          onTap: () =>
+                              _showApartmentDetails(_featuredApartments[index]),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Section des villes populaires
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Villes populaires',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildPopularCities(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickSearchForm() {
+    String? selectedCity;
+    return Column(
+      children: [
+        // Sélecteur de ville
+        DropdownButtonFormField<String>(
+          value: selectedCity,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            hintText: 'Sélectionnez une ville',
+            prefixIcon: const Icon(Icons.location_city),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          items: _cities.map((city) {
+            return DropdownMenuItem(
+              value: city,
+              child: Text(city),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              selectedCity = value;
+            });
+          },
+        ),
+        const SizedBox(height: 16),
+
+        // Bouton de recherche
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              if (selectedCity != null) {
+                _handleSearch(ApartmentSearchFilters(
+                  city: selectedCity,
+                ));
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Veuillez sélectionner une ville'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.secondary,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Rechercher',
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPopularCities() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      childAspectRatio: 1.5,
+      children: _cities.map((city) {
+        return InkWell(
+          onTap: () => _handleSearch(ApartmentSearchFilters(city: city)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              image: DecorationImage(
+                image: AssetImage('assets/images/cities/$city.jpg'),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.3),
+                  BlendMode.darken,
+                ),
+              ),
+            ),
+            child: Center(
+              child: Text(
+                city,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  void _showApartmentDetails(Apartment apartment) {
+    // TODO: Implémenter la navigation vers les détails
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Détails de l\'appartement à venir'),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+}
+/*
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/config/theme/app_colors.dart';
-import '../../models/apartment_mock_data.dart';
+import '../../core/config/theme/app_colors.dart';
+import '../home/models/apartment_mock_data.dart';
 import 'apartment_search_card.dart';
 import 'booking_form_field.dart';
 
@@ -162,16 +408,6 @@ class _ApartmentBookingViewState extends ConsumerState<ApartmentBookingView> {
       ],
     );
   }
-
-  // Dans votre initState ou dans un controlleur :
-/*void _precacheImages() {
-  for (final apartment in featuredApartments) {
-    precacheImage(
-      CachedNetworkImageProvider(_getOptimizedImageUrl(apartment.images[0])),
-      context,
-    );
-  }
-}*/
 
   Widget _buildImagePlaceholder() {
     return Container(
@@ -844,3 +1080,4 @@ class _ApartmentBookingViewState extends ConsumerState<ApartmentBookingView> {
     );
   }
 }
+*/

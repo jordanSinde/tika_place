@@ -1,5 +1,5 @@
 // lib/features/home/models/apartment_mock_data.dart
-
+/*
 class Apartment {
   final String id;
   final String title;
@@ -123,3 +123,4 @@ final List<Apartment> mockApartments = [
     reviews: 32,
   ),
 ];
+*/

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/config/theme/app_colors.dart';
+import '../../core/config/theme/app_colors.dart';
 
 class BookingFormField extends StatelessWidget {
   final String label;

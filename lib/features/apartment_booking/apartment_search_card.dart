@@ -1,8 +1,8 @@
 // lib/features/home/widgets/apartment_booking/apartment_search_card.dart
 
 import 'package:flutter/material.dart';
-import '../../../../core/config/theme/app_colors.dart';
-import '../../models/apartment_mock_data.dart';
+import '../../core/config/theme/app_colors.dart';
+import '../home/models/apartment_mock_data.dart';
 
 class ApartmentSearchCard extends StatefulWidget {
   final Function(Map<String, dynamic>) onSearch;

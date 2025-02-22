@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/apartment_booking/models/apartment_filters.dart';
+import '../../features/apartment_booking/screens/apartment_listing_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/opt_verification_screen.dart';
 import '../../features/bus_booking/screens/bus_booking_process_screen.dart';
@@ -190,7 +192,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             const ReservationDetailsScreen(type: 'apartments'),
       ),
-
+      GoRoute(
+        path: '/apartments/list',
+        builder: (context, state) {
+          final params = state.extra as Map<String, dynamic>? ?? {};
+          return ApartmentListingScreen(
+            initialFilters: params['filters'] as ApartmentSearchFilters? ??
+                const ApartmentSearchFilters(),
+          );
+        },
+      ),
       //FIN status des reservations dans le Profile
       /*// Hotel Routes
       GoRoute(
