@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/apartment_booking/models/apartment_mock_data.dart';
+import '../../features/apartment_booking/screens/apartment_details_screen.dart';
+import '../../features/apartment_booking/screens/apartment_list_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/opt_verification_screen.dart';
 import '../../features/bus_booking/screens/bus_booking_process_screen.dart';
@@ -192,34 +195,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       //FIN status des reservations dans le Profile
-      /*// Hotel Routes
+
+      // Dans la section des routes, ajouter ces nouvelles routes :
       GoRoute(
-        path: '/hotels/list',
-        builder: (context, state) => const Center(
-          child: Text("Liste des hôtels"),
-        ),
-      ),
-      GoRoute(
-        path: '/hotels/rooms',
-        builder: (context, state) => const Center(
-          child: Text("Chambres disponibles"),
-        ),
-      ),
-      GoRoute(
-        path: '/hotels/details/:id',
-        builder: (context, state) => Center(
-          child: Text("Détails de l'hôtel ${state.pathParameters['id']}"),
-        ),
+        path: '/apartments/list',
+        builder: (context, state) {
+          final params = state.extra as Map<String, dynamic>? ?? {};
+          return ApartmentListScreen(
+            initialFilters: params['filters'] as ApartmentSearchFilters? ??
+                const ApartmentSearchFilters(),
+          );
+        },
       ),
 
       GoRoute(
-        path: '/manage-sessions',
-        pageBuilder: (context, state) => PageTransitions.slideTransition(
-          context,
-          state,
-          const ManageSessionsScreen(),
-        ),
-      ),*/
+        path: '/apartments/details',
+        builder: (context, state) {
+          final params = state.extra as Map<String, dynamic>? ?? {};
+          final apartment = params['apartment'] as Apartment;
+          return ApartmentDetailsScreen(
+            apartment: apartment,
+          );
+        },
+      ),
     ],
     errorBuilder: (context, state) => Material(
       child: Scaffold(

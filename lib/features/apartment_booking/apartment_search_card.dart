@@ -1,11 +1,11 @@
-// lib/features/home/widgets/apartment_booking/apartment_search_card.dart
+// lib/features/apartment/widgets/apartment_search_card.dart
 
 import 'package:flutter/material.dart';
-import '../../../../core/config/theme/app_colors.dart';
-import '../../models/apartment_mock_data.dart';
+import '../../core/config/theme/app_colors.dart';
+import 'models/apartment_mock_data.dart';
 
 class ApartmentSearchCard extends StatefulWidget {
-  final Function(Map<String, dynamic>) onSearch;
+  final Function(ApartmentSearchFilters) onSearch;
 
   const ApartmentSearchCard({
     super.key,
@@ -17,12 +17,38 @@ class ApartmentSearchCard extends StatefulWidget {
 }
 
 class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
-  final List<String> _cities = ['Douala', 'Yaoundé', 'Kribi', 'Bafoussam'];
+  late ApartmentSearchFilters _filters;
   String? _selectedCity;
-  RangeValues _priceRange = const RangeValues(100000, 1000000);
-  RentalType _selectedRentalType = RentalType.shortTerm;
+  String? _selectedDistrict;
+  List<String> _availableDistricts = [];
+  RentalType _selectedRentalType = RentalType.longTerm;
   int _bedrooms = 1;
+  RangeValues _priceRange = const RangeValues(50000, 1000000);
   double _minSurface = 0;
+  ApartmentClass? _selectedClass;
+
+  @override
+  void initState() {
+    super.initState();
+    _filters = const ApartmentSearchFilters();
+  }
+
+  void _updateDistricts(String? city) {
+    if (city == null) {
+      setState(() {
+        _availableDistricts = [];
+        _selectedDistrict = null;
+      });
+      return;
+    }
+
+    final districts =
+        cityData[city]?.values.expand((list) => list).toList() ?? [];
+    setState(() {
+      _availableDistricts = districts;
+      _selectedDistrict = null;
+    });
+  }
 
   void _handleSearch() {
     if (_selectedCity == null) {
@@ -35,13 +61,17 @@ class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
       return;
     }
 
-    widget.onSearch({
-      'city': _selectedCity,
-      'priceRange': _priceRange,
-      'rentalType': _selectedRentalType,
-      'bedrooms': _bedrooms,
-      'minSurface': _minSurface,
-    });
+    final filters = ApartmentSearchFilters(
+      city: _selectedCity,
+      district: _selectedDistrict,
+      rentalType: _selectedRentalType,
+      apartmentClass: _selectedClass,
+      priceRange: _priceRange,
+      minSurface: _minSurface,
+      minBedrooms: _bedrooms,
+    );
+
+    widget.onSearch(filters);
   }
 
   @override
@@ -67,10 +97,30 @@ class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
           _buildDropdown(
             label: 'Ville',
             value: _selectedCity,
-            items: _cities,
-            onChanged: (value) => setState(() => _selectedCity = value),
+            items: cityData.keys.toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedCity = value;
+                _updateDistricts(value);
+              });
+            },
           ),
           const SizedBox(height: 16),
+
+          // Sélection du quartier
+          if (_availableDistricts.isNotEmpty) ...[
+            _buildDropdown(
+              label: 'Quartier',
+              value: _selectedDistrict,
+              items: _availableDistricts,
+              onChanged: (value) {
+                setState(() {
+                  _selectedDistrict = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
 
           // Type de location
           _buildLabel('Type de location'),
@@ -92,6 +142,24 @@ class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
                         dense: true,
                         activeColor: AppColors.primary,
                       ),
+                    ))
+                .toList(),
+          ),
+          const SizedBox(height: 16),
+
+          // Classe d'appartement
+          _buildLabel('Catégorie'),
+          Wrap(
+            spacing: 8,
+            children: ApartmentClass.values
+                .map((classType) => ChoiceChip(
+                      label: Text(classType.label),
+                      selected: _selectedClass == classType,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedClass = selected ? classType : null;
+                        });
+                      },
                     ))
                 .toList(),
           ),
