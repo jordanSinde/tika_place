@@ -3,8 +3,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/config/theme/app_colors.dart';
-import '../../models/hotels_mock_data.dart';
+import '../../../core/config/theme/app_colors.dart';
+import '../data/hotels_mock_data.dart';
 import 'hotel_search_card.dart';
 
 final selectedFiltersProvider = StateProvider<Set<String>>((ref) => {});

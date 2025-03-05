@@ -45,28 +45,6 @@ class ApartmentBookingView extends ConsumerWidget {
               ],
             ),
           ),
-
-          // Section destinations populaires
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Destinations Populaires',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildPopularDestinations(context),
-              ],
-            ),
-          ),
-
-          // Section de promotion
-          _buildPromotionSection(context),
         ],
       ),
     );
@@ -99,7 +77,17 @@ class ApartmentBookingView extends ConsumerWidget {
       BuildContext context, Apartment apartment) {
     return GestureDetector(
       onTap: () {
-        context.go('/apartments/details', extra: {'apartment': apartment});
+        // Définir une période par défaut (par exemple, une semaine à partir d'aujourd'hui)
+        final DateTime defaultStartDate =
+            DateTime.now().add(const Duration(days: 1));
+        final DateTime defaultEndDate =
+            defaultStartDate.add(const Duration(days: 7));
+
+        context.push('/apartments/details', extra: {
+          'apartment': apartment,
+          'initialStartDate': defaultStartDate,
+          'initialEndDate': defaultEndDate,
+        });
       },
       child: Container(
         decoration: BoxDecoration(
@@ -197,174 +185,19 @@ class ApartmentBookingView extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        '${NumberFormat('#,###').format(apartment.price)} FCFA',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.secondary,
-                        ),
-                      ),
-                      Text(
-                        apartment.rentalType == RentalType.shortTerm
-                            ? ' / nuit'
-                            : ' / mois',
-                        style: const TextStyle(
-                          color: AppColors.textLight,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    '${NumberFormat('#,###').format(apartment.pricePerDay)} FCFA',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.secondary,
+                    ),
                   ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildPopularDestinations(BuildContext context) {
-    final cities = cityData.keys.take(4).toList();
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1.5,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: cities.length,
-      itemBuilder: (context, index) {
-        return _buildDestinationCard(
-          context,
-          city: cities[index],
-          imageUrl: 'https://example.com/${cities[index]}.jpg',
-        );
-      },
-    );
-  }
-
-  Widget _buildDestinationCard(
-    BuildContext context, {
-    required String city,
-    required String imageUrl,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        final filters = ApartmentSearchFilters(city: city);
-        context.go('/apartments/list', extra: {'filters': filters});
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          image: DecorationImage(
-            image: NetworkImage(imageUrl),
-            fit: BoxFit.cover,
-            onError: (error, stackTrace) => const {},
-          ),
-          color: AppColors.background,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.black.withOpacity(0.7),
-              ],
-            ),
-          ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                city,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${cityData[city]!.values.expand((e) => e).length} quartiers',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPromotionSection(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary,
-            AppColors.primary.withOpacity(0.8),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Offre Spéciale',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Réservez maintenant et bénéficiez de -20% sur votre première location',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              // Naviguer vers la liste avec un filtre pour les promotions
-              context.go('/apartments/list', extra: {
-                'filters': const ApartmentSearchFilters(),
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
-            ),
-            child: const Text(
-              'En profiter',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

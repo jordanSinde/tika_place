@@ -22,11 +22,14 @@ class ApartmentFilterPanel extends StatefulWidget {
 class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
   late ApartmentSearchFilters _filters;
   late RangeValues _priceRange;
-  final double _minPrice = 50000;
-  final double _maxPrice = 1000000;
+  final double _minPrice = 5000;
+  final double _maxPrice = 100000;
   int _bedrooms = 1;
   double _minSurface = 0;
   List<String> _availableDistricts = [];
+  DateTime? _startDate;
+  DateTime? _endDate;
+  bool _showOnlyAvailable = true;
 
   @override
   void initState() {
@@ -35,6 +38,9 @@ class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
     _priceRange = _filters.priceRange ?? RangeValues(_minPrice, _maxPrice);
     _bedrooms = _filters.minBedrooms ?? 1;
     _minSurface = _filters.minSurface ?? 0;
+    _startDate = _filters.startDate;
+    _endDate = _filters.endDate;
+    _showOnlyAvailable = _filters.showOnlyAvailable;
     _updateAvailableDistricts();
   }
 
@@ -67,9 +73,65 @@ class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
           ],
           const SizedBox(height: 16),
 
-          // Type de location
-          _buildSectionTitle('Type de location'),
-          _buildRentalTypeSelector(),
+          // Dates de séjour
+          _buildSectionTitle('Dates de séjour'),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDateSelector(
+                  label: 'Arrivée',
+                  date: _startDate,
+                  onDateSelected: (date) {
+                    setState(() {
+                      _startDate = date;
+
+                      // Mettre à jour la date de fin si nécessaire
+                      if (_endDate != null && _endDate!.isBefore(_startDate!)) {
+                        _endDate = _startDate!.add(const Duration(days: 1));
+                      }
+                    });
+                  },
+                  minDate: DateTime.now(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDateSelector(
+                  label: 'Départ',
+                  date: _endDate,
+                  onDateSelected: (date) {
+                    setState(() {
+                      _endDate = date;
+                    });
+                  },
+                  minDate: _startDate?.add(const Duration(days: 1)) ??
+                      DateTime.now().add(const Duration(days: 1)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Option pour montrer uniquement les disponibles
+          Row(
+            children: [
+              Checkbox(
+                value: _showOnlyAvailable,
+                onChanged: (value) {
+                  setState(() {
+                    _showOnlyAvailable = value ?? true;
+                  });
+                },
+                activeColor: AppColors.primary,
+              ),
+              const Expanded(
+                child: Text(
+                  'Afficher uniquement les appartements disponibles',
+                  style: TextStyle(fontSize: 14),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
 
           // Catégorie
@@ -78,7 +140,7 @@ class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
           const SizedBox(height: 16),
 
           // Prix
-          _buildSectionTitle('Prix (FCFA)'),
+          _buildSectionTitle('Prix par jour (FCFA)'),
           _buildPriceRangeSelector(),
           const SizedBox(height: 16),
 
@@ -97,7 +159,20 @@ class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                widget.onFiltersChanged(_filters);
+                final updatedFilters = ApartmentSearchFilters(
+                  city: _filters.city,
+                  district: _filters.district,
+                  startDate: _startDate,
+                  endDate: _endDate,
+                  showOnlyAvailable: _showOnlyAvailable,
+                  apartmentClass: _filters.apartmentClass,
+                  priceRange: _priceRange,
+                  minSurface: _minSurface,
+                  minBedrooms: _bedrooms,
+                  requiredAmenities: _filters.requiredAmenities,
+                );
+
+                widget.onFiltersChanged(updatedFilters);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.secondary,
@@ -197,22 +272,77 @@ class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
     );
   }
 
-  Widget _buildRentalTypeSelector() {
-    return Row(
-      children: RentalType.values.map((type) {
-        return Expanded(
-          child: RadioListTile<RentalType>(
-            title: Text(type.label),
-            value: type,
-            groupValue: _filters.rentalType,
-            onChanged: (value) {
-              setState(() {
-                _filters = _filters.copyWith(rentalType: value);
-              });
-            },
-          ),
+  Widget _buildDateSelector({
+    required String label,
+    required DateTime? date,
+    required Function(DateTime) onDateSelected,
+    required DateTime minDate,
+  }) {
+    final dateFormat = DateFormat('dd/MM/yyyy');
+
+    return GestureDetector(
+      onTap: () async {
+        final pickedDate = await showDatePicker(
+          context: context,
+          initialDate: date ?? minDate,
+          firstDate: minDate,
+          lastDate: DateTime.now().add(const Duration(days: 365)),
+          builder: (context, child) {
+            return Theme(
+              data: ThemeData.light().copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: AppColors.primary,
+                  onPrimary: Colors.white,
+                  onSurface: AppColors.textPrimary,
+                ),
+              ),
+              child: child!,
+            );
+          },
         );
-      }).toList(),
+
+        if (pickedDate != null) {
+          onDateSelected(pickedDate);
+        }
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textLight,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.inputBackground,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.calendar_today,
+                  size: 20,
+                  color: AppColors.textLight,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  date != null ? dateFormat.format(date) : 'Sélectionner',
+                  style: TextStyle(
+                    color: date != null
+                        ? AppColors.textPrimary
+                        : AppColors.textLight.withOpacity(0.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -271,7 +401,6 @@ class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
           onChanged: (values) {
             setState(() {
               _priceRange = values;
-              _filters = _filters.copyWith(priceRange: values);
             });
           },
           activeColor: AppColors.success,
@@ -296,8 +425,6 @@ class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
                       ? () {
                           setState(() {
                             _bedrooms--;
-                            _filters =
-                                _filters.copyWith(minBedrooms: _bedrooms);
                           });
                         }
                       : null,
@@ -316,7 +443,6 @@ class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
                   onPressed: () {
                     setState(() {
                       _bedrooms++;
-                      _filters = _filters.copyWith(minBedrooms: _bedrooms);
                     });
                   },
                   icon: const Icon(Icons.add_circle_outline),
@@ -345,7 +471,6 @@ class _ApartmentFilterPanelState extends State<ApartmentFilterPanel> {
           onChanged: (value) {
             setState(() {
               _minSurface = value;
-              _filters = _filters.copyWith(minSurface: value);
             });
           },
           activeColor: AppColors.success,

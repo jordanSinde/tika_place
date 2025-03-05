@@ -8,15 +8,28 @@ import '../models/apartment_mock_data.dart';
 class ApartmentCard extends StatelessWidget {
   final Apartment apartment;
   final VoidCallback onPressed;
+  final DateTime? checkStartDate;
+  final DateTime? checkEndDate;
 
   const ApartmentCard({
     super.key,
     required this.apartment,
     required this.onPressed,
+    this.checkStartDate,
+    this.checkEndDate,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool hasDateRange = checkStartDate != null && checkEndDate != null;
+    final bool isAvailable = hasDateRange
+        ? apartment.isAvailableForPeriod(checkStartDate!, checkEndDate!)
+        : true;
+
+    final DateTime? nextAvailable = hasDateRange && !isAvailable
+        ? apartment.getNextAvailableDateAfter(checkStartDate!)
+        : null;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
@@ -80,6 +93,23 @@ class ApartmentCard extends StatelessWidget {
                             textColor: Colors.white,
                           ),
                         ),
+
+                        // Badge de disponibilité
+                        if (hasDateRange)
+                          Positioned(
+                            bottom: 12,
+                            left: 12,
+                            child: _buildBadge(
+                              text: isAvailable ? 'Disponible' : 'Indisponible',
+                              icon: isAvailable
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
+                              color: isAvailable
+                                  ? Colors.green.withOpacity(0.9)
+                                  : Colors.red.withOpacity(0.9),
+                              textColor: Colors.white,
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -105,8 +135,24 @@ class ApartmentCard extends StatelessWidget {
                     _buildLocation(),
                     const SizedBox(height: 8),
                     _buildFeatures(),
-                    const SizedBox(height: 16),
-                    _buildFooter(context),
+                    const SizedBox(height: 8),
+
+                    // Information sur la disponibilité
+                    if (hasDateRange && !isAvailable && nextAvailable != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          'Prochaine disponibilité: ${DateFormat('dd/MM/yyyy').format(nextAvailable)}',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 8),
+                    _buildFooter(context, hasDateRange, isAvailable),
                   ],
                 ),
               ),
@@ -218,7 +264,23 @@ class ApartmentCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter(BuildContext context) {
+  Widget _buildFooter(
+      BuildContext context, bool hasDateRange, bool isAvailable) {
+    // Calculer le prix total si des dates ont été sélectionnées
+    final String priceText;
+    final String priceSubtext;
+
+    if (hasDateRange && checkStartDate != null && checkEndDate != null) {
+      final days = checkEndDate!.difference(checkStartDate!).inDays;
+      final totalPrice = apartment.pricePerDay * days;
+
+      priceText = '${NumberFormat('#,###').format(totalPrice)} FCFA';
+      priceSubtext = 'pour $days ${days > 1 ? 'jours' : 'jour'}';
+    } else {
+      priceText = '${NumberFormat('#,###').format(apartment.pricePerDay)} FCFA';
+      priceSubtext = 'par jour';
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -226,7 +288,7 @@ class ApartmentCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${NumberFormat('#,###').format(apartment.price)} FCFA',
+              priceText,
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -234,9 +296,7 @@ class ApartmentCard extends StatelessWidget {
               ),
             ),
             Text(
-              apartment.rentalType == RentalType.shortTerm
-                  ? 'par nuit'
-                  : 'par mois',
+              priceSubtext,
               style: TextStyle(
                 color: Colors.grey[600],
                 fontSize: 12,

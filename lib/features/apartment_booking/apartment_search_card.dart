@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../../core/config/theme/app_colors.dart';
 import 'models/apartment_mock_data.dart';
 
+import 'package:intl/intl.dart';
+
 class ApartmentSearchCard extends StatefulWidget {
   final Function(ApartmentSearchFilters) onSearch;
 
@@ -17,20 +19,24 @@ class ApartmentSearchCard extends StatefulWidget {
 }
 
 class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
-  late ApartmentSearchFilters _filters;
   String? _selectedCity;
   String? _selectedDistrict;
   List<String> _availableDistricts = [];
-  RentalType _selectedRentalType = RentalType.longTerm;
+  DateTime? _startDate;
+  DateTime? _endDate;
+  RangeValues _priceRange = const RangeValues(5000, 100000);
+  final double _minSurface = 0;
   int _bedrooms = 1;
-  RangeValues _priceRange = const RangeValues(50000, 1000000);
-  double _minSurface = 0;
   ApartmentClass? _selectedClass;
+  bool _showOnlyAvailable = true;
 
   @override
   void initState() {
     super.initState();
-    _filters = const ApartmentSearchFilters();
+
+    // Initialiser les dates par défaut
+    _startDate = DateTime.now().add(const Duration(days: 1));
+    _endDate = DateTime.now().add(const Duration(days: 8));
   }
 
   void _updateDistricts(String? city) {
@@ -61,14 +67,36 @@ class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
       return;
     }
 
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez sélectionner des dates'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (_endDate!.isBefore(_startDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('La date de départ doit être après la date d\'arrivée'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     final filters = ApartmentSearchFilters(
       city: _selectedCity,
       district: _selectedDistrict,
-      rentalType: _selectedRentalType,
+      startDate: _startDate,
+      endDate: _endDate,
       apartmentClass: _selectedClass,
       priceRange: _priceRange,
       minSurface: _minSurface,
       minBedrooms: _bedrooms,
+      showOnlyAvailable: _showOnlyAvailable,
     );
 
     widget.onSearch(filters);
@@ -122,32 +150,39 @@ class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
             const SizedBox(height: 16),
           ],
 
-          // Type de location
-          _buildLabel('Type de location'),
-          Row(
-            children: RentalType.values
-                .map((type) => Expanded(
-                      child: RadioListTile<RentalType>(
-                        title: Text(
-                          type.label,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        value: type,
-                        groupValue: _selectedRentalType,
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _selectedRentalType = value);
-                          }
-                        },
-                        dense: true,
-                        activeColor: AppColors.primary,
-                      ),
-                    ))
-                .toList(),
+          // Date d'arrivée
+          _buildLabel('Date d\'arrivée'),
+          _buildDatePicker(
+            selectedDate: _startDate,
+            hintText: 'Sélectionner une date d\'arrivée',
+            onDateSelected: (date) {
+              setState(() {
+                _startDate = date;
+
+                // Si la date de départ est avant la nouvelle date d'arrivée, on la met à jour
+                if (_endDate != null && _endDate!.isBefore(_startDate!)) {
+                  _endDate = _startDate!.add(const Duration(days: 7));
+                }
+              });
+            },
           ),
           const SizedBox(height: 16),
 
-          // Classe d'appartement
+          // Date de départ
+          _buildLabel('Date de départ'),
+          _buildDatePicker(
+            selectedDate: _endDate,
+            hintText: 'Sélectionner une date de départ',
+            onDateSelected: (date) {
+              setState(() {
+                _endDate = date;
+              });
+            },
+            minDate: _startDate?.add(const Duration(days: 1)),
+          ),
+          const SizedBox(height: 16),
+
+          /* // Classe d'appartement
           _buildLabel('Catégorie'),
           Wrap(
             spacing: 8,
@@ -163,14 +198,14 @@ class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 16),*/
 
           // Fourchette de prix
-          _buildLabel('Budget (FCFA)'),
+          _buildLabel('Budget journalier (FCFA)'),
           RangeSlider(
             values: _priceRange,
-            min: 50000,
-            max: 1000000,
+            min: 5000,
+            max: 100000,
             divisions: 19,
             labels: RangeLabels(
               '${_priceRange.start.round()} FCFA',
@@ -210,7 +245,7 @@ class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
           const SizedBox(height: 16),
 
           // Surface minimale
-          _buildLabel('Surface minimale (m²)'),
+          /*_buildLabel('Surface minimale (m²)'),
           Slider(
             value: _minSurface,
             min: 0,
@@ -220,6 +255,28 @@ class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
             onChanged: (value) => setState(() => _minSurface = value),
             activeColor: AppColors.primary,
             inactiveColor: AppColors.primary.withOpacity(0.2),
+          ),
+          const SizedBox(height: 16),*/
+
+          // Option pour afficher seulement les disponibles
+          Row(
+            children: [
+              Checkbox(
+                value: _showOnlyAvailable,
+                onChanged: (value) {
+                  setState(() {
+                    _showOnlyAvailable = value ?? true;
+                  });
+                },
+                activeColor: AppColors.primary,
+              ),
+              const Expanded(
+                child: Text(
+                  'Afficher uniquement les appartements disponibles',
+                  style: TextStyle(fontSize: 14),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
 
@@ -287,6 +344,68 @@ class _ApartmentSearchCardState extends State<ApartmentSearchCard> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDatePicker({
+    required DateTime? selectedDate,
+    required String hintText,
+    required Function(DateTime) onDateSelected,
+    DateTime? minDate,
+  }) {
+    final dateFormat = DateFormat('dd/MM/yyyy');
+
+    return GestureDetector(
+      onTap: () async {
+        final pickedDate = await showDatePicker(
+          context: context,
+          initialDate:
+              selectedDate ?? DateTime.now().add(const Duration(days: 1)),
+          firstDate: minDate ?? DateTime.now(),
+          lastDate: DateTime.now().add(const Duration(days: 365)),
+          builder: (context, child) {
+            return Theme(
+              data: ThemeData.light().copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: AppColors.primary,
+                  onPrimary: Colors.white,
+                  onSurface: AppColors.textPrimary,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+
+        if (pickedDate != null) {
+          onDateSelected(pickedDate);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.inputBackground,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.calendar_today,
+              size: 20,
+              color: AppColors.textLight,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              selectedDate != null ? dateFormat.format(selectedDate) : hintText,
+              style: TextStyle(
+                color: selectedDate != null
+                    ? AppColors.textPrimary
+                    : AppColors.textLight.withOpacity(0.5),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

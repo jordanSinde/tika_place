@@ -215,9 +215,21 @@ final routerProvider = Provider<GoRouter>((ref) {
           final apartment = params['apartment'] as Apartment;
           return ApartmentDetailsScreen(
             apartment: apartment,
+            initialStartDate: params['initialStartDate'] as DateTime?,
+            initialEndDate: params['initialEndDate'] as DateTime?,
           );
         },
       ),
+      /*GoRoute(
+        path: '/apartments/details',
+        builder: (context, state) {
+          final params = state.extra as Map<String, dynamic>? ?? {};
+          final apartment = params['apartment'] as Apartment;
+          return ApartmentDetailsScreen(
+            apartment: apartment,
+          );
+        },
+      ),*/
     ],
     errorBuilder: (context, state) => Material(
       child: Scaffold(

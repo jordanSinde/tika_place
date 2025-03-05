@@ -84,6 +84,8 @@ class ApartmentSortSelector extends StatelessWidget {
           return Icons.square_foot;
         case ApartmentSortOption.ratingDesc:
           return Icons.star;
+        case ApartmentSortOption.availabilityAsc:
+          return Icons.event_available;
       }
     }
 
