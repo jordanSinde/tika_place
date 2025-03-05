@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tika_place/core/config/constants.dart';
 import '../../../core/config/theme/app_colors.dart';
-
-// lib/features/home/screens/home_screen.dart
-
 import '../../common/widgets/drawers/custom_drawer.dart';
 import '../../bus_booking/bus_booking_view.dart';
+import '../widgets/apartment_booking/apartment_booking_view.dart';
 import '../widgets/custom_carroussel.dart';
 import '../widgets/hotel_booking/hotel_booking_view.dart';
-import '../widgets/apartment_booking/apartment_booking_view.dart';
 
 final selectedTabProvider = StateProvider<int>((ref) => 0);
 
@@ -21,8 +18,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  // ... votre _buildTabItem reste le même ...
-
   Widget _buildContent(int selectedTab) {
     switch (selectedTab) {
       case 0:
