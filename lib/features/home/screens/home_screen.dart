@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tika_place/core/config/constants.dart';
 import '../../../core/config/theme/app_colors.dart';
+import '../../apartment_booking/apartment_booking_view.dart';
 import '../../common/widgets/drawers/custom_drawer.dart';
 import '../../bus_booking/bus_booking_view.dart';
-import '../widgets/apartment_booking/apartment_booking_view.dart';
+import '../../hotel_booking/widgets/hotel_booking_view.dart';
 import '../widgets/custom_carroussel.dart';
-import '../widgets/hotel_booking/hotel_booking_view.dart';
 
 final selectedTabProvider = StateProvider<int>((ref) => 0);
 

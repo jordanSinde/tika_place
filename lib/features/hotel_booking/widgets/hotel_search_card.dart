@@ -1,7 +1,7 @@
 // lib/features/home/widgets/hotel_booking/hotel_search_card.dart
 
 import 'package:flutter/material.dart';
-import '../../../../core/config/theme/app_colors.dart';
+import '../../../core/config/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 
 class HotelSearchCard extends StatefulWidget {
