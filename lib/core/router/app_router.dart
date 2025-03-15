@@ -10,6 +10,9 @@ import '../../features/bus_booking/screens/bus_booking_process_screen.dart';
 import '../../features/bus_booking/screens/reservation_details_screen.dart';
 import '../../features/home/models/bus_mock_data.dart';
 import '../../features/bus_booking/bus_booking_list_screen.dart';
+import '../../features/hotel_booking/models/models.dart';
+import '../../features/hotel_booking/screens/hotel_detail_screen.dart';
+import '../../features/hotel_booking/screens/hotel_list_screen.dart';
 import '../../features/main/screens/main_scaffold.dart';
 import '../../features/onboarding/provider/onboarding_provider.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
@@ -230,6 +233,34 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),*/
+
+      // Dans la section des routes du fichier app_router.dart
+      GoRoute(
+        path: '/hotels/list',
+        builder: (context, state) {
+          final params = state.extra as Map<String, dynamic>? ?? {};
+          return HotelListScreen(
+            initialFilters: params['filters'] as HotelSearchFilters? ??
+                const HotelSearchFilters(),
+          );
+        },
+      ),
+
+      GoRoute(
+        path: '/hotels/details',
+        builder: (context, state) {
+          final params = state.extra as Map<String, dynamic>? ?? {};
+          final hotel = params['hotel'] as Hotel;
+          return HotelDetailsScreen(
+            hotel: hotel,
+            initialCheckInDate: params['initialCheckInDate'] as DateTime?,
+            initialCheckOutDate: params['initialCheckOutDate'] as DateTime?,
+            initialAdults: params['initialAdults'] as int? ?? 1,
+            initialChildren: params['initialChildren'] as int? ?? 0,
+            initialRooms: params['initialRooms'] as int? ?? 1,
+          );
+        },
+      ),
     ],
     errorBuilder: (context, state) => Material(
       child: Scaffold(
